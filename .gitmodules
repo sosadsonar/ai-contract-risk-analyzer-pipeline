@@ -1,0 +1,3 @@
+[submodule "ai_pipeline/data"]
+	path = ai_pipeline/data
+	url = https://github.com/24021368-DucAnh/ai-contract-risk-analyzer.git

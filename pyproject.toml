@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contract-risk-analyzer"
+version = "0.1.0"
+description = "Hệ thống AI phân tích rủi ro hợp đồng lao động"
+authors = [
+    { name = "Ngọ Bùi Đức Anh", email = "24021368@vnu.edu.vn" },
+    { name = "Nguyễn Huy Minh", email = "24021572@vnu.edu.vn"},
+    { name = "Ngô Hoàng Nhật", email = "24021588@vnu.edu.vn" },
+    { name = "Cao Khắc Phan Sang", email = "24021612@vnu.edu.vn" },
+    { name = "Hoàng Phạm Anh Tú", email = "24021652@vnu.edu.vn" }
+
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    # AI & Core Pipeline
+    "pydantic>=2.0",        # Data validation & Structured Output (Cực quan trọng)
+    "ollama>=0.1.0",        # SDK gọi model Qwen-2.5 local
+    "requests>=2.31.0",     # Gọi REST API cho Gemini free tier
+    
+    # Backend & API (Cho nhóm Backend)
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    
+    # Utilities
+    "python-dotenv>=1.0.0", # Quản lý biến môi trường (.env)
+]
+
+[project.optional-dependencies]
+dev = [
+    "scikit-learn>=1.3.0",  # Dùng cho file eval_segmentation.py để tính F1
+    "pytest>=9.1.1",          # Viết unit test cho code
+    "ruff>=0.1.0",          # Linter & Formatter code siêu nhanh (Thay thế Flake8/Black)
+    "jupyter>=1.0.0",       # Để chạy các file .ipynb EDA dữ liệu
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*", "ai_pipeline*"]  # Chỉ đóng gói các module code thực thi
+exclude = ["frontend*", "notebooks*", "tests*", "docs*"]
+
+# --- CẤU HÌNH TOOL CHO TEAM ---
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [".git", "__pycache__", "venv", "env"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]  # Bật kiểm tra lỗi cơ bản và tự động sort import (I)
+ignore = []
+
+# Cấu hình Pytest
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]

@@ -1,0 +1,25 @@
+# Bỏ qua môi trường ảo Python
+venv/
+env/
+.venv/
+__pycache__/
+
+# BỎ QUA KHÔNG BAO GIỜ COMMIT API KEYS
+.env
+
+# Bỏ qua file model nặng (nếu chạy local Qwen)
+*.bin
+*.gguf
+*.pt
+*.safetensors
+
+# Bỏ qua file data thô / nháp quá nặng
+data/raw/
+*.pdf
+*.doc
+
+# Python build artifacts / packaging
+*.egg-info/
+*.egg
+build/
+dist/

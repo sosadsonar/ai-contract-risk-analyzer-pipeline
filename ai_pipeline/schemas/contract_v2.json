@@ -1,0 +1,22 @@
+{
+  "contract_id": "string",
+  "total_clauses": "integer",
+  "clauses": [
+    {
+      "clause_id": "string",
+      "clause_number": "string (e.g., 'Điều 3.1' or 'None')",
+      "span": {
+        "start_char": "integer",
+        "end_char": "integer"
+      },
+      "original_text": "string",
+      "clause_type": ["string (Array of multi-labels)"],
+      "type_scores": {
+        "LABEL_NAME": "float (0.0 to 1.0)"
+      },
+      "max_content_risk_tier": "string (HIGH, MEDIUM, BOILERPLATE)",
+      "review_zone": "string (RED, YELLOW, GREEN)",
+      "review_reason": "string (or null)"
+    }
+  ]
+}
