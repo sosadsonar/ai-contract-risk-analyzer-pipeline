@@ -74,3 +74,14 @@ Squash and merge
 Không dùng:
 git push --force
 
+
+10. Quy trình bump khi có data mới 
+cd ai_pipeline/data
+git fetch origin
+git log origin/main --oneline -5        # xem có gì mới, chọn đúng commit muốn lấy
+git checkout <sha-cụ-thể>               # pin vào 1 commit rõ ràng, không checkout "origin/main"
+cd ../..
+git status                              # sẽ thấy: modified: ai_pipeline/data (new commits)
+git add ai_pipeline/data
+git commit -m "chore: bump data submodule to <sha-ngắn> - <lý do, vd: clauses_v0.3 + taxonomy moi>"
+git push -u origin <nhánh-hiện-tại>
