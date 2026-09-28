@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "contract_v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_id", "schema_version", "taxonomy_version",
+               "multi_label_rule_version", "total_clauses", "clauses"],
+  "properties": {
+    "contract_id": {"type": "string"},
+    "schema_version": {"const": "2.0"},
+    "taxonomy_version": {"const": "v02"},
+    "multi_label_rule_version": {"const": "ml-v1"},
+    "total_clauses": {"type": "integer", "minimum": 0},
+    "clauses": {"type": "array", "items": {"$ref": "#/$defs/clause"}}
+  },
+  "$defs": {
+    "label": {"enum": ["JOB_INFO", "CONTRACT_TERM", "COMPENSATION_BENEFITS", "WORKING_TIME",
+                       "LEAVE", "INSURANCE_SAFETY", "WORKING_CONDITIONS", "TRAINING",
+                       "EMPLOYEE_OBLIGATIONS_DISCIPLINE", "EMPLOYER_RIGHTS_OBLIGATIONS",
+                       "TERMINATION", "OTHER"]},
+    "clause": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clause_id", "clause_number", "span", "original_text",
+                   "clause_type", "type_scores"],
+      "properties": {
+        "clause_id": {"type": "string"},
+        "clause_number": {"type": ["string", "null"]},
+        "span": {
+          "type": "object", "additionalProperties": false,
+          "required": ["start_char", "end_char"],
+          "properties": {
+            "start_char": {"type": "integer", "minimum": 0, "description": "inclusive"},
+            "end_char":   {"type": "integer", "minimum": 0, "description": "exclusive"}
+          }
+        },
+        "original_text": {"type": "string"},
+        "clause_type": {"type": "array", "minItems": 1, "maxItems": 3,
+                        "uniqueItems": true, "items": {"$ref": "#/$defs/label"}},
+        "type_scores": {
+          "type": "object",
+          "minProperties": 12, "maxProperties": 12,
+          "propertyNames": {"$ref": "#/$defs/label"},
+          "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    }
+  }
+}

@@ -2,10 +2,11 @@
 Service thật (không mock) cho bước Segmentation + Classification.
 
 Luồng xử lý:
-  raw_text --(LLM: Gemini hoặc Qwen/Ollama)--> danh sách clause thô (text + nhãn + score)
+  raw_text --(LLM: Gemini hoặc Qwen/Ollama)--> danh sách clause thô (text + score)
            --(tự tìm lại vị trí ký tự trong raw_text)--> gắn span
-           --(compute_clause_routing từ config/thresholds.py)--> gắn risk tier + review_zone
-           --> JSON đúng schema v2 (ai_pipeline/schemas/contract_v2.json)
+           --(resolve_multi_labels từ config/labeling.py)--> gắn clause_type
+           --(compute_clause_routing từ config/risk_routing.py)--> gắn risk tier + review_zone
+           --> JSON đúng schema v2 (ai_pipeline/schemas/clause_output_v2.json)
 
 Chạy thử: xem ai_pipeline/test_llm_pipeline.py
 """
@@ -13,10 +14,11 @@ Chạy thử: xem ai_pipeline/test_llm_pipeline.py
 import re
 from typing import Optional
 
-from config.thresholds import LABEL_DEFINITIONS, RISK_TAXONOMY_MAP, compute_clause_routing
+from config.taxonomy import CLAUSE_LABELS, LABEL_DEFINITIONS
+from config.labeling import resolve_multi_labels
+from config.risk_routing import compute_clause_routing
 from services.llm_clients import LLMClientError, get_llm_client
 
-CLAUSE_LABELS = list(RISK_TAXONOMY_MAP.keys())
 _LABEL_DEFS = "\n".join(f"- {k}: {v}" for k, v in LABEL_DEFINITIONS.items())
 
 SYSTEM_PROMPT = f"""Bạn là trợ lý pháp lý chuyên phân tích hợp đồng lao động tiếng Việt.
@@ -116,6 +118,15 @@ def extract_clauses(
         type_scores = c.get("type_scores", {}) or {}
         # Bỏ qua nhãn không nằm trong taxonomy (phòng khi LLM bịa nhãn) thay vì crash.
         type_scores = {k: v for k, v in type_scores.items() if k in CLAUSE_LABELS}
+        # Nhãn thiếu (LLM không chấm điểm) coi như score 0.0 để đủ 12 nhãn cho
+        # resolve_multi_labels/compute_clause_routing (validate_scores yêu cầu đủ bộ).
+        type_scores = {label: type_scores.get(label, 0.0) for label in CLAUSE_LABELS}
+
+        # clause_type luôn được TÍNH LẠI bằng rule đã đóng băng (ml-v1), không
+        # tin trực tiếp "clause_type" mà LLM tự liệt kê trong response.
+        clause_type = resolve_multi_labels(type_scores)
+        # routing dùng TOÀN BỘ type_scores (không chỉ các nhãn lọt vào clause_type)
+        # để không bỏ sót nhãn điểm thấp cần review — xem docstring risk_routing.py.
         routing_info = compute_clause_routing(type_scores)
 
         final_clauses.append(
@@ -124,7 +135,7 @@ def extract_clauses(
                 "clause_number": c.get("clause_number"),
                 "span": {"start_char": span[0], "end_char": span[1]} if span else None,
                 "original_text": clause_text,
-                "clause_type": c.get("clause_type", list(type_scores.keys())),
+                "clause_type": clause_type,
                 "type_scores": type_scores,
                 **routing_info,
             }
