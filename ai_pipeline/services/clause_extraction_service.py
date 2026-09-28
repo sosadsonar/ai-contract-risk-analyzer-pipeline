@@ -13,10 +13,11 @@ Chạy thử: xem ai_pipeline/test_llm_pipeline.py
 import re
 from typing import Optional
 
-from config.thresholds import RISK_TAXONOMY_MAP, compute_clause_routing
+from config.thresholds import LABEL_DEFINITIONS, RISK_TAXONOMY_MAP, compute_clause_routing
 from services.llm_clients import LLMClientError, get_llm_client
 
 CLAUSE_LABELS = list(RISK_TAXONOMY_MAP.keys())
+_LABEL_DEFS = "\n".join(f"- {k}: {v}" for k, v in LABEL_DEFINITIONS.items())
 
 SYSTEM_PROMPT = f"""Bạn là trợ lý pháp lý chuyên phân tích hợp đồng lao động tiếng Việt.
 
@@ -26,14 +27,7 @@ mỗi điều khoản theo đúng danh sách nhãn sau, không được bịa nh
 {", ".join(CLAUSE_LABELS)}
 
 Định nghĩa ngắn gọn từng nhãn:
-- JOB_DUTIES: chức danh, mô tả công việc, địa điểm làm việc.
-- WORKING_HOURS_LEAVE: thời giờ làm việc, nghỉ ngơi, phép năm, tăng ca.
-- COMPENSATION: lương, phụ cấp, thưởng, hoa hồng, hình thức trả lương.
-- BENEFITS_INSURANCE: bảo hiểm xã hội/y tế/thất nghiệp, phúc lợi khác.
-- CONFIDENTIALITY_IP: bảo mật thông tin, sở hữu trí tuệ, cam kết không cạnh tranh.
-- TERMINATION: điều kiện/thủ tục chấm dứt hợp đồng, thử việc, bồi thường khi chấm dứt.
-- DISPUTE_RESOLUTION: luật áp dụng, cơ quan giải quyết tranh chấp.
-- OTHER: điều khoản chung khác không thuộc các nhóm trên (hiệu lực hợp đồng, số bản...).
+{_LABEL_DEFS}
 
 QUAN TRỌNG:
 1. `original_text` PHẢI được copy CHÍNH XÁC nguyên văn (giữ nguyên dấu câu, khoảng

@@ -1,0 +1,258 @@
+[
+  {
+    "contract_id": "SYN-HD-002",
+    "raw_text": "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\nHỢP ĐỒNG LAO ĐỘNG\n\nĐiều 1. Chức danh và Công việc\nNgười lao động đảm nhận vị trí Nhân viên hành chính, làm việc tại văn phòng công ty.\nĐiều 2. Thời giờ làm việc và nghỉ phép\nNgười lao động làm việc 8 giờ/ngày, 5 ngày/tuần; được nghỉ phép năm 12 ngày có hưởng lương.\nĐiều 3. Tiền lương\nMức lương cơ bản là 9.000.000 đồng/tháng, trả vào ngày 05 hàng tháng qua chuyển khoản.\nĐiều 4. Chấm dứt hợp đồng\nMỗi bên có quyền đơn phương chấm dứt hợp đồng lao động nếu báo trước ít nhất 30 ngày bằng văn bản.",
+    "gold_clauses": [
+      {
+        "clause_id": "c1",
+        "start_offset": 83,
+        "end_offset": 198,
+        "label": [
+          "JOB_INFO"
+        ]
+      },
+      {
+        "clause_id": "c2",
+        "start_offset": 199,
+        "end_offset": 329,
+        "label": [
+          "WORKING_TIME",
+          "LEAVE"
+        ]
+      },
+      {
+        "clause_id": "c3",
+        "start_offset": 330,
+        "end_offset": 435,
+        "label": [
+          "COMPENSATION_BENEFITS"
+        ]
+      },
+      {
+        "clause_id": "c4",
+        "start_offset": 436,
+        "end_offset": 560,
+        "label": [
+          "TERMINATION"
+        ]
+      }
+    ]
+  },
+  {
+    "contract_id": "SYN-HD-003",
+    "raw_text": "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\nHỢP ĐỒNG LAO ĐỘNG\n\nĐiều 1. Vị trí công việc\nNgười lao động đảm nhận vị trí Lập trình viên Backend, chịu trách nhiệm phát triển hệ thống nội bộ.\nĐiều 2. Bảo mật thông tin và không cạnh tranh\nNgười lao động cam kết không tiết lộ mã nguồn, tài liệu kỹ thuật cho bên thứ ba trong và sau thời gian làm việc.\nĐiều 3. Chấm dứt hợp đồng trước hạn\nTrường hợp chấm dứt hợp đồng trước hạn, người lao động phải bàn giao toàn bộ mã nguồn, tài khoản hệ thống và không được làm việc cho đối thủ cạnh tranh trực tiếp trong vòng 12 tháng kể từ ngày nghỉ việc.\nĐiều 4. Bảo hiểm và phúc lợi\nCông ty đóng bảo hiểm xã hội, bảo hiểm y tế, bảo hiểm thất nghiệp đầy đủ theo quy định pháp luật.\nĐiều 5. Giải quyết tranh chấp\nMọi tranh chấp phát sinh được ưu tiên giải quyết thông qua thương lượng; nếu không thành, đưa ra Tòa án nhân dân có thẩm quyền.",
+    "gold_clauses": [
+      {
+        "clause_id": "c1",
+        "start_offset": 83,
+        "end_offset": 207,
+        "label": [
+          "JOB_INFO"
+        ]
+      },
+      {
+        "clause_id": "c2",
+        "start_offset": 208,
+        "end_offset": 366,
+        "label": [
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+        ]
+      },
+      {
+        "clause_id": "c3",
+        "start_offset": 367,
+        "end_offset": 606,
+        "label": [
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+          "TERMINATION"
+        ]
+      },
+      {
+        "clause_id": "c4",
+        "start_offset": 607,
+        "end_offset": 733,
+        "label": [
+          "INSURANCE_SAFETY"
+        ]
+      },
+      {
+        "clause_id": "c5",
+        "start_offset": 734,
+        "end_offset": 891,
+        "label": [
+          "OTHER"
+        ]
+      }
+    ]
+  },
+  {
+    "contract_id": "SYN-HD-004",
+    "raw_text": "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\nHỢP ĐỒNG LAO ĐỘNG\n\nĐiều 1. Công việc\nNgười lao động đảm nhận vị trí Nhân viên kinh doanh, phụ trách khu vực miền Bắc.\nĐiều 2. Lương và hoa hồng\nLương cứng 6.000.000 đồng/tháng cộng hoa hồng 5% trên doanh số bán hàng thực tế đạt được trong tháng.\nĐiều 3. Bảo hiểm xã hội\nCông ty thực hiện đóng bảo hiểm xã hội bắt buộc cho người lao động kể từ tháng làm việc thứ hai.\nĐiều 4. Giải quyết tranh chấp\nHai bên cam kết giải quyết tranh chấp trên tinh thần hợp tác; trường hợp cần thiết sẽ đề nghị hòa giải viên lao động hỗ trợ.\nĐiều 5. Điều khoản chung\nHợp đồng này có hiệu lực kể từ ngày ký, được lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau.",
+    "gold_clauses": [
+      {
+        "clause_id": "c1",
+        "start_offset": 83,
+        "end_offset": 181,
+        "label": [
+          "JOB_INFO"
+        ]
+      },
+      {
+        "clause_id": "c2",
+        "start_offset": 182,
+        "end_offset": 309,
+        "label": [
+          "COMPENSATION_BENEFITS"
+        ]
+      },
+      {
+        "clause_id": "c3",
+        "start_offset": 310,
+        "end_offset": 430,
+        "label": [
+          "INSURANCE_SAFETY"
+        ]
+      },
+      {
+        "clause_id": "c4",
+        "start_offset": 431,
+        "end_offset": 585,
+        "label": [
+          "OTHER"
+        ]
+      },
+      {
+        "clause_id": "c5",
+        "start_offset": 586,
+        "end_offset": 721,
+        "label": [
+          "OTHER"
+        ]
+      }
+    ]
+  },
+  {
+    "contract_id": "SYN-HD-005",
+    "raw_text": "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\nHỢP ĐỒNG LAO ĐỘNG\n\nĐiều 1. Công việc và địa điểm\nNgười lao động đảm nhận vị trí Công nhân vận hành máy tại Nhà máy số 2 của công ty.\nĐiều 2. Thời giờ làm việc theo ca\nNgười lao động làm việc theo ca luân phiên (ca ngày, ca đêm), mỗi ca 8 giờ, được nghỉ giữa ca 30 phút.\nĐiều 3. Thử việc và chấm dứt hợp đồng\nThời gian thử việc là 30 ngày; trong thời gian thử việc, mỗi bên có quyền chấm dứt việc thực hiện hợp đồng mà không cần báo trước.\nĐiều 4. Tiền lương làm thêm giờ\nNgười lao động làm thêm giờ được trả lương bằng 150% vào ngày thường, 200% vào ngày nghỉ hằng tuần.",
+    "gold_clauses": [
+      {
+        "clause_id": "c1",
+        "start_offset": 83,
+        "end_offset": 196,
+        "label": [
+          "JOB_INFO"
+        ]
+      },
+      {
+        "clause_id": "c2",
+        "start_offset": 197,
+        "end_offset": 333,
+        "label": [
+          "WORKING_TIME"
+        ]
+      },
+      {
+        "clause_id": "c3",
+        "start_offset": 334,
+        "end_offset": 502,
+        "label": [
+          "TERMINATION"
+        ]
+      },
+      {
+        "clause_id": "c4",
+        "start_offset": 503,
+        "end_offset": 634,
+        "label": [
+          "COMPENSATION_BENEFITS"
+        ]
+      }
+    ]
+  },
+  {
+    "contract_id": "SYN-HD-006",
+    "raw_text": "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\nHỢP ĐỒNG LAO ĐỘNG\n\nĐiều 1. Chức danh và nhiệm vụ\nNgười lao động đảm nhận vị trí Trưởng phòng Marketing, quản lý trực tiếp đội ngũ 5 nhân viên.\nĐiều 2. Lương, thưởng KPI\nLương cơ bản 20.000.000 đồng/tháng; thưởng hiệu suất (KPI) được tính theo quý dựa trên kết quả kinh doanh của phòng.\nĐiều 3. Bảo mật thông tin và sở hữu trí tuệ\nMọi chiến lược kinh doanh, dữ liệu khách hàng và tài liệu nội bộ đều thuộc quyền sở hữu của công ty; người lao động không được sao chép, chuyển giao cho bất kỳ bên thứ ba nào.\nĐiều 4. Giải quyết tranh chấp bằng trọng tài\nMọi tranh chấp phát sinh từ hợp đồng này sẽ được giải quyết tại Trung tâm Trọng tài Quốc tế Việt Nam (VIAC) theo quy tắc tố tụng trọng tài hiện hành.\nĐiều 5. Điều khoản thi hành\nHợp đồng có hiệu lực kể từ ngày hai bên ký tên, mọi sửa đổi bổ sung phải được lập thành văn bản.",
+    "gold_clauses": [
+      {
+        "clause_id": "c1",
+        "start_offset": 83,
+        "end_offset": 206,
+        "label": [
+          "JOB_INFO"
+        ]
+      },
+      {
+        "clause_id": "c2",
+        "start_offset": 207,
+        "end_offset": 349,
+        "label": [
+          "COMPENSATION_BENEFITS"
+        ]
+      },
+      {
+        "clause_id": "c3",
+        "start_offset": 350,
+        "end_offset": 569,
+        "label": [
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+        ]
+      },
+      {
+        "clause_id": "c4",
+        "start_offset": 570,
+        "end_offset": 764,
+        "label": [
+          "OTHER"
+        ]
+      },
+      {
+        "clause_id": "c5",
+        "start_offset": 765,
+        "end_offset": 889,
+        "label": [
+          "OTHER"
+        ]
+      }
+    ]
+  },
+  {
+    "contract_id": "SYN-HD-007",
+    "raw_text": "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\nHỢP ĐỒNG LAO ĐỘNG\n\nĐiều 1. Công việc thời vụ\nNgười lao động đảm nhận công việc đóng gói sản phẩm theo thời vụ tại xưởng sản xuất.\nĐiều 2. Thời giờ làm việc, nghỉ ngơi và phúc lợi\nNgười lao động làm việc không quá 8 giờ/ngày và 48 giờ/tuần, được nghỉ ít nhất 1 ngày/tuần, đồng thời được công ty hỗ trợ bữa ăn ca và bố trí xe đưa đón trong suốt thời gian hợp đồng thời vụ.\nĐiều 3. Chấm dứt hợp đồng thời vụ\nHợp đồng tự động chấm dứt khi hết thời hạn thời vụ đã thỏa thuận mà không cần thông báo trước.\nĐiều 4. Hiệu lực hợp đồng\nHợp đồng được lập thành 02 bản bằng tiếng Việt, có hiệu lực kể từ ngày ký.",
+    "gold_clauses": [
+      {
+        "clause_id": "c1",
+        "start_offset": 83,
+        "end_offset": 193,
+        "label": [
+          "JOB_INFO"
+        ]
+      },
+      {
+        "clause_id": "c2",
+        "start_offset": 194,
+        "end_offset": 434,
+        "label": [
+          "WORKING_TIME",
+          "LEAVE",
+          "COMPENSATION_BENEFITS"
+        ]
+      },
+      {
+        "clause_id": "c3",
+        "start_offset": 435,
+        "end_offset": 563,
+        "label": [
+          "TERMINATION"
+        ]
+      },
+      {
+        "clause_id": "c4",
+        "start_offset": 564,
+        "end_offset": 664,
+        "label": [
+          "OTHER"
+        ]
+      }
+    ]
+  }
+]

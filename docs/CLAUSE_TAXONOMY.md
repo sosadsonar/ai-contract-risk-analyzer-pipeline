@@ -1,42 +1,62 @@
-# Clause Taxonomy v1 — Contract Risk Analyzer
+# Clause Taxonomy v2 — Contract Risk Analyzer (12 nhãn)
 
 Owner: Người 1 – Clause AI Lead
-Trạng thái: v1 (chốt Tuần 1, có thể mở rộng nhãn ở Tuần 3–4 sau khi thấy dữ liệu thật)
-Nguồn chân lý (source of truth) trong code: `ai_pipeline/config/thresholds.py` (`RISK_TAXONOMY_MAP`). File này là bản giải thích/lý do đi kèm — nếu hai bên lệch nhau, code là bản đúng, tài liệu này cần cập nhật theo.
+Trạng thái: **v2 – ĐỀ XUẤT, chờ Người 2 (Data) và Người 3 (Risk AI) review** trước khi merge.
 
-## 1. Nguyên tắc thiết kế
+**Nguồn chân lý (source of truth):**
+- Danh sách nhãn + định nghĩa nội dung: `ai_pipeline/data/docs/clause_taxonomy_v02.md` (repo `data`, Người 2 sở hữu).
+- Tier rủi ro + ngưỡng: `ai_pipeline/config/thresholds.py` (`RISK_TAXONOMY_MAP`, `TIER_THRESHOLDS`).
+- Prompt của LLM **tự sinh** từ `LABEL_DEFINITIONS` trong `thresholds.py`, không sửa tay trong `clause_extraction_service.py`.
 
-- **Đa nhãn (multi-label):** một điều khoản có thể vừa là `COMPENSATION` vừa là `TERMINATION` (ví dụ: "nếu chấm dứt trước hạn, người lao động phải bồi hoàn chi phí đào tạo"). Không ép mỗi clause chỉ 1 nhãn.
-- **Phân loại theo nội dung trước, rủi ro tính sau:** `clause_type` trả lời "điều khoản này nói về cái gì", còn `max_content_risk_tier` / `review_zone` (tính từ `compute_clause_routing`) trả lời "có cần con người xem lại không". Hai tầng này tách biệt để không lẫn lộn giữa nhãn nội dung và mức độ tin cậy của model.
-- **8 nhãn ở v1, không cố phủ hết mọi trường hợp.** Nhãn `OTHER` là van an toàn cho các điều khoản không khớp 7 nhãn còn lại (hiệu lực hợp đồng, số bản hợp đồng, cam kết chung...), không dùng để "nhét bừa" các clause khó — nếu `OTHER` chiếm >15% dữ liệu ở lần review giữa kỳ, cần bổ sung nhãn mới.
+Nếu file này lệch với code, code là bản đúng và file này cần cập nhật.
 
-## 2. Bảng nhãn v1
+## 1. Vì sao đổi từ 8 nhãn (v1) sang 12 nhãn (v2)
 
-| Nhãn | Tier rủi ro | Định nghĩa | Ví dụ điển hình |
-|---|---|---|---|
-| `JOB_DUTIES` | BOILERPLATE | Chức danh, mô tả công việc, địa điểm làm việc, cấp trên trực tiếp | "Người lao động đảm nhận vị trí Lập trình viên, làm việc tại trụ sở chính." |
-| `WORKING_HOURS_LEAVE` | MEDIUM | Thời giờ làm việc, thời giờ nghỉ ngơi, ca kíp, tăng ca, phép năm | "Làm việc 8 tiếng/ngày, từ thứ 2 đến thứ 6; nghỉ phép 12 ngày/năm." |
-| `COMPENSATION` | MEDIUM | Lương, phụ cấp, thưởng, hoa hồng, thời hạn/hình thức trả lương | "Mức lương cơ bản 10.000.000 VNĐ, trả vào ngày 5 hàng tháng." |
-| `BENEFITS_INSURANCE` | MEDIUM | Bảo hiểm xã hội/y tế/thất nghiệp, phúc lợi khác (ăn trưa, xe đưa đón, khám sức khỏe) | "Công ty đóng BHXH, BHYT, BHTN theo quy định pháp luật." |
-| `CONFIDENTIALITY_IP` | HIGH | Bảo mật thông tin, sở hữu trí tuệ, cam kết không cạnh tranh (non-compete) | "Không được làm việc cho đối thủ cạnh tranh trong vòng 24 tháng sau khi nghỉ việc." |
-| `TERMINATION` | HIGH | Điều kiện/thủ tục chấm dứt hợp đồng, thời hạn báo trước, bồi thường khi chấm dứt trái luật, thử việc | "Mỗi bên có quyền đơn phương chấm dứt hợp đồng nếu báo trước 30 ngày." |
-| `DISPUTE_RESOLUTION` | MEDIUM | Luật áp dụng, cơ quan giải quyết tranh chấp (hòa giải, tòa án, trọng tài) | "Mọi tranh chấp được giải quyết tại Tòa án nhân dân có thẩm quyền." |
-| `OTHER` | BOILERPLATE | Điều khoản chung không thuộc 7 nhóm trên: hiệu lực hợp đồng, số bản, cam kết thực hiện | "Hợp đồng có hiệu lực kể từ ngày ký, lập thành 02 bản có giá trị như nhau." |
+v1 (8 nhãn) do Người 1 tự đặt ở Tuần 1 khi chưa có dữ liệu thật. Sau khi Người 2 annotate 140 clause của 3 hợp đồng pilot (HDLD001–003) thì bộ nhãn thực tế là 12 nhãn khác tên. Để test pipeline trên dữ liệu thật, hai bên phải dùng **cùng một bộ nhãn**, nên `ai_pipeline` đổi theo data (dữ liệu đã annotate, đắt hơn để làm lại).
 
-## 3. Vì sao xếp tier như vậy (rationale cho phần bảo vệ đồ án)
+## 2. Bảng nhãn v2
 
-- **HIGH (`CONFIDENTIALITY_IP`, `TERMINATION`):** hai nhóm này có khả năng gây hậu quả pháp lý/tài chính lớn và khó đảo ngược nhất cho người lao động (mất việc, bị ràng buộc không cạnh tranh, tranh chấp bồi thường). Ngưỡng tin cậy yêu cầu (t_low=0.70, t_high=0.90 trong `thresholds.py`) cao nhất — model phải rất chắc chắn mới được xanh (GREEN), nếu không sẽ đẩy sang review thủ công. Đây là lựa chọn "tấm khiên bi quan": thà báo động nhầm còn hơn bỏ sót điều khoản bất lợi nghiêm trọng.
-- **MEDIUM (`COMPENSATION`, `WORKING_HOURS_LEAVE`, `BENEFITS_INSURANCE`, `DISPUTE_RESOLUTION`):** ảnh hưởng trực tiếp quyền lợi kinh tế/thời gian nhưng thường có căn cứ pháp luật lao động rõ ràng để đối chiếu, sai sót ít khi nghiêm trọng bằng nhóm HIGH.
-- **BOILERPLATE (`JOB_DUTIES`, `OTHER`):** mang tính mô tả/thủ tục, hiếm khi tự thân gây bất lợi, nên ngưỡng tin cậy yêu cầu thấp nhất (t_low=0.50, t_high=0.65).
+| Nhãn | Tier (đề xuất) | Định nghĩa | SL trong data v0.2 |
+|---|---|---|---:|
+| `TERMINATION` | HIGH | Căn cứ, điều kiện, thủ tục, báo trước và hậu quả của việc chấm dứt HĐLĐ | 15 |
+| `TRAINING` | HIGH | Đào tạo, bồi dưỡng, cam kết sau đào tạo, hoàn trả chi phí đào tạo | 9 |
+| `EMPLOYEE_OBLIGATIONS_DISCIPLINE` | HIGH | Nghĩa vụ, kỷ luật, trách nhiệm vật chất, bồi thường, nghĩa vụ thuế của NLĐ | 20 |
+| `COMPENSATION_BENEFITS` | MEDIUM | Lương, phụ cấp, thưởng, nâng lương, công tác phí, chế độ/quyền lợi tài chính | 24 |
+| `WORKING_TIME` | MEDIUM | Giờ làm, lịch làm, ca làm, làm thêm giờ | 7 |
+| `LEAVE` | MEDIUM | Nghỉ hằng tuần, phép năm, lễ/Tết, nghỉ bù | 9 |
+| `INSURANCE_SAFETY` | MEDIUM | BHXH/BHYT/BHTN, an toàn và vệ sinh lao động | 7 |
+| `EMPLOYER_RIGHTS_OBLIGATIONS` | MEDIUM | Quyền và nghĩa vụ quản lý, điều hành của NSDLĐ | 16 |
+| `JOB_INFO` | BOILERPLATE | Công việc, chức danh, địa điểm, nhiệm vụ | 15 |
+| `CONTRACT_TERM` | BOILERPLATE | Loại và thời hạn HĐLĐ, ngày bắt đầu/kết thúc | 3 |
+| `WORKING_CONDITIONS` | BOILERPLATE | Công cụ, thiết bị, điều kiện vật chất phục vụ công việc | 3 |
+| `OTHER` | BOILERPLATE | Điều khoản thi hành, sửa đổi/phụ lục và nội dung không thuộc nhóm nào | 12 |
 
-## 4. Quy tắc gán nhãn khi mơ hồ (áp dụng khi annotate tay lẫn khi review output LLM)
+## 3. Vì sao xếp tier như vậy — VÀ những chỗ cần Người 3 chốt
 
-1. Một câu vừa mô tả công việc vừa có ràng buộc cạnh tranh → gán cả `JOB_DUTIES` và `CONFIDENTIALITY_IP`, không chỉ chọn 1.
-2. Điều khoản nói về "bồi thường khi đơn phương chấm dứt trái luật" → luôn có `TERMINATION`; nếu số tiền cụ thể được nêu, thêm cả `COMPENSATION`.
-3. Nếu không chắc giữa `OTHER` và một nhãn cụ thể, ưu tiên nhãn cụ thể; chỉ dùng `OTHER` khi thực sự không khớp nhãn nào.
-4. Ranh giới clause (span) lấy theo đơn vị "Điều" nếu văn bản có đánh số; nếu không đánh số rõ, lấy theo đoạn (paragraph) có chung một ý.
+Tier là quyết định **chính sách rủi ro**, không chỉ đổi tên nhãn. Người 1 đề xuất, Người 3 quyết định.
 
-## 5. Kế hoạch mở rộng (không làm ở Tuần 1)
+- **HIGH (`TERMINATION`, `TRAINING`, `EMPLOYEE_OBLIGATIONS_DISCIPLINE`):** hậu quả pháp lý/tài chính lớn, khó đảo ngược (mất việc, phải hoàn trả chi phí đào tạo, bị kỷ luật/bồi thường). Ngưỡng tin cậy cao nhất (t_low=0.70, t_high=0.90) theo nguyên tắc "tấm khiên bi quan": thà báo nhầm còn hơn bỏ sót.
+- **MEDIUM:** ảnh hưởng quyền lợi kinh tế/thời gian nhưng có căn cứ pháp luật rõ để đối chiếu.
+- **BOILERPLATE:** mô tả/thủ tục, hiếm khi tự thân bất lợi → ngưỡng thấp nhất.
 
-- Theo dõi tỷ lệ nhãn `OTHER` và các trường hợp multi-label >2 nhãn trong Weekly Note; nếu một cụm chủ đề lặp lại nhiều (ví dụ "đào tạo/bồi hoàn chi phí đào tạo") xuất hiện ≥10% dữ liệu, cân nhắc tách thành nhãn riêng ở v2.
-- Không đổi tên/xóa nhãn giữa kỳ khi đã có dữ liệu gán nhãn theo v1 — chỉ thêm nhãn mới để tránh phải làm lại toàn bộ annotation.
+**Câu hỏi mở cần chốt trong PR:**
+
+1. **Mất nhãn `CONFIDENTIALITY_IP` (v1 xếp HIGH) và `DISPUTE_RESOLUTION` (v1 xếp MEDIUM).** Bộ 12 nhãn không có 2 nhãn này (3 hợp đồng pilot không có clause nào thuộc loại này). Đề xuất tạm: bảo mật/không cạnh tranh → `EMPLOYEE_OBLIGATIONS_DISCIPLINE` (đã xếp HIGH để không hạ mức rủi ro so với v1); giải quyết tranh chấp → `OTHER`. **Người 2 xác nhận** guideline sẽ gán như vậy, hoặc thêm nhãn riêng khi data mở rộng (Tuần 3+).
+2. **`EMPLOYEE_OBLIGATIONS_DISCIPLINE` = HIGH** kéo tỉ lệ clause HIGH lên khoảng 31% (44/140) → nhiều clause vào diện review hơn. Người 3 cân nhắc giữa "không bỏ sót" và "khối lượng review".
+3. **`EMPLOYER_RIGHTS_OBLIGATIONS` = MEDIUM**: có thể chứa điều chuyển/đơn phương thay đổi — Người 3 xem có cần HIGH không.
+4. **`CONTRACT_TERM` = BOILERPLATE**: chỉ 3 clause, chưa đủ dữ liệu để đánh giá.
+
+## 4. Quy tắc gán nhãn
+
+Dùng nguyên quy tắc trong `ai_pipeline/data/docs/clause_taxonomy_v02.md` (Rule 1–6 và mục "phân biệt class dễ nhầm"). Tóm tắt những điểm ảnh hưởng trực tiếp tới pipeline:
+
+- Một **Điều** có thể chứa nhiều clause; câu multi-topic được tách (Rule 1, 2, 4).
+- `clause_text` **không gồm heading** "Điều X. Tên điều" (Rule 6) và không gồm phần hành chính (Rule 5).
+- Một dòng dữ liệu = một nhãn (CSV hiện là single-label); multi-label thể hiện bằng cách tách clause.
+
+## 5. Quy trình đổi taxonomy
+
+1. Mở PR `docs/...` hoặc `ai/...` mô tả thay đổi; **bắt buộc review của Người 1, 2, 3**.
+2. Sửa `LABEL_DEFINITIONS` **và** `RISK_TAXONOMY_MAP` trong `thresholds.py` (import sẽ lỗi ngay nếu hai bảng lệch nhau).
+3. Cập nhật file này và `test_pipeline.py`/`mock_clause_service.py` nếu có dùng nhãn cũ (`compute_clause_routing` báo lỗi khi gặp nhãn lạ).
+4. Không xóa/đổi tên nhãn khi đã có dữ liệu annotate theo bản trước mà chưa thống nhất với Người 2.
