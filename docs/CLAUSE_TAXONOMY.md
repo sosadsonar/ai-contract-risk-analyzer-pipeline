@@ -37,7 +37,7 @@ Tier là quyết định **chính sách rủi ro**, không chỉ đổi tên nh�
 
 - **HIGH (`TERMINATION`, `TRAINING`, `EMPLOYEE_OBLIGATIONS_DISCIPLINE`):** hậu quả pháp lý/tài chính lớn, khó đảo ngược (mất việc, phải hoàn trả chi phí đào tạo, bị kỷ luật/bồi thường). Ngưỡng tin cậy cao nhất (t_low=0.70, t_high=0.90) theo nguyên tắc "tấm khiên bi quan": thà báo nhầm còn hơn bỏ sót.
 - **MEDIUM:** ảnh hưởng quyền lợi kinh tế/thời gian nhưng có căn cứ pháp luật rõ để đối chiếu.
-- **BOILERPLATE:** mô tả/thủ tục, hiếm khi tự thân bất lợi → ngưỡng thấp nhất.
+- **LOW:** mô tả/thủ tục, hiếm khi tự thân bất lợi → ngưỡng thấp nhất.
 
 **Câu hỏi mở cần chốt trong PR:**
 
