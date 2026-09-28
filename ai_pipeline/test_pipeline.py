@@ -35,8 +35,8 @@ def run():
             "original_text": "Người lao động đảm nhận vị trí Lập trình viên. Trong trường hợp nghỉ việc, không được làm việc cho đối thủ cạnh tranh trong vòng 24 tháng.",
             # LLM dự đoán 2 nhãn và xuất ra độ tự tin (type_scores)
             "type_scores": {
-                "JOB_DUTIES": 0.98,
-                "CONFIDENTIALITY_IP": 0.85, 
+                "JOB_INFO": 0.98,
+                "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 0.85, 
                 "TERMINATION": 0.45
             }
         },
@@ -46,7 +46,7 @@ def run():
             "span": {"start_char": 315, "end_char": 409},
             "original_text": "Người lao động làm việc 8 tiếng một ngày, từ thứ 2 đến thứ 6.",
             "type_scores": {
-                "WORKING_HOURS_LEAVE": 0.92
+                "WORKING_TIME": 0.92
             }
         }
     ]
