@@ -9,7 +9,7 @@ git clone --recurse-submodules https://github.com/sosadsonar/ai-contract-risk-an
 cd ai-contract-risk-analyzer-pipeline
 
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -e .
+pip install -e .'[dev]'
 
 cp .env.example .env        # rồi điền GEMINI_API_KEY (hoặc dùng Qwen local qua Ollama)
 

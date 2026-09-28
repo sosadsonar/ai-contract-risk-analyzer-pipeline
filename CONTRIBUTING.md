@@ -55,19 +55,8 @@ source .venv/bin/activate
 .venv\Scripts\activate
 # Windows (PowerShell)
 .venv\Scripts\Activate.ps1
-
-pip install -e .
+pip install -e .'[dev]'
 ```
-
-Nếu chạy `test_llm_pipeline.py` báo `ModuleNotFoundError: No module named 'dotenv'`:
-
-```bash
-pip install python-dotenv
-```
-
-(và thêm `python-dotenv` vào `dependencies` trong `pyproject.toml` nếu chưa có).
-
----
 
 ## 2. Cấu hình `.env`
 
