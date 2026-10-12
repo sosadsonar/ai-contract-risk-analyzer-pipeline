@@ -25,6 +25,12 @@ class TaxonomyReviewTests(unittest.TestCase):
         self.assertNotIn('không cạnh tranh', taxonomy.LABEL_DEFINITIONS['EMPLOYEE_OBLIGATIONS_DISCIPLINE'])
         self.assertNotIn('giải quyết tranh chấp', taxonomy.LABEL_DEFINITIONS['OTHER'])
 
+    def test_employee_compliance_priority_is_explicit_from_section_4_4(self):
+        definition = taxonomy.LABEL_DEFINITIONS['EMPLOYEE_OBLIGATIONS_DISCIPLINE']
+        self.assertIn('tuân thủ hướng dẫn, giữ gìn thiết bị, phòng cháy', definition)
+        self.assertIn('topic chính trực tiếp là PPE/an toàn/bảo hiểm', definition)
+        self.assertIn('INSURANCE_SAFETY', definition)
+
     def test_definition_revision_is_explicit_and_label_vocabulary_is_unchanged(self):
         self.assertEqual(taxonomy.TAXONOMY_VERSION, 'v04')
         self.assertEqual(set(taxonomy.CLAUSE_LABELS), {
@@ -66,6 +72,11 @@ class ContextAuditTests(unittest.TestCase):
         row = dict(self.context, notes='')
         with self.assertRaisesRegex(ValueError, 'missing CONTEXT note'):
             auditor.validate_reference(row, self.raw)
+
+    def test_in_bounds_unrelated_context_is_rejected_against_reviewed_anchor(self):
+        row = dict(self.context, start_offset='0', end_offset='1')
+        with self.assertRaisesRegex(ValueError, 'reviewed context anchor mismatch'):
+            auditor.validate_context_reference(row, self.raw, self.context)
 
 
 if __name__ == '__main__':

@@ -30,7 +30,7 @@ risk routing hoặc kết quả model/evaluation.
 | INSURANCE_SAFETY | Bảo hiểm/mức đóng/an toàn/vệ sinh/PPE (§4.2) | Khớp |
 | WORKING_CONDITIONS | Công cụ/thiết bị/phương tiện/chỗ ăn-ở/điều kiện vật chất (§4.2) | Khớp |
 | TRAINING | Đào tạo/học nghề-văn hóa/cam kết/hoàn trả chi phí | Khớp |
-| EMPLOYEE_OBLIGATIONS_DISCIPLINE | Nghĩa vụ/kỷ luật/trách nhiệm vật chất/thuế; NLĐ phải bồi thường (§4.4/4.6) | Bỏ gán mặc định bảo mật/không cạnh tranh chưa được source v0.3 chốt |
+| EMPLOYEE_OBLIGATIONS_DISCIPLINE | Nghĩa vụ/kỷ luật/trách nhiệm vật chất/thuế; NLĐ phải bồi thường (§4.4/4.6) | Bổ sung ưu tiên nghĩa vụ tuân thủ hướng dẫn/giữ gìn thiết bị/phòng cháy; chủ đề trực tiếp PPE/an toàn/bảo hiểm dùng INSURANCE_SAFETY. Bỏ gán mặc định bảo mật/không cạnh tranh chưa được source v0.3 chốt |
 | EMPLOYER_RIGHTS_OBLIGATIONS | Quyền quản lý, nghĩa vụ thanh toán/đảm bảo; quyền yêu cầu bồi thường và NSDLĐ phải bồi thường NLĐ (§4.3/4.6) | Làm rõ hai hướng bồi thường và quản lý tổng quát có nhắc chấm dứt |
 | TERMINATION | Căn cứ/điều kiện/sa thải/chấm dứt/báo trước/hậu quả trực tiếp (§4.5) | Làm rõ sa thải và trọng tâm trực tiếp |
 | OTHER | Thi hành/số bản/sửa đổi/phụ lục/nội dung chưa có class; quyền chung NLĐ được bồi thường (§4.6) | Bỏ hiệu lực; bỏ gán mặc định giải quyết tranh chấp chưa được source chốt |
@@ -71,7 +71,10 @@ nhận. Không bịa mức/điều kiện bồi thường vào chỗ trống. Au
 source reference, offset và căn cứ taxonomy đang dùng; legal-risk gold là null.
 
 Kết quả script: 234 clause, 225 EXACT đã kiểm khớp sau gom khoảng trắng,
-9 CONTEXT có source reference hợp lệ. Giữ nguyên nội dung/nhãn của 183
+9 CONTEXT có source reference khớp anchor/phrase đã review trong script
+`data/scripts/build_context_offsets.py` của commit được pin. Script audit tái
+dựng các anchor từ v04 và so sánh offset v06; đoạn không rỗng nhưng không liên
+quan bị từ chối. Giữ nguyên nội dung/nhãn của 183
 annotation lịch sử khi đối chiếu v04 với v06; raw/data submodule không bị sửa.
 7 ca context reuse + 1 C027 taxonomy gap + 1 source text difference = 9.
 
@@ -111,9 +114,13 @@ python -m unittest discover -s tests -v
 python scripts/audit_data_lead.py --output docs/data_lead_span_audit.json
 ```
 
-8 test Data Lead pass; audit 9/9 pass. Submodule được pin cụ thể vào main
+10 test Data Lead pass; audit 9/9 pass. Submodule được pin cụ thể vào main
 data c325b43; không dùng `submodule update --remote` và không sửa file data
 từ repo pipeline.
+
+Report lưu cả hash file taxonomy thực tế đọc và hash Git blob canonical.
+Checkout Windows hiện có CRLF (`76b044…`), Git blob/release có LF (`964892…`);
+khác nhau ở xuống dòng. Không sửa file trong data submodule để đổi hash.
 
 Smoke test toàn pipeline chạy đúng thư mục `ai_pipeline/` vẫn thất bại:
 `ModuleNotFoundError: No module named 'config.risk_routing'`. File này chưa

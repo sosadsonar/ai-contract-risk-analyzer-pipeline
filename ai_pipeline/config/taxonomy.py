@@ -35,7 +35,9 @@ _DEFS = {
     "TRAINING": "đào tạo, bồi dưỡng, học nghề/học văn hóa, cam kết sau đào tạo và hoàn trả chi phí đào tạo.",
     "EMPLOYEE_OBLIGATIONS_DISCIPLINE": (
         "nghĩa vụ, kỷ luật, trách nhiệm vật chất, bồi thường (khi NLĐ phải bồi thường) và nghĩa vụ "
-        "thuế của người lao động."
+        "thuế của người lao động. Ưu tiên nhãn này khi trọng tâm là NLĐ phải "
+        "tuân thủ hướng dẫn, giữ gìn thiết bị, phòng cháy hoặc chấp hành quy định; "
+        "nếu topic chính trực tiếp là PPE/an toàn/bảo hiểm thì dùng INSURANCE_SAFETY."
     ),
     "EMPLOYER_RIGHTS_OBLIGATIONS": (
         "quyền và nghĩa vụ quản lý, điều hành của người sử dụng lao động (điều chuyển, quản lý, "

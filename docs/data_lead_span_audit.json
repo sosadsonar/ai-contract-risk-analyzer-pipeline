@@ -6,6 +6,8 @@
   "prompt_definition_version": "v04",
   "data_taxonomy_version": "v03",
   "taxonomy_source_sha256": "76b044a203878692a29c420b5c23f85c75048d14e93757f0889b420ed8dd51f3",
+  "taxonomy_source_git_blob_sha256": "964892d792e1257b779ee38aac540d3ee1b01fcbb333cd2bd18bca20ffe9d7e3",
+  "context_anchor_script_sha256": "9888d7b4378e521849c6902ea0b0183917996b993dce7aac6257cfe169c628b6",
   "clause_count": 234,
   "offset_quality_counts": {
     "EXACT": 225,

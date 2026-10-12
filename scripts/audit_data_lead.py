@@ -38,6 +38,18 @@ def validate_reference(row, raw):
     return quote
 
 
+def validate_context_reference(row, raw, expected):
+    quote = validate_reference(row, raw)
+    if (row['clause_id'] != expected['clause_id']
+            or row['contract_id'] != expected['contract_id']
+            or row['offset_quality'] != 'CONTEXT'
+            or expected['offset_quality'] != 'CONTEXT'
+            or (int(row['start_offset']), int(row['end_offset'])) !=
+               (int(expected['start_offset']), int(expected['end_offset']))):
+        raise ValueError(f"{row['clause_id']}: reviewed context anchor mismatch")
+    return quote
+
+
 def audit(data_root):
     processed = data_root / 'data/processed'
     legacy = read_csv(processed / 'clauses_v04.csv')
@@ -53,6 +65,13 @@ def audit(data_root):
                 raise ValueError(f"{row['clause_id']}: original annotation changed ({key})")
     raw_paths = {r['contract_id']: processed / 'raw_text' / (r['contract_id'] + '.txt') for r in rows}
     raw = {c:p.read_text(encoding='utf-8') for c,p in raw_paths.items()}
+    anchor_script = data_root / 'scripts/build_context_offsets.py'
+    anchor_spec = importlib.util.spec_from_file_location('reviewed_context_anchors', anchor_script)
+    anchors = importlib.util.module_from_spec(anchor_spec)
+    anchor_spec.loader.exec_module(anchors)
+    # Reconstruct from the historical rows and pinned reviewed source anchors.
+    # Merely pointing to a nonblank in-bounds slice cannot certify association.
+    expected = {r['clause_id']: r for r in anchors.fill_context_offsets(legacy, raw)}
     for row in rows:
         validate_reference(row, raw[row['contract_id']])
     cases = []
@@ -66,7 +85,7 @@ def audit(data_root):
         cases.append({'clause_id':row['clause_id'],'contract_id':row['contract_id'],
                       'clause_type':row['clause_type'],'clause_text':row['clause_text'],
                       'start_offset':int(row['start_offset']),'end_offset':int(row['end_offset']),
-                      'source_quote':validate_reference(row,raw[row['contract_id']]),
+                      'source_quote':validate_context_reference(row,raw[row['contract_id']],expected[row['clause_id']]),
                       'raw_text_sha256':hashlib.sha256(raw_paths[row['contract_id']].read_bytes()).hexdigest(),
                       'source_notes':row['notes'],'audit_reason':reason,
                       'source_reference_verified':True,'exact_span_eligible':False,
@@ -79,17 +98,22 @@ def audit(data_root):
     dataset = processed / 'clauses_v06.csv'
     revision = None
     clean = None
+    taxonomy_blob_hash = None
     try:
         top = subprocess.check_output(['git','-C',str(data_root),'rev-parse','--show-toplevel'],text=True,stderr=subprocess.DEVNULL).strip()
         if Path(top).resolve() == data_root.resolve():
             revision = subprocess.check_output(['git','-C',str(data_root),'rev-parse','HEAD'],text=True).strip()
             clean = not subprocess.check_output(['git','-C',str(data_root),'status','--porcelain','--untracked-files=no'],text=True).strip()
+            taxonomy_blob = subprocess.check_output(['git','-C',str(data_root),'show',revision+':docs/clause_taxonomy_v03.md'])
+            taxonomy_blob_hash = hashlib.sha256(taxonomy_blob).hexdigest()
     except (OSError, subprocess.CalledProcessError):
         pass  # An unpacked release can still be audited by its recorded file hashes.
     return {'source_data_commit':revision,'source_worktree_clean':clean,
             'dataset':'clauses_v06.csv','dataset_sha256':hashlib.sha256(dataset.read_bytes()).hexdigest(),
             'prompt_definition_version':taxonomy.TAXONOMY_VERSION,'data_taxonomy_version':'v03',
             'taxonomy_source_sha256':hashlib.sha256((data_root / 'docs/clause_taxonomy_v03.md').read_bytes()).hexdigest(),
+            'taxonomy_source_git_blob_sha256':taxonomy_blob_hash,
+            'context_anchor_script_sha256':hashlib.sha256(anchor_script.read_bytes()).hexdigest(),
             'clause_count':len(rows),'offset_quality_counts':dict(Counter(r['offset_quality'] for r in rows)),
             'preserved_legacy_annotation_count':len(legacy),
             'audited_unmatched_count':len(cases),'reason_counts':dict(Counter(c['audit_reason'] for c in cases)),
