@@ -16,7 +16,9 @@ test_llm_pipeline) có chủ đích. Không sửa "âm thầm".
 
 from types import MappingProxyType
 
-TAXONOMY_VERSION = "v03"
+# v04 is a prompt-definition revision; the unchanged data vocabulary/semantics
+# remain clause_taxonomy_v03.md. See docs/DATA_LEAD_REVIEW_V03.md.
+TAXONOMY_VERSION = "v04"
 
 # Nhãn -> định nghĩa ngắn cho LLM. Thứ tự = thứ tự hiển thị trong prompt.
 _DEFS = {
@@ -33,17 +35,18 @@ _DEFS = {
     "TRAINING": "đào tạo, bồi dưỡng, học nghề/học văn hóa, cam kết sau đào tạo và hoàn trả chi phí đào tạo.",
     "EMPLOYEE_OBLIGATIONS_DISCIPLINE": (
         "nghĩa vụ, kỷ luật, trách nhiệm vật chất, bồi thường (khi NLĐ phải bồi thường) và nghĩa vụ "
-        "thuế của người lao động (kể cả cam kết bảo mật/không cạnh tranh nếu có)."
+        "thuế của người lao động."
     ),
     "EMPLOYER_RIGHTS_OBLIGATIONS": (
         "quyền và nghĩa vụ quản lý, điều hành của người sử dụng lao động (điều chuyển, quản lý, "
-        "yêu cầu bồi thường, và nghĩa vụ thanh toán/đảm bảo các chế độ đã thỏa thuận)."
+        "yêu cầu bồi thường, phải bồi thường cho NLĐ, và nghĩa vụ thanh toán/đảm bảo "
+        "các chế độ đã thỏa thuận). Nếu chấm dứt chỉ là một phần trong danh sách "
+        "quyền quản lý tổng quát thì vẫn dùng nhãn này."
     ),
-    "TERMINATION": "căn cứ, điều kiện, thủ tục, thời hạn báo trước và hậu quả của việc chấm dứt hợp đồng lao động.",
+    "TERMINATION": "căn cứ, điều kiện, sa thải/chấm dứt, thủ tục, thời hạn báo trước và hậu quả trực tiếp của việc chấm dứt hợp đồng lao động.",
     "OTHER": (
-        "điều khoản thi hành, sửa đổi/phụ lục, số bản, hiệu lực và các nội dung không thuộc "
-        "các nhóm trên (kể cả giải quyết tranh chấp và quyền được bồi thường của NLĐ khi chưa có "
-        "class chuyên biệt, nếu có)."
+        "điều khoản thi hành, sửa đổi/phụ lục, số bản và các nội dung chưa có class phù hợp "
+        "(quyền được bồi thường của NLĐ khi chưa có class chuyên biệt)."
     ),
 }
 

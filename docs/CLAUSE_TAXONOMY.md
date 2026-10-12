@@ -3,13 +3,21 @@
 Owner: Người 1 – Clause AI Lead
 Trạng thái: **v2 – ĐỀ XUẤT, chờ Người 2 (Data) và Người 3 (Risk AI) review** trước khi merge.
 
+Data review ngày 12/10/2026 được lưu tại `DATA_LEAD_REVIEW_V03.md` cùng
+`data_lead_span_audit.json`. Nhánh review sửa định nghĩa prompt thành revision
+`TAXONOMY_VERSION=v04`, giữ nguyên 12 nhãn/semantics data v0.3; submodule pin
+main data `c325b43` (v06, 234 clause). Risk tier và ngưỡng vẫn chờ Risk AI chốt.
+
 **Nguồn chân lý (source of truth):**
 - Danh sách nhãn + định nghĩa nội dung: `ai_pipeline/data/docs/clause_taxonomy_v03.md` (repo `data`, Người 2 sở hữu).
 - Nhãn + định nghĩa dùng trong code, rule multi-label: `ai_pipeline/config/taxonomy.py` (`LABEL_DEFINITIONS`) và `ai_pipeline/config/labeling.py` (`MultiLabelRule`, `resolve_multi_labels`) — của Người 1, đóng băng.
 - Tier rủi ro + ngưỡng: `ai_pipeline/config/risk_routing.py` (`RISK_TAXONOMY_MAP`, `TIER_THRESHOLDS`) — của Người 3, tự chốt khi sign-off.
 - Prompt của LLM **tự sinh** từ `LABEL_DEFINITIONS` trong `taxonomy.py`, không sửa tay trong `clause_extraction_service.py`.
 
-Nếu file này lệch với code, code là bản đúng và file này cần cập nhật.
+Semantics nhãn phải theo source data v0.3. Nếu code hoặc tài liệu này lệch
+source đó, cần sửa qua PR review có chủ đích; version code là bằng chứng
+phiên bản triển khai, không thay thế nguồn semantics. Tier/ngưỡng vẫn thuộc
+quyết định được Risk AI sign-off.
 
 ## 1. Vì sao đổi từ 8 nhãn (v1) sang 12 nhãn (v2)
 
@@ -42,14 +50,14 @@ Tier là quyết định **chính sách rủi ro**, không chỉ đổi tên nh�
 
 **Câu hỏi mở cần chốt trong PR:**
 
-1. **Mất nhãn `CONFIDENTIALITY_IP` (v1 xếp HIGH) và `DISPUTE_RESOLUTION` (v1 xếp MEDIUM).** Bộ 12 nhãn không có 2 nhãn này (3 hợp đồng pilot không có clause nào thuộc loại này). Đề xuất tạm: bảo mật/không cạnh tranh → `EMPLOYEE_OBLIGATIONS_DISCIPLINE` (đã xếp HIGH để không hạ mức rủi ro so với v1); giải quyết tranh chấp → `OTHER`. **Người 2 xác nhận** guideline sẽ gán như vậy, hoặc thêm nhãn riêng khi data mở rộng (Tuần 3+).
+1. **Mất nhãn `CONFIDENTIALITY_IP` và `DISPUTE_RESOLUTION` của v1.** Đề xuất mapping bảo mật/không cạnh tranh và giải quyết tranh chấp chưa được source data v0.3 chốt. Nhánh Data review bỏ gán mặc định các topic đó khỏi định nghĩa prompt; nhóm vẫn cần chốt guideline khi nhận mẫu có các topic này. Không dùng một mapping đề xuất để suy ra mức rủi ro pháp lý.
 2. **`EMPLOYEE_OBLIGATIONS_DISCIPLINE` = HIGH** kéo tỉ lệ clause HIGH lên khoảng 31% (44/140) → nhiều clause vào diện review hơn. Người 3 cân nhắc giữa "không bỏ sót" và "khối lượng review".
 3. **`EMPLOYER_RIGHTS_OBLIGATIONS` = MEDIUM**: có thể chứa điều chuyển/đơn phương thay đổi — Người 3 xem có cần HIGH không.
 4. **`CONTRACT_TERM` = BOILERPLATE**: chỉ 3 clause, chưa đủ dữ liệu để đánh giá.
 
 ## 4. Quy tắc gán nhãn
 
-Dùng nguyên quy tắc trong `ai_pipeline/data/docs/clause_taxonomy_v02.md` (Rule 1–6 và mục "phân biệt class dễ nhầm"). Tóm tắt những điểm ảnh hưởng trực tiếp tới pipeline:
+Dùng taxonomy `ai_pipeline/data/docs/clause_taxonomy_v03.md` và annotation guideline v1.0, đặc biệt mục phân biệt class dễ nhầm. Tóm tắt những điểm ảnh hưởng trực tiếp tới pipeline:
 
 - Một **Điều** có thể chứa nhiều clause; câu multi-topic được tách (Rule 1, 2, 4).
 - `clause_text` **không gồm heading** "Điều X. Tên điều" (Rule 6) và không gồm phần hành chính (Rule 5).
