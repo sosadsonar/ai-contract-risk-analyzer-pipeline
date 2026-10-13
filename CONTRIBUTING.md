@@ -6,11 +6,13 @@ Dữ liệu nằm ở **repo riêng** (`data`, do Người 2 quản lý) và đ�
 ```
 ai-contract-risk-analyzer-pipeline/     <- repo này (code)
 ├── ai_pipeline/
-│   ├── config/         thresholds.py  (taxonomy 12 nhãn, tier rủi ro, ngưỡng)
+│   ├── config/         taxonomy.py (12 nhãn, đóng băng), labeling.py (rule multi-label, đóng băng),
+│   │                   risk_routing.py (tier rủi ro, ngưỡng, của Risk AI)
 │   ├── services/       clause_extraction_service.py, llm_clients.py, mock_clause_service.py
 │   ├── utils/          text_processing.py
 │   ├── eval/           eval_segmentation.py, fixtures/ (dữ liệu tổng hợp để smoke-test)
-│   ├── schemas/        contract_v2.json
+│   ├── schemas/        clause_output_v2.json, risk_output_v1.json, explanation_output_v1.json,
+│   │                   analysis_response_v1.json
 │   ├── test_pipeline.py, test_llm_pipeline.py
 │   └── data/           <- SUBMODULE = repo `data` (chỉ đọc từ repo này)
 ├── docs/               CLAUSE_TAXONOMY.md, DATA_PLAN.md
@@ -97,7 +99,7 @@ Copy-Item .env.example .env
 
 ## 3. Chạy thử
 
-Các script test import theo kiểu `from config.thresholds import ...` nên **phải chạy từ trong thư mục `ai_pipeline/`**:
+Các script test import theo kiểu `from config.taxonomy import ...` / `from config.risk_routing import ...` nên **phải chạy từ trong thư mục `ai_pipeline/`**:
 
 ```bash
 cd ai_pipeline
@@ -242,6 +244,6 @@ Kiểm tra đang pin commit nào: `git submodule status` (ký tự `+` đầu d�
 Taxonomy ảnh hưởng đến 3 người (Người 1: prompt/pipeline, Người 2: annotation, Người 3: risk tier), nên:
 
 1. Mở PR riêng (`docs/...` hoặc `ai/...`), **review bắt buộc của Người 1, 2, 3**.
-2. Sửa `LABEL_DEFINITIONS` **và** `RISK_TAXONOMY_MAP` trong `ai_pipeline/config/thresholds.py`. Prompt của LLM tự sinh từ đây; import lỗi ngay nếu hai bảng lệch nhau.
+2. Sửa `LABEL_DEFINITIONS` trong `ai_pipeline/config/taxonomy.py` (Người 1, đóng băng) **và** `RISK_TAXONOMY_MAP` trong `ai_pipeline/config/risk_routing.py` (Người 3, tự chốt). Prompt của LLM tự sinh từ `taxonomy.py`; import `risk_routing.py` lỗi ngay nếu hai bảng lệch nhau.
 3. Cập nhật `docs/CLAUSE_TAXONOMY.md`, và các file dùng nhãn cứng (`test_pipeline.py`, `mock_clause_service.py`, `eval/fixtures/build_synthetic.py`).
 4. Không xóa/đổi tên nhãn khi đã có dữ liệu annotate theo bản cũ mà chưa thống nhất với Người 2.

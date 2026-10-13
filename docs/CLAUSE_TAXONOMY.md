@@ -4,9 +4,10 @@ Owner: Người 1 – Clause AI Lead
 Trạng thái: **v2 – ĐỀ XUẤT, chờ Người 2 (Data) và Người 3 (Risk AI) review** trước khi merge.
 
 **Nguồn chân lý (source of truth):**
-- Danh sách nhãn + định nghĩa nội dung: `ai_pipeline/data/docs/clause_taxonomy_v02.md` (repo `data`, Người 2 sở hữu).
-- Tier rủi ro + ngưỡng: `ai_pipeline/config/thresholds.py` (`RISK_TAXONOMY_MAP`, `TIER_THRESHOLDS`).
-- Prompt của LLM **tự sinh** từ `LABEL_DEFINITIONS` trong `thresholds.py`, không sửa tay trong `clause_extraction_service.py`.
+- Danh sách nhãn + định nghĩa nội dung: `ai_pipeline/data/docs/clause_taxonomy_v03.md` (repo `data`, Người 2 sở hữu).
+- Nhãn + định nghĩa dùng trong code, rule multi-label: `ai_pipeline/config/taxonomy.py` (`LABEL_DEFINITIONS`) và `ai_pipeline/config/labeling.py` (`MultiLabelRule`, `resolve_multi_labels`) — của Người 1, đóng băng.
+- Tier rủi ro + ngưỡng: `ai_pipeline/config/risk_routing.py` (`RISK_TAXONOMY_MAP`, `TIER_THRESHOLDS`) — của Người 3, tự chốt khi sign-off.
+- Prompt của LLM **tự sinh** từ `LABEL_DEFINITIONS` trong `taxonomy.py`, không sửa tay trong `clause_extraction_service.py`.
 
 Nếu file này lệch với code, code là bản đúng và file này cần cập nhật.
 
@@ -57,6 +58,6 @@ Dùng nguyên quy tắc trong `ai_pipeline/data/docs/clause_taxonomy_v02.md` (Ru
 ## 5. Quy trình đổi taxonomy
 
 1. Mở PR `docs/...` hoặc `ai/...` mô tả thay đổi; **bắt buộc review của Người 1, 2, 3**.
-2. Sửa `LABEL_DEFINITIONS` **và** `RISK_TAXONOMY_MAP` trong `thresholds.py` (import sẽ lỗi ngay nếu hai bảng lệch nhau).
+2. Sửa `LABEL_DEFINITIONS` trong `taxonomy.py` (của Người 1) **và** `RISK_TAXONOMY_MAP` trong `risk_routing.py` (của Người 3) — import `risk_routing.py` sẽ lỗi ngay nếu hai bảng lệch nhau.
 3. Cập nhật file này và `test_pipeline.py`/`mock_clause_service.py` nếu có dùng nhãn cũ (`compute_clause_routing` báo lỗi khi gặp nhãn lạ).
 4. Không xóa/đổi tên nhãn khi đã có dữ liệu annotate theo bản trước mà chưa thống nhất với Người 2.

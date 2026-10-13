@@ -1,5 +1,7 @@
 import json
-from config.thresholds import compute_clause_routing
+from config.taxonomy import CLAUSE_LABELS
+from config.labeling import resolve_multi_labels
+from config.risk_routing import compute_clause_routing
 from utils.text_processing import document_router
 
 # 1. Input: Văn bản hợp đồng thô (giả lập từ OCR/PDF)
@@ -62,11 +64,16 @@ def run():
     }
 
     for clause in mock_llm_extracted_clauses:
-        # Gọi hàm logic từ config/thresholds.py
-        routing_info = compute_clause_routing(clause["type_scores"])
-        
-        # Cập nhật thông tin vào clause
-        clause["clause_type"] = list(clause["type_scores"].keys())
+        # Điền đủ 12 nhãn (score 0.0 cho nhãn LLM không chấm) để đủ điều kiện
+        # cho resolve_multi_labels/compute_clause_routing (validate_scores).
+        full_scores = {label: clause["type_scores"].get(label, 0.0) for label in CLAUSE_LABELS}
+        clause["type_scores"] = full_scores
+
+        # Gọi hàm logic từ config/labeling.py (rule đã đóng băng ml-v1)
+        clause["clause_type"] = resolve_multi_labels(full_scores)
+
+        # Gọi hàm logic từ config/risk_routing.py
+        routing_info = compute_clause_routing(full_scores)
         clause.update(routing_info)
         final_output["clauses"].append(clause)
 

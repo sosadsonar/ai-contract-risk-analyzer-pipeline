@@ -5,7 +5,7 @@ smoke-test eval_segmentation.py và pipeline mà KHÔNG cần data thật/submod
 ⚠️ Đây KHÔNG phải golden set. Golden set thật (từ HDLD001-003 của Người 2) nằm ở
 ai_pipeline/data/ (submodule). Đừng dùng số liệu trên bộ này để báo cáo KPI.
 
-Nhãn dùng taxonomy 12 nhãn (ai_pipeline/config/thresholds.py). Nhãn được chuyển từ
+Nhãn dùng taxonomy 12 nhãn (ai_pipeline/config/taxonomy.py). Nhãn được chuyển từ
 taxonomy 8 nhãn cũ theo phán đoán của Người 1 (không có ai annotate lại), vì vậy
 chỉ dùng bộ này để kiểm tra span/định dạng, không dùng để đo độ chính xác phân loại.
 
