@@ -182,6 +182,156 @@
         }
       ]
     },
+    "CLAUSE": {
+      "source": "CLAUSE_TAXONOMY.md",
+      "split_level": 2,
+      "raw_chars": 2744,
+      "clean_chars": 2735,
+      "chunks": [
+        {
+          "file": "00_clause-taxonomy-contract-risk-analyzer-12-nhan.md",
+          "title": "Clause Taxonomy — Contract Risk Analyzer (12 nhãn)",
+          "path": "Clause Taxonomy — Contract Risk Analyzer (12 nhãn)",
+          "chars": 276,
+          "ids": []
+        },
+        {
+          "file": "01_1-nguon-chan-ly.md",
+          "title": "1. Nguồn chân lý",
+          "path": "Clause Taxonomy — Contract Risk Analyzer (12 nhãn) > 1. Nguồn chân lý",
+          "chars": 791,
+          "ids": []
+        },
+        {
+          "file": "02_2-phien-ban.md",
+          "title": "2. Phiên bản",
+          "path": "Clause Taxonomy — Contract Risk Analyzer (12 nhãn) > 2. Phiên bản",
+          "chars": 613,
+          "ids": []
+        },
+        {
+          "file": "03_3-cau-hoi-con-mo-can-nhom-chot-truoc-ms-1.md",
+          "title": "3. Câu hỏi còn mở (cần nhóm chốt trước MS-1)",
+          "path": "Clause Taxonomy — Contract Risk Analyzer (12 nhãn) > 3. Câu hỏi còn mở (cần nhóm chốt trước MS-1)",
+          "chars": 586,
+          "ids": []
+        },
+        {
+          "file": "04_4-quy-trinh-doi-taxonomy.md",
+          "title": "4. Quy trình đổi taxonomy",
+          "path": "Clause Taxonomy — Contract Risk Analyzer (12 nhãn) > 4. Quy trình đổi taxonomy",
+          "chars": 469,
+          "ids": []
+        }
+      ]
+    },
+    "DATA": {
+      "source": "DATA_LEAD_REVIEW_V03.md",
+      "split_level": 2,
+      "raw_chars": 8173,
+      "clean_chars": 8162,
+      "chunks": [
+        {
+          "file": "00_data-lead-review-cho-pr-2-12-10-2026.md",
+          "title": "Data Lead review cho PR #2 — 12/10/2026",
+          "path": "Data Lead review cho PR #2 — 12/10/2026",
+          "chars": 423,
+          "ids": []
+        },
+        {
+          "file": "01_ket-qua-hai-phan-viec-data-lead.md",
+          "title": "Kết quả hai phần việc Data Lead",
+          "path": "Data Lead review cho PR #2 — 12/10/2026 > Kết quả hai phần việc Data Lead",
+          "chars": 510,
+          "ids": []
+        },
+        {
+          "file": "02_doi-chieu-taxonomy.md",
+          "title": "Đối chiếu taxonomy",
+          "path": "Data Lead review cho PR #2 — 12/10/2026 > Đối chiếu taxonomy",
+          "chars": 2372,
+          "ids": []
+        },
+        {
+          "file": "03_audit-9-unmatched-span.md",
+          "title": "Audit 9 unmatched span",
+          "path": "Data Lead review cho PR #2 — 12/10/2026 > Audit 9 unmatched span",
+          "chars": 2275,
+          "ids": []
+        },
+        {
+          "file": "04_tien-do-tuan-5-so-voi-ke-hoach-goc.md",
+          "title": "Tiến độ tuần 5 so với kế hoạch gốc",
+          "path": "Data Lead review cho PR #2 — 12/10/2026 > Tiến độ tuần 5 so với kế hoạch gốc",
+          "chars": 1307,
+          "ids": []
+        },
+        {
+          "file": "05_kiem-thu-va-blockers-tich-hop.md",
+          "title": "Kiểm thử và blockers tích hợp",
+          "path": "Data Lead review cho PR #2 — 12/10/2026 > Kiểm thử và blockers tích hợp",
+          "chars": 1275,
+          "ids": []
+        }
+      ]
+    },
+    "data-plan": {
+      "source": "DATA_PLAN.md",
+      "split_level": 2,
+      "raw_chars": 4671,
+      "clean_chars": 4658,
+      "chunks": [
+        {
+          "file": "00_data-plan-contract-risk-analyzer.md",
+          "title": "Data Plan — Contract Risk Analyzer",
+          "path": "Data Plan — Contract Risk Analyzer",
+          "chars": 313,
+          "ids": []
+        },
+        {
+          "file": "01_1-nguon-chan-ly-ve-du-lieu-danh-gia.md",
+          "title": "1. Nguồn chân lý về dữ liệu đánh giá",
+          "path": "Data Plan — Contract Risk Analyzer > 1. Nguồn chân lý về dữ liệu đánh giá",
+          "chars": 580,
+          "ids": []
+        },
+        {
+          "file": "02_2-hien-trang-dataset-kiem-ngay-12-17-10-2026.md",
+          "title": "2. Hiện trạng dataset (kiểm ngày 12–17/10/2026)",
+          "path": "Data Plan — Contract Risk Analyzer > 2. Hiện trạng dataset (kiểm ngày 12–17/10/2026)",
+          "chars": 1298,
+          "ids": []
+        },
+        {
+          "file": "03_3-annotation-guideline-giu-lai-dong-bang-o-ms-1.md",
+          "title": "3. Annotation guideline (giữ lại; đóng băng ở MS-1)",
+          "path": "Data Plan — Contract Risk Analyzer > 3. Annotation guideline (giữ lại; đóng băng ở MS-1)",
+          "chars": 1152,
+          "ids": []
+        },
+        {
+          "file": "04_4-dung-dataset-nay-trong-pipeline-moi-can-nhom-cho.md",
+          "title": "4. Dùng dataset này trong pipeline mới (cần nhóm chốt)",
+          "path": "Data Plan — Contract Risk Analyzer > 4. Dùng dataset này trong pipeline mới (cần nhóm chốt)",
+          "chars": 619,
+          "ids": []
+        },
+        {
+          "file": "05_5-versioning-du-lieu.md",
+          "title": "5. Versioning dữ liệu",
+          "path": "Data Plan — Contract Risk Analyzer > 5. Versioning dữ liệu",
+          "chars": 348,
+          "ids": []
+        },
+        {
+          "file": "06_6-con-mo.md",
+          "title": "6. Còn mở",
+          "path": "Data Plan — Contract Risk Analyzer > 6. Còn mở",
+          "chars": 348,
+          "ids": []
+        }
+      ]
+    },
     "SDD": {
       "source": "SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md",
       "split_level": 1,
