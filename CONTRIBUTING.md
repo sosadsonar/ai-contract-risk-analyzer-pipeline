@@ -6,13 +6,12 @@ Dữ liệu nằm ở **repo riêng** (`data`, do Người 2 quản lý) và đ�
 ```
 ai-contract-risk-analyzer-pipeline/     <- repo này (code)
 ├── ai_pipeline/
-│   ├── config/         taxonomy.py (12 nhãn, đóng băng), labeling.py (rule multi-label, đóng băng),
-│   │                   risk_routing.py (tier rủi ro, ngưỡng, của Risk AI)
+│   ├── config/         taxonomy.py (12 nhãn, TAXONOMY_VERSION=v04, đóng băng), labeling.py (còn type_scores/tier cũ,
+│   │                   sẽ chỉ còn validate 1–3 nhãn — SRS C-03). risk_routing.py (tier) KHÔNG có trong repo và sẽ bị bỏ
 │   ├── services/       clause_extraction_service.py, llm_clients.py, mock_clause_service.py
 │   ├── utils/          text_processing.py
 │   ├── eval/           eval_segmentation.py, fixtures/ (dữ liệu tổng hợp để smoke-test)
-│   ├── schemas/        clause_output_v2.json, risk_output_v1.json, explanation_output_v1.json,
-│   │                   analysis_response_v1.json
+│   ├── schemas/        clause_output_v2.json (sẽ thay bằng clause_output_v3 + risk_output_v1 — SRS C-04)
 │   ├── test_pipeline.py, test_llm_pipeline.py
 │   └── data/           <- SUBMODULE = repo `data` (chỉ đọc từ repo này)
 ├── docs/               CLAUSE_TAXONOMY.md, DATA_PLAN.md
@@ -85,6 +84,8 @@ Copy-Item .env.example .env
 
 **Dùng Gemini:** điền `GEMINI_API_KEY`, giữ `LLM_PROVIDER=gemini`.
 
+> ⚠️ Gói miễn phí và model local chỉ dùng cho phát triển với dữ liệu **đã de-identify**; demo/đánh giá dùng Gemini Flash gói trả phí và model id phải đặt tường minh, không dựa mặc định ngầm (SRS DEC-19, NFR-SEC-06; SRS C-07 sẽ thay cách cấu hình này).
+
 **Dùng Qwen local (không cần key):**
 
 1. Cài Ollama: <https://ollama.com/download>
@@ -125,7 +126,8 @@ $env:LLM_PROVIDER="qwen_ollama"; python test_llm_pipeline.py
 | `ModuleNotFoundError: config` | Đang chạy ngoài thư mục `ai_pipeline/` → `cd ai_pipeline` |
 | `Thiếu GEMINI_API_KEY` | Chưa tạo `.env` ở thư mục gốc hoặc chưa điền key |
 | `ai_pipeline/data/` rỗng | Chưa kéo submodule → `git submodule update --init --recursive` |
-| `Nhãn 'XXX' không có trong RISK_TAXONOMY_MAP` | Đang dùng nhãn cũ (8 nhãn). Xem `docs/CLAUSE_TAXONOMY.md` |
+| `ModuleNotFoundError: config.risk_routing` | Lỗi đã biết: `config/risk_routing.py` không có trong repo (tier bị bỏ theo SRS DEC-17/C-03); smoke test toàn pipeline chưa chạy được cho tới khi C-03 xong |
+| Nhãn không thuộc 12 nhãn | Đang dùng nhãn cũ (8 nhãn v1). Xem `docs/CLAUSE_TAXONOMY.md` |
 | Không kết nối được Ollama | Chưa chạy Ollama hoặc chưa `ollama pull` model |
 
 ---
@@ -239,11 +241,13 @@ Kiểm tra đang pin commit nào: `git submodule status` (ký tự `+` đầu d�
 
 ---
 
-## 7. Đổi taxonomy (nhãn clause / tier rủi ro)
+## 7. Đổi taxonomy (nhãn clause)
 
-Taxonomy ảnh hưởng đến 3 người (Người 1: prompt/pipeline, Người 2: annotation, Người 3: risk tier), nên:
+Clause taxonomy là artifact đóng băng ở **MS-1 (25/10/2026)** (SRS DEC-10); sau đó đổi nhãn/định nghĩa làm mất giá trị số đo (BRD 8.2 quy tắc 5). Risk taxonomy và severity là artifact **riêng** (BRD OI-01), không nằm trong `taxonomy.py`.
+
+Taxonomy ảnh hưởng đến Người 1 (prompt/pipeline), Người 2 (annotation) và Người 3 (risk), nên:
 
 1. Mở PR riêng (`docs/...` hoặc `ai/...`), **review bắt buộc của Người 1, 2, 3**.
-2. Sửa `LABEL_DEFINITIONS` trong `ai_pipeline/config/taxonomy.py` (Người 1, đóng băng) **và** `RISK_TAXONOMY_MAP` trong `ai_pipeline/config/risk_routing.py` (Người 3, tự chốt). Prompt của LLM tự sinh từ `taxonomy.py`; import `risk_routing.py` lỗi ngay nếu hai bảng lệch nhau.
-3. Cập nhật `docs/CLAUSE_TAXONOMY.md`, và các file dùng nhãn cứng (`test_pipeline.py`, `mock_clause_service.py`, `eval/fixtures/build_synthetic.py`).
+2. Semantics nguồn nằm ở data repo (`clause_taxonomy_v03.md`). Sửa `LABEL_DEFINITIONS` trong `ai_pipeline/config/taxonomy.py` và tăng `TAXONOMY_VERSION` (hiện `v04` = revision định nghĩa prompt; bộ 12 nhãn đổi thì phải thống nhất với data). Prompt của LLM tự sinh từ `taxonomy.py`.
+3. Sửa test khóa (`tests/test_data_lead_review.py`), enum trong schema (sinh từ code hoặc có test đối chiếu — DEC-20), `docs/CLAUSE_TAXONOMY.md`, và các file dùng nhãn cứng (`test_pipeline.py`, `mock_clause_service.py`, `eval/fixtures/build_synthetic.py`).
 4. Không xóa/đổi tên nhãn khi đã có dữ liệu annotate theo bản cũ mà chưa thống nhất với Người 2.

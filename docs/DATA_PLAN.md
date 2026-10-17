@@ -1,50 +1,58 @@
-# Data Plan v1 — Contract Risk Analyzer
+# Data Plan — Contract Risk Analyzer
 
-Owner: Người 1 – Clause AI Lead (dùng chung cho cả nhóm vì dataset phục vụ cả Clause Detection lẫn Risk Classification)
-Trạng thái: chốt Tuần 1, cập nhật số liệu thật mỗi tuần trong Weekly Note.
+Owner: Data Lead (Người 2). Cập nhật: 17/10/2026 theo `DATA_LEAD_REVIEW_V03.md`.
+Trạng thái: **thay bản Tuần 1 (v1)** — bản đó đã lỗi thời (8 nhãn, dữ liệu tổng hợp, mục tiêu 40–50 HĐ, ngưỡng `t_low/t_high`, `document_router`) và mâu thuẫn BRD 0.5 §8.2 (SRS Phụ lục C, C-19).
 
-## 1. Mục tiêu dataset
+## 1. Nguồn chân lý về dữ liệu đánh giá
 
-Dataset dùng để: (a) đo Clause Detection F1 (span-level, xem `eval/eval_segmentation.py`), (b) đo Risk Classification Macro-F1, (c) làm few-shot examples cho prompt engineering. Không dùng để fine-tune model (dự án dùng LLM có sẵn qua prompt, không train từ đầu), nên không cần tập train lớn — quan trọng là tập **dev/gold** đủ đa dạng và được gán nhãn chính xác.
+Kế hoạch tập dữ liệu, chỉ số và quy tắc đánh giá **không** định nghĩa ở file này mà ở:
 
-## 2. Nguồn dữ liệu
+- **BRD 0.5 §8.2** — D1 / D2 / T1 / T2 (số HĐ, mục đích, quy tắc 1–7); **§8.3** chỉ số M1–M8, BL-1; **§8.4** lỗi chèn.
+- **SRS 1.4** — DEC-10 (đóng băng clause taxonomy, risk taxonomy, severity rubric, annotation guideline ở MS-1, 25/10/2026), OI-10 (chính sách đa nhãn).
+- **TDD 0.2 §18** — định dạng gold (`seg/clause/risk/injected/privacy/...`), harness, ánh xạ metric.
 
-- **Nguồn chính (Tuần 1–3): hợp đồng lao động tổng hợp/tự soạn** dựa trên cấu trúc phổ biến của hợp đồng lao động tại Việt Nam (không copy nguyên văn từ một hợp đồng thật cụ thể nào để tránh vấn đề bản quyền/riêng tư). Ưu điểm: kiểm soát được việc phủ đủ mọi nhãn trong taxonomy ngay từ đầu, không lo lộ thông tin cá nhân.
-- **Nguồn bổ sung (Tuần 4 trở đi, nếu có):** hợp đồng thật do thành viên nhóm/người quen tự nguyện cung cấp, **bắt buộc ẩn danh hóa** (xóa tên, MSNV, số CMND/CCCD, số điện thoại, mức lương cụ thể nếu người cung cấp yêu cầu) trước khi đưa vào repo. File hợp đồng thô (`data/raw/`, `*.pdf`, `*.docx`) đã được thêm vào `.gitignore` — không commit file gốc, chỉ commit bản đã trích xuất/ẩn danh dưới dạng JSON.
-- Nếu đến Tuần 4 không xin được hợp đồng thật nào, ghi rõ trong Weekly Note và tiếp tục mở rộng bằng dữ liệu tổng hợp có kiểm soát độ khó (câu dài, nhiều mệnh đề, hành văn không chuẩn hoá do OCR) để mô phỏng dữ liệu thật.
+Quy tắc cứng: **không chỉnh hệ thống dựa trên T1/T2**; tuning chỉ trên D1/D2.
 
-## 3. Khối lượng mục tiêu theo tuần
+## 2. Hiện trạng dataset (kiểm ngày 12–17/10/2026)
 
-| Mốc | Số hợp đồng | Số clause ước tính | Mục đích |
-|---|---|---|---|
-| Tuần 1 (hiện tại) | 6 (`golden_v0.2.json`) | ~28 | Validate schema, chạy thử eval script, có đủ ví dụ cho mỗi nhãn trong taxonomy |
-| Tuần 3 | 15–20 | ~80–100 | Baseline F1 đầu tiên có ý nghĩa thống kê (không còn quá ít mẫu) |
-| Tuần 5 | 30+ | ~150–200 | Đạt mức đủ để báo cáo Clause Detection F1 ≥0.85 / Macro-F1 ≥0.80 đáng tin cậy |
-| Tuần 8 | 40–50 | ~200–250 | Tập test cuối để freeze, để dành ~20% không đụng tới cho benchmark cuối kỳ (Tuần 9) |
+| Mục | Giá trị kiểm được |
+|---|---|
+| Data repo | submodule `ai_pipeline/data`, ghim commit `c325b437f76b832b7880c2bdad912bc3401e6e5d` (Data PR #8); không dùng `submodule update --remote`, không sửa file data từ repo pipeline |
+| Dataset | `clauses_v06.csv`, 234 clause, 5 hợp đồng đã annotate, 4 template family |
+| Chất lượng offset | 225 `EXACT` + 9 `CONTEXT` (audit: `data_lead_span_audit.json`) |
+| Annotation lịch sử | 183 annotation giữ nguyên nội dung/nhãn khi đối chiếu v04 → v06 |
+| Taxonomy | 12 nhãn, semantics nguồn `clause_taxonomy_v03.md` (data repo); code `TAXONOMY_VERSION = v04` (chỉ sửa định nghĩa prompt) |
+| Gold rủi ro pháp lý | **chưa có** (`null`) |
+| Split dev/test | provisional theo nhóm hợp đồng; test đang nằm công khai trong repo; thiếu WORKING_TIME ở test, thiếu TERMINATION ở dev → **chưa phải test giữ kín** |
+| `synthetic_v0.2.json` | 6 HĐ / 27 clause, chỉ là smoke fixture (CONTRIBUTING §5); **không** tính vào KPI/benchmark |
+| Dữ liệu thô | `data/raw/`, `*.pdf`, `*.docx` không commit (`.gitignore`); hợp đồng thật phải de-identify trước khi vào repo |
 
-Lưu ý: từ Tuần 5, cần tách rõ **dev set** (dùng để tinh chỉnh prompt/threshold, được phép nhìn nhiều lần) và **test set giữ kín** (chỉ chạy 1–2 lần, dùng cho benchmark Tuần 9) để tránh overfit lên prompt.
+Chưa đạt so với kế hoạch Tuần 5 cũ: số hợp đồng (5 so với mốc 30+ của bản v1) — mốc đó **không còn hiệu lực**; mốc hiện hành là T1 ≥ 10 HĐ gốc (BRD 8.2).
 
-## 4. Quy trình gán nhãn (Annotation Guideline — draft)
+## 3. Annotation guideline (giữ lại; đóng băng ở MS-1)
 
-1. Đọc toàn bộ hợp đồng trước khi cắt clause, xác định các "Điều" theo đánh số gốc.
-2. Với mỗi Điều, nếu bên trong có nhiều ý khác nhóm nhãn rõ rệt (ví dụ vừa mô tả công việc vừa có điều khoản bảo mật), có thể **cắt thành nhiều clause con** thay vì gán đa nhãn cho cả khối lớn — chỉ đa nhãn khi hai ý thực sự nằm trong cùng một câu/đoạn không tách được.
-3. `start_offset`/`end_offset` tính theo ký tự (character index) trên `raw_text` gốc, lấy chính xác theo `str.find`/slicing, không làm tròn theo dòng.
-4. Nhãn áp dụng theo bảng ở `docs/CLAUSE_TAXONOMY.md`. Khi phân vân, tuân theo mục "Quy tắc gán nhãn khi mơ hồ" trong tài liệu đó.
-5. Mỗi hợp đồng tổng hợp mới nên có ít nhất 1 clause "khó" có chủ đích (câu dài nhiều mệnh đề, hoặc điều khoản đa nhãn) để dataset không chỉ toàn câu dễ.
-6. Người gán nhãn: hiện tại do Clause AI Lead tự làm ở Tuần 1 (vì dữ liệu tổng hợp); khi có hợp đồng thật, cần ít nhất 1 người review chéo (double-annotation) trên một tập con nhỏ để tính độ đồng thuận liên-annotator, phục vụ chỉ số "Human Agreement" của cả dự án.
+Guideline đầy đủ: data repo (annotation guideline v1.0 + `clause_taxonomy_v03.md`). Tóm tắt phần ảnh hưởng tới pipeline:
+
+1. Một **Điều** có thể chứa nhiều clause; câu/bullet đa chủ đề được **tách** thành nhiều clause thay vì gán đa nhãn. Một dòng dataset = **một nhãn**.
+2. `clause_text` **không** gồm heading "Điều X. …" và không gồm phần hành chính (Rule 5, 6).
+3. Offset tính theo **Unicode code point**, `[start, end)`, trên đúng raw text đã hash (không tính theo dòng).
+4. `offset_quality`: `EXACT` = đoạn khớp nguyên văn sau gom khoảng trắng; `CONTEXT` = annotation lặp ngữ cảnh sau khi tách nên không có đoạn nguyên văn. `CONTEXT` giữ `span = null` ở consumer, **không** ép `_locate_span` tìm đoạn giả và **không** chấm như gold span chính xác; có thể dùng source-reference span riêng để highlight.
+5. Không bịa mức/điều kiện vào chỗ trống trong hợp đồng; không dùng định nghĩa nhãn để suy ra mức rủi ro pháp lý.
+6. Hợp đồng thật: bắt buộc de-identify thủ công; hợp đồng mới nên có ít nhất 1 clause "khó"; cần ≥ 20% item do hai người gán độc lập để tính Cohen's kappa (BRD 8.2 quy tắc 4).
+
+## 4. Dùng dataset này trong pipeline mới (cần nhóm chốt)
+
+- Dataset là gold **nhãn clause**. Gold **segmentation** cho M1 vẫn do người sửa tay ranh giới (BRD 8.2 quy tắc 3) vì dataset bỏ heading và tách trong Điều, không phải partition không chồng lấn của `canonical_text`.
+- Quy đổi single-label (dataset) ↔ 1–3 nhãn/clause (pipeline, SRS OI-10) khi tính M2/M7 chưa có chính sách → cần chốt cùng annotation guideline trước MS-1.
+- `ai_pipeline/eval/fixtures/build_golden_v0_3.py` còn đọc `clauses_v02` không có offset: cần Evaluation Lead cập nhật adapter v06, masks và policy `CONTEXT` trước khi tính F1 (TDD §18.3).
 
 ## 5. Versioning dữ liệu
 
-- `golden_v0.1.json` — bản pilot Tuần 1 ban đầu, 1 hợp đồng / 2 clause, dùng để validate schema JSON. **Giữ nguyên, không xóa**, để có lịch sử.
-- `golden_v0.2.json` — mở rộng Tuần 1 (bản này), 6 hợp đồng tổng hợp / ~28 clause, phủ đủ 8 nhãn trong taxonomy v1, có sinh bằng script `data/build_golden_v0_2.py` để đảm bảo offset chính xác tuyệt đối (không gõ tay số ký tự, tránh lỗi lệch span).
-- Từ Tuần 3 trở đi: đặt tên `golden_v0.3.json`, `v0.4.json`... mỗi lần tăng đáng kể về số lượng hoặc đổi taxonomy. Không sửa đè lên version cũ.
+- `golden_v0.1.json`, `golden_v0.2.json` (Tuần 1; taxonomy 8 nhãn cũ): **giữ làm lịch sử**, không dùng cho KPI.
+- Data repo: các bản `clauses_v0x.csv` tăng version khi đổi đáng kể số lượng/taxonomy/offset; không sửa đè bản cũ. Report audit ghi cả hash file đọc thực tế và hash Git blob (khác nhau do CRLF/LF trên Windows).
 
-## 6. Rủi ro / giới hạn đã biết (ghi lại để không bị hỏi bất ngờ)
+## 6. Còn mở
 
-- Dữ liệu Tuần 1–3 là **tổng hợp (synthetic)**, không phải hợp đồng thật 100% → có thể sạch/chuẩn hơn thực tế (câu văn rõ ràng, đánh số Điều nhất quán). F1 đo trên tập này có thể cao hơn khi chạy trên hợp đồng thật/scan OCR — cần nêu rõ giới hạn này trong báo cáo cuối kỳ, không nhận vơ là số liệu trên dữ liệu thật.
-- `document_router` (ngưỡng match_ratio 0.40 trong `utils/text_processing.py`) và các ngưỡng `t_low/t_high` trong `thresholds.py` hiện là **giả định ban đầu**, chưa được tinh chỉnh bằng thực nghiệm — sẽ hiệu chỉnh sau khi có kết quả trên `golden_v0.2.json` trở lên.
-
-## 7. Việc cần làm tiếp (sau Tuần 1)
-
-- Chạy `eval_segmentation.py` trên `golden_v0.2.json` để có F1 baseline đầu tiên (dù dùng LLM hay rule-based).
-- Xin ý kiến 1 thành viên khác trong nhóm đọc thử `docs/CLAUSE_TAXONOMY.md` để phát hiện nhãn/định nghĩa còn mơ hồ trước khi mở rộng dataset ở Tuần 3.
+- D1 trong BRD 8.2 (4 HĐ / 183 điều khoản) so với data hiện có (5 HĐ / 234 clause): xác nhận D1 gồm gì rồi mới sửa BRD.
+- Mở rộng template/coverage; provenance HDLD001–003; quyền chia sẻ HDLD007; hard-gold adjudication; khóa split và giữ kín T1.
+- Topic bảo mật/không cạnh tranh và giải quyết tranh chấp (xem `CLAUSE_TAXONOMY.md` §3).

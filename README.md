@@ -22,6 +22,6 @@ Hướng dẫn đầy đủ (cài đặt, `.env`, quy trình Git, submodule dữ
 
 ## Tài liệu
 
-- [docs/CLAUSE_TAXONOMY.md](docs/CLAUSE_TAXONOMY.md) — 12 nhãn clause và tier rủi ro
-- [docs/DATA_PLAN.md](docs/DATA_PLAN.md) — kế hoạch dữ liệu
+- [docs/CLAUSE_TAXONOMY.md](docs/CLAUSE_TAXONOMY.md) — 12 nhãn clause (con trỏ tới taxonomy nguồn; không còn tier)
+- [docs/DATA_PLAN.md](docs/DATA_PLAN.md) — hiện trạng dataset và con trỏ tới BRD §8.2
 - `ai_pipeline/data/` — submodule dữ liệu (repo `data` của Người 2)
