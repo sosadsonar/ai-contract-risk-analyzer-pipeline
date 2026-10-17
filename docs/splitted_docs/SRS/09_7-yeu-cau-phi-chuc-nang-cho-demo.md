@@ -1,0 +1,33 @@
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 7. Yêu cầu phi chức năng cho demo | 6483 ký tự | trước: 08_6-trang-thai-xu-ly-va-ma-loi.md | sau: 10_8-chat-luong-ai-va-danh-gia.md -->
+
+## 7. Yêu cầu phi chức năng cho demo
+
+Các NFR là mục tiêu nghiệm thu cho môi trường demo học tập, không phải SLA production.
+
+| ID | Thuộc tính | Yêu cầu | Cách kiểm tra |
+|---|---|---|---|
+| NFR-PERF-01 | Hiệu năng E2E | Với PDF hợp lệ tối đa 15 trang hoặc DOCX tối đa 50.000 canonical characters, mỗi lần một phiên: ít nhất 90% lượt không kết thúc bằng AI_TIMEOUT hoặc AI_PROVIDER_ERROR phải hoàn thành trong 120 giây. | Đo p50 và p90 trên bộ demo; báo riêng lượt lỗi, không tính vào mẫu latency thành công. |
+| NFR-PERF-02 | Phản hồi UI | Giao diện hiển thị trạng thái VALIDATING hoặc PROCESSING trong 2 giây sau khi backend chấp nhận upload. | Đo timestamp ở browser và backend. |
+| NFR-SCALE-01 | Đồng thời / deployment | Chỉ một phiên VALIDATING/PROCESSING tại một thời điểm. Demo runtime dùng đúng một backend worker/process, không autoscale/serverless vì session store và processing slot là process-local. LLM có thể song song theo batch bên trong cùng session. | Hai upload race chỉ một session được tạo; kiểm tra deploy có 1 worker; dữ liệu phiên không trộn. |
+| NFR-CAP-01 | Giới hạn input | PDF tối đa 10MB và 30 trang; DOCX tối đa 10MB và 100.000 canonical characters; tối đa 150 clause. | Boundary tests. |
+| NFR-SEC-01 | PII masking | Theo BRD 7.3: recall ít nhất 99% cho CCCD hoặc hộ chiếu, số điện thoại, email, số tài khoản; ít nhất 90% cho họ tên, ngày sinh, địa chỉ cư trú, tên pháp nhân; giữ nguyên ít nhất 95% các trường cần giữ. | Gold spans và values; đo trên payload trước khi gửi LLM. |
+| NFR-SEC-02 | Transport security | Mọi traffic Browser sang Backend và Backend sang LLM đi qua HTTPS trong môi trường deploy. | Kiểm tra endpoint và cấu hình deploy. |
+| NFR-SEC-03 | Session security | session_id là identifier ngẫu nhiên opaque (UUID v4 hoặc tương đương); dữ liệu của phiên A không truy cập được bằng phiên B. | Cross-session negative tests. |
+| NFR-SEC-04 | Secrets | API key và secret không hard-code, không commit vào repository; dùng cấu hình môi trường. | Quét repository và cấu hình deploy. |
+| NFR-SEC-05 | Logging privacy | Log không chứa raw contract, canonical text, masked text đầy đủ hay PII; chỉ log ID, stage, timing, metadata lỗi. | Kiểm tra log trên test case có PII. |
+| NFR-SEC-06 | Nhà cung cấp LLM | Demo và đánh giá dùng Gemini Flash gói trả phí (BRD 7.5). Gói miễn phí và model chạy cục bộ chỉ dùng cho phát triển với dữ liệu đã de-identify. Model id phải cấu hình tường minh; thiếu cấu hình thì hệ thống báo lỗi khi khởi động, không dùng giá trị mặc định ngầm. API key chỉ truyền qua header, không nằm trong URL hay log (NFR-SEC-04, NFR-SEC-05). | Rà soát cấu hình và mã; khởi động không có model id phải thất bại; log không chứa key. |
+| NFR-DATA-01 | Retention | Xóa dữ liệu phiên khi kết thúc chủ động hoặc sau 60 phút không hoạt động (hoạt động theo FR-23). | TTL và cleanup integration test. |
+| NFR-DATA-02 | Unicode và offset | Canonical text là Unicode NFC hợp lệ; serialize dùng UTF-8. Mọi start/end offset trong backend/API là Unicode code point sau NFC. Frontend JavaScript phải quy đổi code-point offset sang UTF-16 index khi thao tác chuỗi/DOM có ký tự non-BMP. | Normalization tests + fixture emoji/non-BMP cho highlight đúng. |
+| NFR-DATA-03 | Chất lượng extraction | Nếu text chứa ký tự thay thế/ký tự điều khiển vượt ngưỡng, mojibake hoặc legacy-font pattern (TCVN3/VNI) dù vẫn là Unicode hợp lệ, hệ thống REJECTED thay vì đưa text rác vào AI. Detector chi tiết ở TDD và được tune trên D1, không T1/T2. | Fixture font cũ như chuỗi kiểu “Hîp ®ång” và text rác phải bị từ chối đúng mã. |
+| NFR-DATA-04 | Lưu trữ phiên | Nội dung hợp đồng (file gốc, canonical text, masked text, kết quả, graph của phiên) không được ghi vào cơ sở dữ liệu hay kho bền vững; chỉ ở bộ nhớ tiến trình hoặc kho tạm bị xóa theo FR-23. Khởi động lại dịch vụ thì mất mọi phiên đang có. | Khởi động lại dịch vụ sau một phiên rồi kiểm tra không còn dữ liệu; rà soát schema và thư mục lưu không có cột hoặc file chứa nội dung hợp đồng. |
+| NFR-REL-01 | Không có partial final | FAILED không được trả partial report như final result. | Chèn lỗi giữa pipeline. |
+| NFR-REL-02 | Timeout và retry | Mỗi provider request timeout 30 giây; auto-retry tối đa 1 lần chỉ cho timeout/network, HTTP 429/5xx hoặc structured output sai schema. HTTP 400/401/403 không auto-retry. Manual retry tối đa 2 lần/session, chỉ FAILED. Mỗi actual retry vẫn tính cost/call. | Mock từng nhóm lỗi, kiểm số lần provider request và call counter. |
+| NFR-REL-03 | Stage resume (cắt số 2) | Retry dùng lại stage đã thành công nếu input, taxonomy version, extraction_version, corpus version, model id và prompt version không đổi. | Chèn lỗi và đếm số call. |
+| NFR-COST-01 | Ngân sách | Tổng ngân sách demo \$20: \$5 cho hosting và vận hành, \$15 cho đánh giá. Hệ thống và nhóm log số call, token và chi phí ước tính để theo dõi. | Báo cáo chi phí trước demo. |
+| NFR-COST-02 | Trần chi phí vận hành | Daily call quota và session call reserve là cấu hình bắt buộc ở demo, phải được chốt từ số call/token/cost đo trên D1 + giá model cụ thể để phần vận hành không vượt \$5; SRS không hard-code một quota tùy ý. Eval có cost ledger riêng cho ngân sách \$15. | Trước demo có cost model D1, planned vs actual calls và cấu hình quota/reserve tương ứng. |
+| NFR-COMP-01 | Trình duyệt | Hỗ trợ Chrome, Edge, Firefox desktop bản ổn định mới nhất. Mobile ngoài phạm vi. | Smoke test trên 3 trình duyệt. |
+| NFR-I18N-01 | Ngôn ngữ | Giao diện, lỗi, báo cáo và nội dung phân tích bằng tiếng Việt; ID kỹ thuật có thể dùng tiếng Anh. | Rà soát giao diện và báo cáo. |
+| NFR-MAINT-01 | Kho luật | Cập nhật kho luật không đòi hỏi sửa mã nguồn. | Thêm hoặc cập nhật corpus fixture rồi reload hoặc re-index. |
+| NFR-MAINT-02 | Taxonomy config | Clause taxonomy và risk taxonomy được quản lý tách biệt; thay đổi phải có version và đóng băng trước đánh giá. Danh sách nhãn clause có một nguồn duy nhất trong code; enum của JSON Schema sinh từ nguồn đó hoặc có test đối chiếu (DEC-20). | Rà soát config và artifact; test đối chiếu enum schema với nguồn nhãn. |
+| NFR-MAINT-03 | Dữ liệu graph | Cạnh Data Graph là dữ liệu đi cùng kho luật, cập nhật không đòi hỏi sửa mã nguồn. | Thêm một cạnh vào corpus fixture rồi reload hoặc re-index và thấy cạnh có hiệu lực. |
+| NFR-REPRO-01 | Tái lập | Model id ghim phiên bản, temperature cố định, phiên bản prompt ghi trong output (FR-29); harness đánh giá chạy lại được trên cùng input với cùng cấu hình. | Chạy lại một mẫu và so sánh phiên bản ghi lại. |
