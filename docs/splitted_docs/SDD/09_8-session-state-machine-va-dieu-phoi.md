@@ -2,7 +2,7 @@
 
 # 8. Session, State Machine và điều phối
 
-![](/diagrams/state_machine.png)
+![](/docs/diagrams/state_machine.png)
 
 Analysis Orchestrator là component duy nhất được phép chuyển state. Các service trả typed result/error, không tự thay đổi state.
 

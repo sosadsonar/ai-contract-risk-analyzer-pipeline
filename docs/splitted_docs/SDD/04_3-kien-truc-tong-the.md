@@ -4,7 +4,7 @@
 
 Backend được thiết kế thành các module độc lập theo trách nhiệm nhưng chạy trong cùng một deployment. Analysis Orchestrator điều phối state machine và pipeline; các module local không phụ thuộc LLM.
 
-![](/diagrams/system_overall.png)
+![](/docs/diagrams/system_overall.png)
 
 *Hình 2. Component Architecture*
 

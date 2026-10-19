@@ -30,8 +30,21 @@ dependencies = [
     # Backend & API (Cho nhóm Backend)
     "fastapi>=0.100.0",
     "uvicorn>=0.23.0",
+    "python-multipart>=0.0.9", # Xử lý upload file / form data qua API
+    "httptools>=0.6.0",     # Parser HTTP tốc độ cao cho uvicorn
+    "watchfiles>=0.21.0",   # Auto-reload cho uvicorn
+    "websockets>=12.0",     # Hỗ trợ WebSocket cho uvicorn
     
-    # Utilities
+    # Database & ORM
+    "sqlalchemy>=2.0.0",    # ORM quản lý cơ sở dữ liệu
+    "alembic>=1.12.0",      # Quản lý migration cơ sở dữ liệu
+    "psycopg>=3.1.0",       # PostgreSQL driver (v3)
+    "psycopg-binary>=3.1.0",
+    
+    # Document Processing & Utilities
+    "pymupdf>=1.24.0",      # Xử lý và trích xuất text từ PDF hợp đồng
+    "pydantic-settings>=2.0.0", # Quản lý settings/config từ biến môi trường
+    "pyyaml>=6.0",          # Đọc ghi cấu hình định dạng YAML
     "python-dotenv>=1.0.0", # Quản lý biến môi trường (.env)
 ]
 

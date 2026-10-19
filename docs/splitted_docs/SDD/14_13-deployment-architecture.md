@@ -2,7 +2,7 @@
 
 # 13. Deployment Architecture
 
-![](/diagrams/web_flow.png)
+![](/docs/diagrams/web_flow.png)
 
 *Hình 5. Deployment Architecture cho demo*
 

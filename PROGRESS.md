@@ -96,9 +96,10 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] Bản nháp **danh mục kho luật tầng 1** (OI-02) để chốt ở MS-1
   - [ ] Kiểm kê D1 (BRD 8.2: 4 HĐ, 183 clause): còn PII không, đã de-identify chưa; **đối chiếu với data repo v06 (5 HĐ / 234 clause, 183 annotation lịch sử)** và chốt D1 gồm HĐ nào (không tự sửa BRD)
 - **N3**
-  - [ ] X-01: bản đầu **risk taxonomy** theo role, mỗi nhãn có `basis_type` (LEGAL_VIOLATION/UNFAVORABLE/AMBIGUOUS); nháp severity rubric
-  - [ ] `risk_output_v1.json` + (cùng N4) `final_result_v1.json`
-  - [ ] Spike PII: danh sách pattern regex tiếng Việt (email, SĐT, CCCD, TK ngân hàng)
+  - [x] X-01: bản đầu **risk taxonomy** theo role, mỗi nhãn có `basis_type` (LEGAL_VIOLATION/UNFAVORABLE/AMBIGUOUS); nháp severity rubric
+  - [x] `risk_output_v1.json` 
+  - [ ] + (cùng N4) `final_result_v1.json`
+  - [x] pre C-09: Spike PII: danh sách pattern regex tiếng Việt (email, SĐT, CCCD, TK ngân hàng)
 - **N4**
   - [ ] C-17: pytest chạy được (`tests/{unit,integration,contract,fixtures}`, sửa `testpaths`), CI chạy pytest
   - [ ] Dựng cây package `backend/app/*` theo TDD §3.2 (file rỗng/stub), `core/config.py`
@@ -123,7 +124,8 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] X-10: bắt đầu thu hợp đồng T1; quy trình de-identify
 - **N3**
   - [ ] **Freeze** risk taxonomy + severity rubric (MS-1) — cả nhóm review
-  - [ ] C-09 (a): `pii_types`, `mask_value`, `detector` regex (email, SĐT, CCCD, TK NH) + **INV-01** test
+  - [x] C-09 (a): `pii_types`, `mask_value`, `detector` regex (email, SĐT, CCCD, TK NH)
+  - [ ] **INV-01** test
 - **N4**
   - [ ] C-05: `InMemorySessionStore`, `ProcessingLease`, state machine; **test barrier 2 Create đồng thời**
   - [ ] C-06 (a): `admission_gate` (role → rate → quota → lease), 6 route trả state thật; chốt cách làm **hard byte cap** (SKELETON §3)

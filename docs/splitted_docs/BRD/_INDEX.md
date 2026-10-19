@@ -4,7 +4,7 @@ Tách ở heading mức 2. Gốc 40,117 ký tự -> sau làm sạch 39,513 ký t
 
 | File | Mục | Ký tự | ID hàng bảng |
 |---|---|---|---|
-| [00_brd-ai-labor-contract-risk-analyzer.md](00_brd-ai-labor-contract-risk-analyzer.md) | BRD: AI Labor Contract Risk Analyzer | 2,257 |  |
+| [00_brd-ai-labor-contract-risk-analyzer.md](00_brd-ai-labor-contract-risk-analyzer.md) | BRD: AI Labor Contract Risk Analyzer HEADER| 2,257 |  |
 | [01_1-tong-quan.md](01_1-tong-quan.md) | BRD: AI Labor Contract Risk Analyzer > 1. Tổng quan | 2,798 |  |
 | [02_2-pham-vi.md](02_2-pham-vi.md) | BRD: AI Labor Contract Risk Analyzer > 2. Phạm vi | 2,096 |  |
 | [03_3-ben-lien-quan-va-dinh-nghia-rui-ro.md](03_3-ben-lien-quan-va-dinh-nghia-rui-ro.md) | BRD: AI Labor Contract Risk Analyzer > 3. Bên liên quan và định nghĩa rủi ro | 3,743 |  |
