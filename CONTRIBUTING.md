@@ -212,7 +212,7 @@ Không commit: `.env`, API key, password, AWS credentials, file model nặng (`*
 | Bộ dữ liệu | Ở đâu | Dùng để làm gì |
 |---|---|---|
 | **Synthetic** (6 hợp đồng tự viết, 27 clause) | `ai_pipeline/eval/fixtures/synthetic_v0.2.json`, sinh bởi `build_synthetic.py` | Smoke-test `eval_segmentation.py` và định dạng dữ liệu, chạy offline, không cần submodule/API. **Không dùng để báo cáo KPI.** |
-| **Dataset v06** (HDLD001–005, 234 clause; mẫu hợp đồng) | `ai_pipeline/data/` (submodule pin c325b43) | 225 EXACT + 9 CONTEXT. Áp masks provisional_v06 trước đánh giá; CONTEXT không phải exact gold. Xem `docs/DATA_LEAD_REVIEW_V03.md` và handoff tuần 5 trong data submodule. |
+| **Dataset v06** (HDLD001–005, 234 clause; mẫu hợp đồng) | `ai_pipeline/data/` (submodule pin a086606) | 225 EXACT + 9 CONTEXT. Áp masks provisional_v06 trước đánh giá; CONTEXT không phải exact gold. Xem `docs/DATA_LEAD_REVIEW_V03.md` và handoff tuần 5 trong data submodule. |
 
 Chạy lại bộ synthetic (khi thêm hợp đồng vào `CONTRACTS`):
 

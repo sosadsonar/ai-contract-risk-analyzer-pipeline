@@ -7,7 +7,7 @@ Trạng thái: **con trỏ** (SRS Phụ lục C, C-19). File này không còn ch
 
 | Cần gì | Ở đâu |
 |---|---|
-| Danh sách 12 nhãn + semantics | data repo `docs/clause_taxonomy_v03.md` (qua submodule `ai_pipeline/data`, ghim `c325b43`) và annotation guideline v1.0 |
+| Danh sách 12 nhãn + semantics | data repo `docs/clause_taxonomy_v03.md` (qua submodule `ai_pipeline/data`, ghim `a086606`) và annotation guideline v1.0 |
 | Nhãn + định nghĩa dùng trong prompt | `backend/app/clause/taxonomy.py` (`LABEL_DEFINITIONS`, `TAXONOMY_VERSION = v04`, `DATA_TAXONOMY_VERSION = clause_taxonomy_v03`, `validate_labels`); prompt tự sinh từ đây |
 | Quy tắc đóng băng, đa nhãn | BRD 0.5 §8.2 quy tắc 5–6; SRS DEC-10, OI-10 (freeze ở MS-1, 25/10/2026) |
 | Risk taxonomy, severity | **tách biệt** với clause taxonomy (BRD OI-01); không đặt trong file này |
