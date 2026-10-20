@@ -18,6 +18,10 @@ Yêu cầu:
 import json
 import os
 import sys
+from pathlib import Path
+
+# Tạm thời (C-17 sẽ chuyển sang pytest): cho phép import `app.*` khi chạy script từ ai_pipeline/.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
 from dotenv import load_dotenv
 
@@ -53,7 +57,7 @@ def run():
         print("  - Qwen/Ollama: đã `ollama serve` và `ollama pull qwen2.5:7b` chưa?")
         sys.exit(1)
 
-    print("🎯 KẾT QUẢ JSON (chuẩn schema v2):")
+    print("🎯 KẾT QUẢ JSON (định dạng legacy, chưa phải clause_output_v3):")
     print("-" * 50)
     print(json.dumps(result, ensure_ascii=False, indent=2))
 

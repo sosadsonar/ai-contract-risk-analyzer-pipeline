@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location('review_taxonomy', ROOT / 'ai_pipeline/config/taxonomy.py')
+spec = importlib.util.spec_from_file_location('review_taxonomy', ROOT / 'backend/app/clause/taxonomy.py')
 taxonomy = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(taxonomy)
 audit_spec = importlib.util.spec_from_file_location('review_audit', ROOT / 'scripts/audit_data_lead.py')

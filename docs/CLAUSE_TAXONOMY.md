@@ -8,7 +8,7 @@ Trạng thái: **con trỏ** (SRS Phụ lục C, C-19). File này không còn ch
 | Cần gì | Ở đâu |
 |---|---|
 | Danh sách 12 nhãn + semantics | data repo `docs/clause_taxonomy_v03.md` (qua submodule `ai_pipeline/data`, ghim `c325b43`) và annotation guideline v1.0 |
-| Nhãn + định nghĩa dùng trong prompt | `ai_pipeline/config/taxonomy.py` (`LABEL_DEFINITIONS`, `TAXONOMY_VERSION = v04`); prompt tự sinh từ đây |
+| Nhãn + định nghĩa dùng trong prompt | `backend/app/clause/taxonomy.py` (`LABEL_DEFINITIONS`, `TAXONOMY_VERSION = v04`, `DATA_TAXONOMY_VERSION = clause_taxonomy_v03`, `validate_labels`); prompt tự sinh từ đây |
 | Quy tắc đóng băng, đa nhãn | BRD 0.5 §8.2 quy tắc 5–6; SRS DEC-10, OI-10 (freeze ở MS-1, 25/10/2026) |
 | Risk taxonomy, severity | **tách biệt** với clause taxonomy (BRD OI-01); không đặt trong file này |
 
@@ -18,7 +18,7 @@ Trạng thái: **con trỏ** (SRS Phụ lục C, C-19). File này không còn ch
 
 - `v03` = taxonomy nguồn của data (bộ nhãn + semantics).
 - `v04` = revision **định nghĩa prompt** trong `taxonomy.py` (12/10/2026): chỉ làm rõ ranh giới nhãn, **không** thêm/bớt nhãn, **không** đổi semantics nguồn. Chi tiết đối chiếu: `DATA_LEAD_REVIEW_V03.md`.
-- `ai_pipeline/schemas/clause_output_v2.json` còn cứng `taxonomy_version = v02` và `contract_id`: sẽ được thay bằng `clause_output_v3` (SRS C-04).
+- `taxonomy_version` trong `clause_output_v3` = `clause_taxonomy_v03` (version nguồn của data, TDD §6.4); revision prompt `v04` ghi qua `prompt_version`. Schema cũ `clause_output_v2.json` (cứng `v02`, có `contract_id`) đã bị thay bằng `clause_output_v3` (SRS C-04, 20/10/2026).
 - Đổi 12 nhãn hoặc nội dung định nghĩa ⇒ tăng version và sửa test khóa (`tests/test_data_lead_review.py`) có chủ đích; sau MS-1 mọi đổi taxonomy làm mất giá trị số đo (BRD 8.2 quy tắc 5).
 
 ## 3. Câu hỏi còn mở (cần nhóm chốt trước MS-1)

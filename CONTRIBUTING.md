@@ -6,14 +6,17 @@ Dữ liệu nằm ở **repo riêng** (`data`, do Người 2 quản lý) và đ�
 ```
 ai-contract-risk-analyzer-pipeline/     <- repo này (code)
 ├── ai_pipeline/
-│   ├── config/         taxonomy.py (12 nhãn, TAXONOMY_VERSION=v04, đóng băng), labeling.py (còn type_scores/tier cũ,
-│   │                   sẽ chỉ còn validate 1–3 nhãn — SRS C-03). risk_routing.py (tier) KHÔNG có trong repo và sẽ bị bỏ
-│   ├── services/       clause_extraction_service.py, llm_clients.py, mock_clause_service.py
+│   ├── services/       clause_extraction_service.py (LEGACY, bị thay ở C-01), llm_clients.py,
+│   │                   mock_clause_service.py (mock theo clause_output_v3)
 │   ├── utils/          text_processing.py
 │   ├── eval/           eval_segmentation.py, fixtures/ (dữ liệu tổng hợp để smoke-test)
-│   ├── schemas/        clause_output_v2.json (sẽ thay bằng clause_output_v3 + risk_output_v1 — SRS C-04)
+│   ├── schemas/        clause_output_v3.json (C-04, xong); risk_output_v1.json do Người 3 thêm
 │   ├── test_pipeline.py, test_llm_pipeline.py
 │   └── data/           <- SUBMODULE = repo `data` (chỉ đọc từ repo này)
+├── backend/app/
+│   ├── core/enums.py        Role, SessionStatus, Stage, Severity, EvidenceStatus, BasisType, *EdgeType (MỘT nguồn, DEC-20)
+│   └── clause/taxonomy.py   12 nhãn + LABEL_DEFINITIONS + validate_labels (MỘT nguồn nhãn clause, đóng băng MS-1)
+├── tests/{unit,contract}/   test_clause_taxonomy.py, test_schema_enums.py (enum ↔ schema), test_clause_output_v3.py
 ├── docs/               CLAUSE_TAXONOMY.md, DATA_PLAN.md
 ├── .env.example        mẫu cấu hình (copy thành .env)
 └── CONTRIBUTING.md
@@ -100,15 +103,23 @@ Copy-Item .env.example .env
 
 ## 3. Chạy thử
 
-Các script test import theo kiểu `from config.taxonomy import ...` / `from config.risk_routing import ...` nên **phải chạy từ trong thư mục `ai_pipeline/`**:
+**pytest (khuyến nghị, từ thư mục gốc):** `pyproject.toml` đã đặt `pythonpath = [".", "backend"]` nên `import app.*` và `import ai_pipeline.*` đều chạy được.
+
+```bash
+pip install -e '.[dev]'
+pytest                      # unit + contract (+ test của Data Lead; cần submodule ai_pipeline/data)
+pytest tests/contract       # chỉ hợp đồng schema (clause_output_v3, enum ↔ schema)
+```
+
+**Script legacy** (sẽ chuyển sang pytest ở C-17/C-19 phần 2). Các script `sys.path` tự thêm `backend/` nên chạy được từ `ai_pipeline/`:
 
 ```bash
 cd ai_pipeline
 
-# Không cần API key: chạy router + routing với kết quả LLM giả lập
+# Không cần API key: chạy router với kết quả LLM giả lập, kiểm nhãn bằng validate_labels
 python test_pipeline.py
 
-# Cần API key hoặc Ollama: gọi LLM thật
+# Cần API key hoặc Ollama: gọi LLM thật (service legacy, chỉ dùng với dữ liệu đã de-identify)
 python test_llm_pipeline.py
 ```
 
@@ -123,10 +134,9 @@ $env:LLM_PROVIDER="qwen_ollama"; python test_llm_pipeline.py
 
 | Lỗi thường gặp | Nguyên nhân / cách xử lý |
 |---|---|
-| `ModuleNotFoundError: config` | Đang chạy ngoài thư mục `ai_pipeline/` → `cd ai_pipeline` |
+| `ModuleNotFoundError: app` / `services` | Script legacy chạy ngoài `ai_pipeline/` → `cd ai_pipeline`; với pytest chạy từ thư mục gốc |
 | `Thiếu GEMINI_API_KEY` | Chưa tạo `.env` ở thư mục gốc hoặc chưa điền key |
 | `ai_pipeline/data/` rỗng | Chưa kéo submodule → `git submodule update --init --recursive` |
-| `ModuleNotFoundError: config.risk_routing` | Lỗi đã biết: `config/risk_routing.py` không có trong repo (tier bị bỏ theo SRS DEC-17/C-03); smoke test toàn pipeline chưa chạy được cho tới khi C-03 xong |
 | Nhãn không thuộc 12 nhãn | Đang dùng nhãn cũ (8 nhãn v1). Xem `docs/CLAUSE_TAXONOMY.md` |
 | Không kết nối được Ollama | Chưa chạy Ollama hoặc chưa `ollama pull` model |
 
@@ -248,6 +258,6 @@ Clause taxonomy là artifact đóng băng ở **MS-1 (25/10/2026)** (SRS DEC-10)
 Taxonomy ảnh hưởng đến Người 1 (prompt/pipeline), Người 2 (annotation) và Người 3 (risk), nên:
 
 1. Mở PR riêng (`docs/...` hoặc `ai/...`), **review bắt buộc của Người 1, 2, 3**.
-2. Semantics nguồn nằm ở data repo (`clause_taxonomy_v03.md`). Sửa `LABEL_DEFINITIONS` trong `ai_pipeline/config/taxonomy.py` và tăng `TAXONOMY_VERSION` (hiện `v04` = revision định nghĩa prompt; bộ 12 nhãn đổi thì phải thống nhất với data). Prompt của LLM tự sinh từ `taxonomy.py`.
-3. Sửa test khóa (`tests/test_data_lead_review.py`), enum trong schema (sinh từ code hoặc có test đối chiếu — DEC-20), `docs/CLAUSE_TAXONOMY.md`, và các file dùng nhãn cứng (`test_pipeline.py`, `mock_clause_service.py`, `eval/fixtures/build_synthetic.py`).
+2. Semantics nguồn nằm ở data repo (`clause_taxonomy_v03.md`). Sửa `LABEL_DEFINITIONS` trong `backend/app/clause/taxonomy.py` và tăng `TAXONOMY_VERSION` (hiện `v04` = revision định nghĩa prompt; bộ 12 nhãn đổi thì phải thống nhất với data). Prompt của LLM tự sinh từ `taxonomy.py`. Schema `clause_output_v3.json` có enum chép tay nhưng `tests/contract/test_schema_enums.py` sẽ **fail** nếu lệch `CLAUSE_LABELS`.
+3. Sửa test khóa (`tests/test_data_lead_review.py`), enum trong schema (sinh từ code hoặc có test đối chiếu — DEC-20), `docs/CLAUSE_TAXONOMY.md`, và các file dùng nhãn cứng (`tests/unit/test_clause_taxonomy.py`, `mock_clause_service.py`, `eval/fixtures/build_synthetic.py`).
 4. Không xóa/đổi tên nhãn khi đã có dữ liệu annotate theo bản cũ mà chưa thống nhất với Người 2.
