@@ -5,7 +5,7 @@ PR gốc: https://github.com/sosadsonar/ai-contract-risk-analyzer-pipeline/pull/
 Base được kiểm: `4cc454459a23ecbdfdc7e7372887cde922f4d5fe`.
 Nguồn semantics: `ai_pipeline/data/docs/clause_taxonomy_v03.md` và guideline
 v1.0, qua data submodule ghim vào commit main đã merge
-`c325b437f76b832b7880c2bdad912bc3401e6e5d` (Data PR #8).
+`a086606d8ffe1e4bce90845c40513d94cb8800dc` (Data PR #8).
 
 ## Kết quả hai phần việc Data Lead
 
@@ -115,7 +115,7 @@ python scripts/audit_data_lead.py --output docs/data_lead_span_audit.json
 ```
 
 10 test Data Lead pass; audit 9/9 pass. Submodule được pin cụ thể vào main
-data c325b43; không dùng `submodule update --remote` và không sửa file data
+data a086606; không dùng `submodule update --remote` và không sửa file data
 từ repo pipeline.
 
 Report lưu cả hash file taxonomy thực tế đọc và hash Git blob canonical.

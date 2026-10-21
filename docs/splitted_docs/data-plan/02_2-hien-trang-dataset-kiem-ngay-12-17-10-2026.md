@@ -4,7 +4,7 @@
 
 | Mục | Giá trị kiểm được |
 |---|---|
-| Data repo | submodule `ai_pipeline/data`, ghim commit `c325b437f76b832b7880c2bdad912bc3401e6e5d` (Data PR #8); không dùng `submodule update --remote`, không sửa file data từ repo pipeline |
+| Data repo | submodule `ai_pipeline/data`, ghim commit `a086606d8ffe1e4bce90845c40513d94cb8800dc` (Data PR #8); không dùng `submodule update --remote`, không sửa file data từ repo pipeline |
 | Dataset | `clauses_v06.csv`, 234 clause, 5 hợp đồng đã annotate, 4 template family |
 | Chất lượng offset | 225 `EXACT` + 9 `CONTEXT` (audit: `data_lead_span_audit.json`) |
 | Annotation lịch sử | 183 annotation giữ nguyên nội dung/nhãn khi đối chiếu v04 → v06 |

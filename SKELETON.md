@@ -67,6 +67,8 @@ Quy tắc phụ thuộc: `api → session → {document, privacy, clause, ai, le
 | `pyproject.toml` (thiếu deps backend), `backend/requirements.txt` (UTF-16) | Gộp nguồn deps, chuyển UTF-8, thêm lib DOCX/export | — | C-20 |
 | **Chưa có**: DOCX, scope precheck, PII masking, kho luật/retrieval, Data Graph, Clause Graph, risk/citation/assembly, export, RunLog/quota/rate, frontend | **Viết mới** | xem §5 | C-09, 10, 12–16, 21 |
 
+> **Cập nhật 20/10/2026 (Người 1, T1):** C-03 và C-04 đã xong — `ai_pipeline/config/{taxonomy,labeling}.py` đã bị xóa; nguồn nhãn nay ở `backend/app/clause/taxonomy.py` (+ `validate_labels`) và `backend/app/core/enums.py`; schema `ai_pipeline/schemas/clause_output_v3.json` thay `clause_output_v2.json`. Với `clause_extraction_service.py`, mô tả [Cũ] ở hàng C-01 đã được đối chiếu với mã thật — chênh lệch ghi ở `PROGRESS.md` §9 (bảng trên giữ nguyên để truy vết).
+
 ---
 
 ## 3. HTTP API — 6 operation (TDD §5)

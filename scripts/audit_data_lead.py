@@ -90,7 +90,7 @@ def audit(data_root):
                       'source_notes':row['notes'],'audit_reason':reason,
                       'source_reference_verified':True,'exact_span_eligible':False,
                       'legal_risk_ground_truth':None})
-    spec = importlib.util.spec_from_file_location('audit_taxonomy', ROOT / 'ai_pipeline/config/taxonomy.py')
+    spec = importlib.util.spec_from_file_location('audit_taxonomy', ROOT / 'backend/app/clause/taxonomy.py')
     taxonomy = importlib.util.module_from_spec(spec); spec.loader.exec_module(taxonomy)
     labels = {r['clause_type'] for r in rows}
     if labels != set(taxonomy.CLAUSE_LABELS):
