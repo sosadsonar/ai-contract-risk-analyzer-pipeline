@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "clause_output_v3",
+  "title": "clause_output_v3",
+  "description": "Kết quả Clause Classification (LLM #1) theo lô. Join bằng clause_id; không có span/quote/role/confidence (INV-05). Enum clause_labels đối chiếu với app.clause.taxonomy.CLAUSE_LABELS bằng tests/contract/test_schema_enums.py (DEC-20).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "items", "model_id", "prompt_version", "taxonomy_version"],
+  "properties": {
+    "schema_version": {"const": "clause_output_v3"},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["clause_id", "clause_labels"],
+        "properties": {
+          "clause_id": {"type": "string", "pattern": "^cl_[0-9]{4}$"},
+          "clause_labels": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {"$ref": "#/$defs/clause_label"}
+          }
+        }
+      }
+    },
+    "model_id": {"type": "string", "minLength": 1},
+    "prompt_version": {"type": "string", "minLength": 1},
+    "taxonomy_version": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "clause_label": {
+      "enum": [
+        "JOB_INFO",
+        "CONTRACT_TERM",
+        "COMPENSATION_BENEFITS",
+        "WORKING_TIME",
+        "LEAVE",
+        "INSURANCE_SAFETY",
+        "WORKING_CONDITIONS",
+        "TRAINING",
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "EMPLOYER_RIGHTS_OBLIGATIONS",
+        "TERMINATION",
+        "OTHER"
+      ]
+    }
+  }
+}

@@ -1,33 +1,19 @@
-import json
+"""Mock đầu ra Clause Classification theo schema `clause_output_v3` (C-04/C-17).
 
-def get_mock_contract_analysis() -> dict:
-    """Trả về dữ liệu chuẩn schema v2 để Backend và Risk AI dùng ngay lập tức."""
-    mock_data = {
-        "contract_id": "HD-001",
-        "total_clauses": 2,
-        "clauses": [
-            {
-                "clause_id": "clause_1",
-                "clause_number": "Điều 3.1",
-                "span": {"start_char": 1204, "end_char": 1389},
-                "original_text": "Người lao động không được làm việc cho đối thủ cạnh tranh trong vòng 24 tháng...",
-                "clause_type": ["EMPLOYEE_OBLIGATIONS_DISCIPLINE", "TERMINATION"],
-                "type_scores": {"EMPLOYEE_OBLIGATIONS_DISCIPLINE": 0.95, "TERMINATION": 0.42},
-                "max_content_risk_tier": "HIGH",
-                "review_zone": "RED",
-                "review_reason": "TERMINATION score (0.42) < T_low(0.7) for HIGH tier"
-            },
-            {
-                "clause_id": "clause_2",
-                "clause_number": "Điều 4",
-                "span": {"start_char": 1392, "end_char": 1470},
-                "original_text": "Mức lương cơ bản là 10.000.000 VNĐ.",
-                "clause_type": ["COMPENSATION_BENEFITS"],
-                "type_scores": {"COMPENSATION_BENEFITS": 0.98},
-                "max_content_risk_tier": "MEDIUM",
-                "review_zone": "GREEN",
-                "review_reason": None
-            }
-        ]
+Để Risk AI (Người 3) và backend dùng ngay, không cần gọi LLM. Dữ liệu này được test hợp lệ
+với schema tại tests/contract/test_clause_output_v3.py. Không còn contract_id/type_scores/
+tier/review_zone (DEC-17).
+"""
+
+
+def get_mock_clause_output() -> dict:
+    return {
+        "schema_version": "clause_output_v3",
+        "items": [
+            {"clause_id": "cl_0001", "clause_labels": ["EMPLOYEE_OBLIGATIONS_DISCIPLINE", "TERMINATION"]},
+            {"clause_id": "cl_0002", "clause_labels": ["COMPENSATION_BENEFITS"]},
+        ],
+        "model_id": "mock",
+        "prompt_version": "clause_prompt_v1",
+        "taxonomy_version": "clause_taxonomy_v03",
     }
-    return mock_data

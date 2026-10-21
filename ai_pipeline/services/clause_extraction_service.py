@@ -1,22 +1,25 @@
 """
-Service thật (không mock) cho bước Segmentation + Classification.
+[LEGACY — cầu nối tạm, sẽ bị thay ở C-01 (Người 1, T2–T4)]
 
-Luồng xử lý:
-  raw_text --(LLM: Gemini hoặc Qwen/Ollama)--> danh sách clause thô (text + score)
-           --(tự tìm lại vị trí ký tự trong raw_text)--> gắn span
-           --(resolve_multi_labels từ config/labeling.py)--> gắn clause_type
-           --(compute_clause_routing từ config/risk_routing.py)--> gắn risk tier + review_zone
-           --> JSON đúng schema v2 (ai_pipeline/schemas/clause_output_v2.json)
+Service cũ (1 lần gọi LLM vừa cắt vừa phân loại trên text CHƯA che PII) — vi phạm INV-04/INV-02,
+nên KHÔNG dùng cho pipeline sản phẩm. Giữ lại chỉ để chạy tay test_llm_pipeline.py trên dữ liệu
+đã de-identify cho tới khi tách thành:
+  clause/segmenter.py (segment, local) + ai/clause_adapter.py (classify, theo lô).
 
-Chạy thử: xem ai_pipeline/test_llm_pipeline.py
+Luồng hiện tại:
+  raw_text --(LLM: Gemini hoặc Qwen/Ollama)--> danh sách clause thô (text + clause_labels)
+           --(_locate_span: str.find, sẽ bị xóa)--> gắn span
+           --(validate_labels từ app.clause.taxonomy)--> kiểm 1..3 nhãn hợp lệ
+
+C-03 (T1): đã bỏ type_scores / max_content_risk_tier / review_zone và import hỏng
+`config.risk_routing` (file này không tồn tại trong repo). Output KHÔNG còn khớp schema v2 và
+cũng chưa khớp clause_output_v3 (còn span/original_text/contract_id vì còn là bản cũ).
 """
 
 import re
 from typing import Optional
 
-from config.taxonomy import CLAUSE_LABELS, LABEL_DEFINITIONS
-from config.labeling import resolve_multi_labels
-from config.risk_routing import compute_clause_routing
+from app.clause.taxonomy import CLAUSE_LABELS, LABEL_DEFINITIONS, validate_labels
 from services.llm_clients import LLMClientError, get_llm_client
 
 _LABEL_DEFS = "\n".join(f"- {k}: {v}" for k, v in LABEL_DEFINITIONS.items())
@@ -35,8 +38,8 @@ QUAN TRỌNG:
 1. `original_text` PHẢI được copy CHÍNH XÁC nguyên văn (giữ nguyên dấu câu, khoảng
    trắng) từ văn bản gốc — vì hệ thống sẽ dùng nó để tìm lại vị trí ký tự, nếu bạn
    diễn giải lại hoặc tóm tắt thì hệ thống sẽ không định vị được.
-2. Một điều khoản có thể có nhiều nhãn (multi-label) nếu nội dung bao trùm nhiều ý.
-3. `type_scores` là độ tự tin của BẠN cho từng nhãn được gán, từ 0.0 đến 1.0.
+2. Một điều khoản có từ 1 đến 3 nhãn (multi-label), nhãn chính đứng đầu, không lặp nhãn.
+3. KHÔNG trả điểm tự tin (confidence/score).
 4. CHỈ trả về JSON thuần theo đúng định dạng bên dưới, KHÔNG thêm giải thích,
    KHÔNG bọc trong markdown code block.
 
@@ -46,8 +49,7 @@ QUAN TRỌNG:
     {{
       "clause_number": "Điều X hoặc null nếu không đánh số",
       "original_text": "nguyên văn điều khoản",
-      "clause_type": ["LABEL1", "LABEL2"],
-      "type_scores": {{"LABEL1": 0.0, "LABEL2": 0.0}}
+      "clause_labels": ["LABEL1", "LABEL2"]
     }}
   ]
 }}
@@ -94,7 +96,7 @@ def extract_clauses(
         contract_id: id gán cho hợp đồng trong output.
 
     Returns:
-        dict đúng schema ai_pipeline/schemas/contract_v2.json, kèm thêm field
+        dict (định dạng legacy, xem docstring đầu file), kèm thêm field
         "llm_provider" và "unmatched_span_count" để debug nhanh.
 
     Raises:
@@ -115,29 +117,19 @@ def extract_clauses(
         if span is None:
             unmatched_span_count += 1
 
-        type_scores = c.get("type_scores", {}) or {}
-        # Bỏ qua nhãn không nằm trong taxonomy (phòng khi LLM bịa nhãn) thay vì crash.
-        type_scores = {k: v for k, v in type_scores.items() if k in CLAUSE_LABELS}
-        # Nhãn thiếu (LLM không chấm điểm) coi như score 0.0 để đủ 12 nhãn cho
-        # resolve_multi_labels/compute_clause_routing (validate_scores yêu cầu đủ bộ).
-        type_scores = {label: type_scores.get(label, 0.0) for label in CLAUSE_LABELS}
-
-        # clause_type luôn được TÍNH LẠI bằng rule đã đóng băng (ml-v1), không
-        # tin trực tiếp "clause_type" mà LLM tự liệt kê trong response.
-        clause_type = resolve_multi_labels(type_scores)
-        # routing dùng TOÀN BỘ type_scores (không chỉ các nhãn lọt vào clause_type)
-        # để không bỏ sót nhãn điểm thấp cần review — xem docstring risk_routing.py.
-        routing_info = compute_clause_routing(type_scores)
+        # Nhãn sai (ngoài taxonomy / trùng / ngoài 1..3) => lỗi output, không tự đoán lại.
+        try:
+            clause_labels = validate_labels(c.get("clause_labels"))
+        except ValueError as e:
+            raise LLMClientError(f"clause #{i + 1}: clause_labels không hợp lệ: {e}") from e
 
         final_clauses.append(
             {
-                "clause_id": f"clause_{i + 1}",
+                "clause_id": f"cl_{i + 1:04d}",
                 "clause_number": c.get("clause_number"),
                 "span": {"start_char": span[0], "end_char": span[1]} if span else None,
                 "original_text": clause_text,
-                "clause_type": clause_type,
-                "type_scores": type_scores,
-                **routing_info,
+                "clause_labels": clause_labels,
             }
         )
 
