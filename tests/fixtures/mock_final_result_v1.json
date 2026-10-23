@@ -1,0 +1,59 @@
+{
+  "schema_version": "final_result_v1",
+  "offset_unit": "unicode_code_point",
+  "session_id": "30734fdb-3042-4edf-b3eb-631eb85f86be",
+  "role": "EMPLOYEE",
+  "status": "COMPLETED",
+  "analysis_date": "2026-10-12",
+  "canonical_text": "Điều 1. Công ty giữ bản chính văn bằng của người lao động trong suốt thời hạn hợp đồng.\nĐiều 2. Người lao động làm việc tại địa điểm đã thỏa thuận. 📄",
+  "clauses": [
+    {
+      "clause_id": "cl_0001",
+      "original_text": "Điều 1. Công ty giữ bản chính văn bằng của người lao động trong suốt thời hạn hợp đồng.\n",
+      "start_char": 0,
+      "end_char": 88,
+      "clause_labels": ["WORKING_CONDITIONS"]
+    },
+    {
+      "clause_id": "cl_0002",
+      "original_text": "Điều 2. Người lao động làm việc tại địa điểm đã thỏa thuận. 📄",
+      "start_char": 88,
+      "end_char": 149,
+      "clause_labels": ["JOB_INFO"]
+    }
+  ],
+  "risks": [
+    {
+      "clause_id": "cl_0001",
+      "risk_labels": ["DEPOSIT_DOCUMENT_HELD"],
+      "risk_basis": [{"label": "DEPOSIT_DOCUMENT_HELD", "basis_type": "LEGAL_VIOLATION"}],
+      "severity": "HIGH",
+      "explanation": "Việc công ty giữ bản chính văn bằng của người lao động trái với quy định cấm tại Điều 17 Bộ luật Lao động 2019.",
+      "evidence_status": "SUPPORTED",
+      "citation_ids": ["BLLD2019:art17"]
+    }
+  ],
+  "citations": [
+    {
+      "citation_id": "BLLD2019:art17",
+      "document_name": "Bộ luật Lao động 2019",
+      "article": "17",
+      "content": "Người sử dụng lao động không được giữ bản chính giấy tờ tùy thân, văn bằng, chứng chỉ của người lao động."
+    }
+  ],
+  "disclaimer": "Kết quả chỉ hỗ trợ tham khảo rủi ro theo phạm vi phân tích, không thay thế tư vấn pháp lý.",
+  "data_notice": "Nội dung mẫu đã loại bỏ thông tin định danh; phiên thử nghiệm chỉ lưu dữ liệu trong bộ nhớ tạm thời.",
+  "version_pins": {
+    "extraction_version": "extract_v1.1",
+    "clause_taxonomy_version": "clause_taxonomy_v03",
+    "risk_taxonomy_version": "risk_taxonomy_v02",
+    "severity_rubric_version": "severity_v01",
+    "corpus_version": "legal_corpus_2026-10-12",
+    "data_graph_version": "legal_graph_2026-10-12",
+    "clause_prompt_version": "clause_prompt_v1",
+    "risk_prompt_version": "risk_prompt_v1",
+    "model_id": "mock-gemini-flash",
+    "temperature": 0.0,
+    "app_commit": "mock-fixture"
+  }
+}
