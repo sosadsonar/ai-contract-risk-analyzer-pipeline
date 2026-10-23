@@ -24,7 +24,7 @@ Hai bước tô màu là các lần gọi LLM bên thứ ba; các bước còn l
 * LLM không được tạo hoặc chỉnh start_char, end_char và không được tạo quote để highlight.
 * Mọi output AI downstream phải tham chiếu clause_id; backend là nơi ghép kết quả với original_text và span từ canonical text.
 * Invariant: canonical_text[start_char:end_char] == original_text; len(masked_text) == len(canonical_text); masked_text[start_char:end_char] là clause đã che.
-* Sản phẩm có hai bước LLM bắt buộc: Clause Classification, và Risk + Severity + Explanation + chọn citation. Bước LLM hỗ trợ tách điều khoản là tùy chọn (hạng mục cắt số 3). Judge chạy ngoại tuyến, không thuộc pipeline sản phẩm.
+* Sản phẩm có hai bước LLM bắt buộc: Clause Classification, và Risk + Explanation + chọn citation (severity do backend tra bảng taxonomy). Bước LLM hỗ trợ tách điều khoản là tùy chọn (hạng mục cắt số 3). Judge chạy ngoại tuyến, không thuộc pipeline sản phẩm.
 * Legal Retrieval chạy cục bộ, không gọi LLM.
 * Legal Retrieval gồm retrieval nền và bước mở rộng qua Data Graph (FR-12, FR-30). Tắt bước mở rộng thì hệ thống vẫn chạy đúng.
 * Clause Graph được dựng cục bộ ngay sau Segmentation, không gọi LLM và không thêm bước LLM (FR-31). Context Resolver lấy các clause liên quan từ graph và chỉ gửi masked related context vào Risk LLM; output vẫn gắn target clause_id. Sơ đồ trên chưa vẽ Graph vì đây là chi tiết local đã được refine ở SDD/TDD.

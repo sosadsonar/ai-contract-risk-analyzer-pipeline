@@ -2,7 +2,7 @@
 
 # 4. Pipeline xử lý end-to-end
 
-![](/diagrams/pipeline.png)
+![](/docs/diagrams/pipeline.png)
 
 *Hình 3. Pipeline runtime đã refine ở mức SDD*
 

@@ -4,7 +4,7 @@ Tách ở heading mức 2. Gốc 122,351 ký tự -> sau làm sạch 69,465 ký 
 
 | File | Mục | Ký tự | ID hàng bảng |
 |---|---|---|---|
-| [00_srs-ai-labor-contract-risk-analyzer-phien-ban-1-4.md](00_srs-ai-labor-contract-risk-analyzer-phien-ban-1-4.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) | 291 |  |
+| [00_srs-ai-labor-contract-risk-analyzer-phien-ban-1-4.md](00_srs-ai-labor-contract-risk-analyzer-phien-ban-1-4.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) HEADER | 291 |  |
 | [01_kiem-soat-tai-lieu.md](01_kiem-soat-tai-lieu.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > Kiểm soát tài liệu | 9,331 | DEC-01, DEC-02, DEC-03, DEC-04, DEC-05, DEC-06, DEC-07, DEC-08, DEC-09, DEC-10 ... |
 | [02_1-gioi-thieu.md](02_1-gioi-thieu.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 1. Giới thiệu | 3,902 |  |
 | [03_2-mo-ta-tong-quan-va-quyet-dinh-thiet-ke.md](03_2-mo-ta-tong-quan-va-quyet-dinh-thiet-ke.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 2. Mô tả tổng quan và quyết định thiết kế | 3,051 |  |

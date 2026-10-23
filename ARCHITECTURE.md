@@ -60,7 +60,7 @@ flowchart LR
 | Data Graph Service | `legal/data_graph.py` | Mở rộng 1 hop quanh top-3 seed, cap, ranking seed-first; có thể tắt/fallback. | Không |
 | Risk Analysis Adapter | `ai/risk_adapter.py` | Risk label, severity, explanation, chọn citation trong candidate; nhận related context. | **LLM #2** |
 | Citation Validator | `legal/citation_validator.py` | Candidate ⊂ corpus ⊂ hiệu lực; log số bị loại. | Không |
-| Result Assembler | `result/assembler.py` | Join `clause_id`; derive `risk_basis`; publish nguyên tử. | Không |
+| Result Assembler | `result/assembler.py` | Join `clause_id`; dựng `risk_basis` từ `basis_type`, tra severity; publish nguyên tử. | Không |
 | Report Exporter | `result/exporter.py` | DOCX (bắt buộc), PDF (cut item 4); cùng `ReportModel`. | Không |
 | LLM Client | `ai/provider.py`, `gemini_client.py` | `LLMProvider`; timeout 30s; retry matrix; ghi call/token/cost; key qua header. | — |
 | Ops | `ops/` | RunLog, daily quota + session reserve, IP rate limit (HMAC), metadata SQLite. | — |
@@ -178,7 +178,7 @@ scripts/split_doc.py           # tách tài liệu cho AI đọc đỡ token
 
 ## 12. Quyết định kiến trúc chính (rút gọn; đầy đủ: TDD-01…TDD-25, SRS DEC-01…DEC-28)
 
-Rule-based segmentation, bỏ router theo tỉ lệ heading (DEC-18/TDD-06) · Upload bất đồng bộ, REJECTED luôn gắn session (DEC-23) · `risk_basis` derive (DEC-24/TDD-23) · lease capacity=1, retry acquire lại (DEC-25) · span code point, partition không chồng (DEC-26/TDD-22) · EV-08 cùng `final_k`, M8 chính dùng predicted labels (DEC-27/TDD-10) · 1 worker (DEC-28/TDD-21) · không lưu nội dung bền vững (DEC-16/TDD-02) · Gemini paid cho demo/eval (DEC-19/TDD-25).
+Rule-based segmentation, bỏ router theo tỉ lệ heading (DEC-18/TDD-06) · Upload bất đồng bộ, REJECTED luôn gắn session (DEC-23) · `risk_basis` dựng từ `basis_type` của LLM, severity tra bảng (DEC-24/TDD-23) · lease capacity=1, retry acquire lại (DEC-25) · span code point, partition không chồng (DEC-26/TDD-22) · EV-08 cùng `final_k`, M8 chính dùng predicted labels (DEC-27/TDD-10) · 1 worker (DEC-28/TDD-21) · không lưu nội dung bền vững (DEC-16/TDD-02) · Gemini paid cho demo/eval (DEC-19/TDD-25).
 
 ## 13. Rủi ro kiến trúc → biện pháp
 

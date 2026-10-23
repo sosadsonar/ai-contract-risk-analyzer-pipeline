@@ -52,7 +52,7 @@ SDD chuyển các yêu cầu nghiệp vụ và yêu cầu phần mềm thành m�
 
 Hệ thống gồm web frontend, một backend duy nhất, kho luật nội bộ, Gemini Flash là LLM sản phẩm và một evaluation harness ngoại tuyến. Claude chỉ dùng cho đánh giá, không nằm trong product runtime.
 
-![](/diagrams/system_context.png)
+![](/docs/diagrams/system_context.png)
 
 *Hình 1\. System Context*
 
@@ -67,7 +67,7 @@ Hệ thống gồm web frontend, một backend duy nhất, kho luật nội bộ
 
 Backend được thiết kế thành các module độc lập theo trách nhiệm nhưng chạy trong cùng một deployment. Analysis Orchestrator điều phối state machine và pipeline; các module local không phụ thuộc LLM.
 
-![](/diagrams/system_overall.png)
+![](/docs/diagrams/system_overall.png)
 
 *Hình 2\. Component Architecture*
 
@@ -98,7 +98,7 @@ Backend được thiết kế thành các module độc lập theo trách nhiệ
 
 # **4\. Pipeline xử lý end-to-end**
 
-![](/diagrams/pipeline.png)
+![](/docs/diagrams/pipeline.png)
 
 *Hình 3\. Pipeline runtime đã refine ở mức SDD*
 
@@ -133,7 +133,7 @@ Pipeline giữ đúng các quy tắc của SRS: PII masking trước segmentatio
 
 Data Graph là lớp kiến thức bổ sung trên closed legal corpus, phục vụ Retrieval & Fact-finding. Nó không thay thế retriever nền và không có quyền tạo citation ngoài corpus.
 
-![](/diagrams/graphs.png)
+![](/docs/diagrams/graphs.png)
 
 *Hình 4\. Data Graph và Clause Graph trong pipeline*
 
@@ -151,7 +151,7 @@ Data Graph là lớp kiến thức bổ sung trên closed legal corpus, phục v
 
 ## **5.2 Retrieval \+ Graph Expansion**
 
-![](/diagrams/retrieval.png)
+![](/docs/diagrams/retrieval.png)
 
 * Seed candidate luôn được ưu tiên hơn candidate chỉ xuất hiện do graph expansion.  
 * Expansion mặc định tối đa 1 hop; số seed/top candidate và số candidate cuối cấu hình ở TDD.  
@@ -229,7 +229,7 @@ Session
 
 # **8\. Session, State Machine và điều phối**
 
-![](/diagrams/state_machine.png)
+![](/docs/diagrams/state_machine.png)
 
 Analysis Orchestrator là component duy nhất được phép chuyển state. Các service trả typed result/error, không tự thay đổi state.
 
@@ -294,7 +294,7 @@ Analysis Orchestrator là component duy nhất được phép chuyển state. C�
 
 # **13\. Deployment Architecture**
 
-![](/diagrams/web_flow.png)
+![](/docs/diagrams/web_flow.png)
 
 *Hình 5\. Deployment Architecture cho demo*
 

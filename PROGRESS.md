@@ -43,9 +43,9 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
 | ID | Thứ đang có | Làm gì | Cỡ | Người | Tuần |
 |---|---|---|---|---|---|
 | C-03 | `config/labeling.py`: `type_scores`, `max_content_risk_tier`, `review_zone`, 2 import hỏng | Xóa; chỉ còn validate 1–3 nhãn / thuộc taxonomy / không trùng | S | N1 | T1 |
-| C-04 | `schemas/clause_output_v2.json` (`contract_id`, `taxonomy_version` cứng v02 trong khi `taxonomy.py` đã là v04, enum chép tay) | Tạo `clause_output_v3` + `risk_output_v1`; enum sinh từ code hoặc test đối chiếu; `taxonomy_version` = taxonomy nguồn data (v03), revision prompt v04 ghi qua `clause_prompt_version` (TDD §6.4). *SRS C-04 ghi "v03" là số cũ — sửa khi SRS có bản mới* | S | N1 (+N3 risk) | T1 |
+| C-04 | `schemas/clause_output_v2.json` (`contract_id`, `taxonomy_version` cứng v02 trong khi `taxonomy.py` đã là v04, enum chép tay) | Tạo `clause_output_v3` + `risk_output_v2`; enum sinh từ code hoặc test đối chiếu; `taxonomy_version` = taxonomy nguồn data (v03), revision prompt v04 ghi qua `clause_prompt_version` (TDD §6.4). *SRS C-04 ghi "v03" là số cũ — sửa khi SRS có bản mới* | S | N1 (+N3 risk) | T1 |
 | C-17 | `test_pipeline.py`, `test_llm_pipeline.py` (script tay), `pyproject` trỏ `tests/` chưa có, mock schema cũ | Chuyển pytest; viết test INV trước; mock theo schema mới | M | N4 | T1–T2 |
-| C-20 | `pyproject.toml` thiếu deps backend; `requirements.txt` UTF-16 | Gộp 1 nguồn deps, UTF-8, thêm lib DOCX/export | S | N4 | T1 |
+| C-20 | `pyproject.toml` thiếu deps backend | Gộp 1 nguồn deps, thêm lib DOCX/export | S | N4 | T1 |
 | C-01 | `clause_extraction_service.py`: 1 prompt LLM cắt+phân loại trên text chưa che; `_locate_span` | Tách `segment()` (local) + `classify()` (theo lô); bỏ `_locate_span`; giữ prompt từ `LABEL_DEFINITIONS` | M | N1 | T2–T4 |
 | C-02 | `utils/text_processing.py`: `document_router` (tỉ lệ heading 0.40) | Bỏ router; regex trả khoảng; fallback paragraph; fixture ca dị | M | N1 | T2 |
 | C-05 | Postgres + SQLAlchemy + Alembic; bảng `contracts` lưu `original_text` | In-memory store, UUID, TTL 60', lease capacity=1, 1 worker; sqlite chỉ metadata | M | N4 | T2 |
@@ -65,7 +65,7 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
 | C-12 | Kho luật: format tách khỏi mã, validator fail-fast, retrieval nền, hiệu lực, citation check | L | N2 | T2–T5 | danh mục tầng 1 (MS-1) |
 | C-13 | Data Graph in-memory (PARENT_OF auto, REFERS_TO/GUIDES verified), graph on/off cùng `final_k` | M | N2 | T4–T5 | C-12 |
 | C-14 | Clause Graph (NEXT/PARENT_OF/REFERS_TO) + Context Resolver + trace ID-only | M | N1 | T4–T5 | C-01/02 |
-| C-15 | Risk: prompt + candidate catalog + structured output + derive `risk_basis` + citation validate + advice lint | L | N3 | T4–T6 | risk taxonomy (MS-1), C-12 |
+| C-15 | Risk: prompt + candidate catalog + structured output + dựng `risk_basis` + tra severity + citation validate + advice lint | L | N3 | T4–T6 | risk taxonomy (MS-1), C-12 |
 | C-16 | RunLog, quota/reserve, IP rate limit, eval ledger | M | N4 | T4–T6 | benchmark D1 |
 | C-21 | Export DOCX (PDF = cut item 4), ReportModel | M | N5 | T3–T5 | `final_result_v1` |
 | X-01 | Risk taxonomy (OI-01), severity rubric, annotation guideline, chính sách đa nhãn (OI-10); freeze | — | N3 (risk) + N1/N2 | T1–T2 | — |
@@ -96,9 +96,10 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] Bản nháp **danh mục kho luật tầng 1** (OI-02) để chốt ở MS-1
   - [ ] Kiểm kê D1 (BRD 8.2: 4 HĐ, 183 clause): còn PII không, đã de-identify chưa; **đối chiếu với data repo v06 (5 HĐ / 234 clause, 183 annotation lịch sử)** và chốt D1 gồm HĐ nào (không tự sửa BRD)
 - **N3**
-  - [ ] X-01: bản đầu **risk taxonomy** theo role, mỗi nhãn có `basis_type` (LEGAL_VIOLATION/UNFAVORABLE/AMBIGUOUS); nháp severity rubric
-  - [ ] `risk_output_v1.json` + (cùng N4) `final_result_v1.json`
-  - [ ] Spike PII: danh sách pattern regex tiếng Việt (email, SĐT, CCCD, TK ngân hàng)
+  - [x] X-01: bản đầu **risk taxonomy** theo role, bảng severity theo (nhãn, `basis_type`, role) với `basis_type` = LEGAL_VIOLATION/UNFAVORABLE/AMBIGUOUS; nháp severity rubric
+  - [x] `risk_output_v2.json` (chỉ cho câu trả lời LLM, thay tên `risk_output_v1`); `backend/app/risk/taxonomy.py` là nguồn duy nhất của nhãn + bảng severity; `risk_assembler.py` ghép ra `risk_merged_v1`; test đối chiếu doc ↔ code ↔ schema (xem `changes.md`)
+  - [ ] + (cùng N4) `final_result_v1.json` (nhận `risk_merged_v1` từ assembler)
+  - [x] pre C-09: Spike PII: danh sách pattern regex tiếng Việt (email, SĐT, CCCD/CMND, TK ngân hàng, ngày sinh, tên, địa chỉ, pháp nhân); `backend/privacy/pii_DRAFT.py` + `tests/unit/test_pii_draft.py`. Chưa đo precision/recall trên D1
 - **N4**
   - [ ] C-17: pytest chạy được (`tests/{unit,integration,contract,fixtures}`, sửa `testpaths`), CI chạy pytest
   - [ ] Dựng cây package `backend/app/*` theo TDD §3.2 (file rỗng/stub), `core/config.py`
@@ -123,7 +124,8 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] X-10: bắt đầu thu hợp đồng T1; quy trình de-identify
 - **N3**
   - [ ] **Freeze** risk taxonomy + severity rubric (MS-1) — cả nhóm review
-  - [ ] C-09 (a): `pii_types`, `mask_value`, `detector` regex (email, SĐT, CCCD, TK NH) + **INV-01** test
+  - [x] C-09 (a): `pii_types`, `mask_value`, `detector` regex (email, SĐT, CCCD, TK NH)
+  - [ ] **INV-01** test
 - **N4**
   - [ ] C-05: `InMemorySessionStore`, `ProcessingLease`, state machine; **test barrier 2 Create đồng thời**
   - [ ] C-06 (a): `admission_gate` (role → rate → quota → lease), 6 route trả state thật; chốt cách làm **hard byte cap** (SKELETON §3)
@@ -192,7 +194,7 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] X-04: D2 lỗi chèn (dev, tách quy định khỏi T2); gold seg T1 cho hợp đồng đã thu
 - **N3**
   - [ ] C-15 (a): `risk_adapter` đầy đủ (candidate catalog dedupe, related context, structured output, batch 6); `detect_advice` (theo cụm, không match "nên" đơn), `detect_unsupported_reference`, `sanitize_explanation`
-  - [ ] `citation_validator` (INV-06); `derive_risk_basis` + `assemble` (INV-07)
+  - [ ] `citation_validator` (INV-06); `risk_assembler` (dựng `risk_basis`, tra severity) (INV-07)
 - **N4**
   - [ ] Nối thật `PROCESSING` trong orchestrator; **retry/resume** (`failed_stage` → VALIDATING/PROCESSING, fingerprint; trễ thì cắt item 2); cancel; test End vs callback muộn
   - [ ] `cleanup` + tombstone 24h; route `export`; **INV-09/10**
@@ -288,7 +290,7 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
 
 | Chuỗi phụ thuộc | Rủi ro | Biện pháp |
 |---|---|---|
-| risk taxonomy (MS-1) → `risk_adapter` (C-15) → `derive_risk_basis` | OI-01 chưa có chủ ⇒ N3 bị chặn từ T4 | Chốt chủ ở T1, bản đầu ở T1–T2 |
+| risk taxonomy (MS-1) → `risk_adapter` (C-15) → `risk_assembler` | OI-01 chưa có chủ ⇒ N3 bị chặn từ T4 | Chốt chủ ở T1, bản đầu ở T1–T2 |
 | danh mục tầng 1 → corpus → baseline → Data Graph → M8 | Kho luật sai/thiếu, không có luật sư | Closed corpus + `INSUFFICIENT_EVIDENCE`, edges chỉ load khi đã verified |
 | C-08 (L) extraction → segmentation → toàn bộ pipeline | N4 nặng nhất | Mock/fixture canonical để N1/N3 không phải chờ; C-07 đã chuyển cho N1 |
 | C-09 (L) PII → `boundary_guard` → INV-03 | PII recall không đạt BRD 7.3 | Đo sớm trên D1 (T4); local NER chỉ thêm nếu D1 không đạt (OI-12) |

@@ -16,6 +16,8 @@
 
 Bản 0.2 rà soát lại TDD 0.1 theo BRD 0.5, SRS 1.3, SDD 0.1 và review kỹ thuật. Các thay đổi chính: thống nhất upload bất đồng bộ và trạng thái REJECTED; bổ sung basis type ở final view nhưng giữ `risk_labels` của SRS; sửa retry/processing lock; làm M8 graph on/off công bằng; khóa partition clause không chồng lấn; tăng kiểm tra PDF font cũ; sửa Clause Graph REFERS_TO; tối ưu payload/token; bổ sung frontend contract, fixture format, privacy/BL-1/annotation metrics; và khóa deployment một worker cho session store in-memory.
 
+Điều chỉnh 23/10/2026: risk taxonomy v0.1 có ba loại căn cứ cho mỗi nhãn nên `risk_basis` không thể suy từ nhãn. Risk LLM trả thêm `basis_type` (một giá trị cho mỗi clause) và không trả `severity`; backend kiểm theo taxonomy, dựng `risk_basis` và tra `severity` (TDD-23, §6.3, §15, Phụ lục A, C, D).
+
 Các đề xuất đòi hỏi thay đổi SRS (ví dụ thêm trường `related_clause_ids` vào RiskResult) **không được tự ý đưa vào product schema**. TDD 0.2 dùng diagnostic/evaluation trace để chứng minh Clause Graph đã được dùng, đồng thời ghi mục cần backport SRS ở §21.
 
 ## Quy tắc ưu tiên nguồn

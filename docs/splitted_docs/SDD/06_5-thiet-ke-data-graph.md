@@ -4,7 +4,7 @@
 
 Data Graph là lớp kiến thức bổ sung trên closed legal corpus, phục vụ Retrieval & Fact-finding. Nó không thay thế retriever nền và không có quyền tạo citation ngoài corpus.
 
-![](/diagrams/graphs.png)
+![](/docs/diagrams/graphs.png)
 
 *Hình 4. Data Graph và Clause Graph trong pipeline*
 
@@ -22,7 +22,7 @@ Data Graph là lớp kiến thức bổ sung trên closed legal corpus, phục v
 
 ## 5.2 Retrieval + Graph Expansion
 
-![](/diagrams/retrieval.png)
+![](/docs/diagrams/retrieval.png)
 
 * Seed candidate luôn được ưu tiên hơn candidate chỉ xuất hiện do graph expansion.
 * Expansion mặc định tối đa 1 hop; số seed/top candidate và số candidate cuối cấu hình ở TDD.

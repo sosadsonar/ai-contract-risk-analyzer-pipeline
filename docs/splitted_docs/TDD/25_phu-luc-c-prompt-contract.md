@@ -12,10 +12,10 @@
 ## C.2 Risk prompt - bắt buộc
 
 * Nhận role, target masked clause, clause labels, candidate IDs/catalog và optional related clauses.
-* Risk taxonomy đi kèm label + `basis_type` + definition; model chọn label, backend derive basis type.
+* Risk taxonomy đi kèm label + definition và định nghĩa ba `basis_type`; model chọn label và `basis_type`, backend kiểm theo taxonomy, dựng `risk_basis` và tra severity.
 * Chỉ clause hiện có; không missing-clause risk.
 * Citation chỉ candidate IDs. Không nhớ/viện dẫn luật ngoài candidate.
 * Thiếu căn cứ -> INSUFFICIENT_EVIDENCE, severity null, citations empty.
 * related_clauses chỉ context cho điều kiện/phụ thuộc/mâu thuẫn; output vẫn target clause_id.
 * Explanation tiếng Việt, trung tính; không lời khuyên/hành động; không nhắc điều luật ngoài selected valid citations.
-* Provider structured output theo `risk_output_v1`, không quote/span/Markdown.
+* Provider structured output theo `risk_output_v2`, không quote/span/Markdown.

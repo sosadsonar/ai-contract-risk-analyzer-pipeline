@@ -54,7 +54,7 @@ Quy tắc phụ thuộc: `api → session → {document, privacy, clause, ai, le
 | `ai_pipeline/services/clause_extraction_service.py` (1 prompt LLM cắt + phân loại trên text chưa che; `_locate_span` dùng `str.find`) | **Tách đôi**; xóa `_locate_span`; giữ cách sinh prompt từ `LABEL_DEFINITIONS` | `clause/segmenter.py` (`segment`) + `ai/clause_adapter.py` (`classify`) + `ai/prompts/clause_v1.py` | C-01 |
 | `utils/text_processing.py` (`document_router` theo tỉ lệ heading, regex chỉ trả dòng tiêu đề) | **Bỏ router**; regex trả khoảng điều khoản; thêm fallback paragraph | `clause/structure_parser.py` | C-02 |
 | `config/labeling.py` (`type_scores`, `max_content_risk_tier`, `review_zone`; 2 import hỏng `config.risk_routing`) | **Xóa** 3 khái niệm + 2 import; chỉ còn validate 1–3 nhãn, thuộc taxonomy, không trùng | `clause/taxonomy.py` + `core/enums.py` (một nguồn, DEC-20) | C-03 |
-| `schemas/clause_output_v2.json` (`contract_id` bắt buộc; `taxonomy_version` cố định v02 trong khi code đã v04; enum chép tay) | **Thay** | `ai_pipeline/schemas/clause_output_v3.json`, `risk_output_v1.json`, `final_result_v1.json`, … (enum sinh từ code hoặc có test đối chiếu) | C-04 |
+| `schemas/clause_output_v2.json` (`contract_id` bắt buộc; `taxonomy_version` cố định v02 trong khi code đã v04; enum chép tay) | **Thay** | `ai_pipeline/schemas/clause_output_v3.json`, `risk_output_v2.json`, `final_result_v1.json`, … (enum sinh từ code hoặc có test đối chiếu) | C-04 |
 | Backend Postgres + SQLAlchemy + Alembic, bảng `contracts` lưu `original_text`, id số nguyên, status chữ thường | **Gỡ** cho nội dung hợp đồng | `session/store.py` (RAM), `ops/metadata_db.py` (sqlite metadata) | C-05 |
 | `backend/app/api/routes/contracts.py` (chỉ `.pdf`, không role, `HTTPException` tự do) | **Viết lại** | `api/routes/sessions.py` + `api/errors.py` + `api/deps.py` | C-06 |
 | `backend/app/services/llm_clients.py` (free tier + Qwen/Ollama, timeout 60/120s, key trong query string, model ngầm) | **Viết lại** | `ai/provider.py`, `ai/gemini_client.py`, `ai/dev_local_client.py` | C-07 |
@@ -64,7 +64,7 @@ Quy tắc phụ thuộc: `api → session → {document, privacy, clause, ai, le
 | `test_pipeline.py`, `test_llm_pipeline.py` (script chạy tay; `pyproject` trỏ `tests/` chưa có) | **Chuyển pytest** | `tests/{unit,integration,contract}/` | C-17 |
 | `eval/eval_segmentation.py` (M1: IoU 0.80, ghép tham lam) | **Giữ M1**, chuyển chỗ | `ai_pipeline/evaluation/metrics/segmentation.py` + `runner.py` | C-18 |
 | `docs/CLAUSE_TAXONOMY.md`, `docs/DATA_PLAN.md`, `README.md`, `CONTRIBUTING.md`, `backend/text_extraction_contract.md` | Thay bằng con trỏ về BRD; sửa contract cho khớp SRS | — | C-19 |
-| `pyproject.toml` (thiếu deps backend), `backend/requirements.txt` (UTF-16) | Gộp nguồn deps, chuyển UTF-8, thêm lib DOCX/export | — | C-20 |
+| `pyproject.toml` (thiếu deps backend) | Gộp nguồn deps, thêm lib DOCX/export | — | C-20 |
 | **Chưa có**: DOCX, scope precheck, PII masking, kho luật/retrieval, Data Graph, Clause Graph, risk/citation/assembly, export, RunLog/quota/rate, frontend | **Viết mới** | xem §5 | C-09, 10, 12–16, 21 |
 
 > **Cập nhật 20/10/2026 (Người 1, T1):** C-03 và C-04 đã xong — `ai_pipeline/config/{taxonomy,labeling}.py` đã bị xóa; nguồn nhãn nay ở `backend/app/clause/taxonomy.py` (+ `validate_labels`) và `backend/app/core/enums.py`; schema `ai_pipeline/schemas/clause_output_v3.json` thay `clause_output_v2.json`. Với `clause_extraction_service.py`, mô tả [Cũ] ở hàng C-01 đã được đối chiếu với mã thật — chênh lệch ghi ở `PROGRESS.md` §9 (bảng trên giữ nguyên để truy vết).
@@ -123,7 +123,7 @@ class ClauseEdgeType(str, Enum): NEXT; PARENT_OF; REFERS_TO
                                  origin: str      # SEED_LABEL|SEED_LEXICAL|BASELINE_BACKUP|GRAPH_PARENT_OF|GRAPH_REFERS_TO|GRAPH_GUIDES
                                  rank: int
 @dataclass class RiskResult:     clause_id: str; role: Role; risk_labels: list[str]
-                                 risk_basis: list[dict]        # BACKEND derive, LLM không khai
+                                 risk_basis: list[dict]        # BACKEND dựng từ basis_type (LLM trả) + risk_labels
                                  severity: Severity | None; explanation: str
                                  evidence_status: EvidenceStatus; citation_ids: list[str]; version_pins: VersionPins
 @dataclass class StageArtifact:  stage: Stage; status: str; output: Any; fingerprint: str
@@ -135,7 +135,7 @@ class ClauseEdgeType(str, Enum): NEXT; PARENT_OF; REFERS_TO
 
 `Session` (aggregate, chỉ ở RAM): `session_id, role, status, current_stage, failed_stage, created_at, last_activity_at, manual_retry_count, filename, analysis_date, extraction_version, canonical_text, masked_text, pii_spans, clauses, clause_graph, clause_classification_outputs, legal_candidates, risk_results, version_pins, stage_cache, last_error, active_tasks`.
 
-Schema stage bắt buộc (`ai_pipeline/schemas/`): `extraction_v1`, `masking_v1`, `segmentation_v1`, `clause_output_v3`, `retrieval_v1`, `risk_output_v1`, `final_result_v1` — mỗi cái có `schema_version`.
+Schema stage bắt buộc (`ai_pipeline/schemas/`): `extraction_v1`, `masking_v1`, `segmentation_v1`, `clause_output_v3`, `retrieval_v1`, `risk_output_v2`, `final_result_v1` — mỗi cái có `schema_version`.
 
 ---
 
@@ -318,12 +318,12 @@ async def classify_clauses(masked_items: list[ClauseMasked], provider, ledger, c
 #   validate: mỗi clause_id đúng 1 lần; 1..3 nhãn thuộc taxonomy; không confidence/type_scores/quote/span; sai ⇒ retry ≤1 ⇒ AiOutputInvalid
 #   batch=CLAUSE_BATCH_SIZE, song song ≤ LLM_PARALLELISM; kiểm cancel giữa batch
 
-# ai/risk_adapter.py   — LLM #2 (gồm severity + explanation + chọn citation)
+# ai/risk_adapter.py   — LLM #2 (basis_type + explanation + chọn citation; severity do backend tra bảng)
 async def analyze_risks(role, items: list[RiskItemIn], candidates: dict[str, LegalCandidate],
                         risk_taxonomy, provider, ledger, cfg, cancel) -> RiskOutput
-#   request = risk_analysis_request_v2: role, risk_taxonomy(+basis_type), candidates(catalog dedupe), items[{clause_id, masked_text,
+#   request = risk_analysis_request_v2: role, risk_taxonomy(label+definition), basis_types, candidates(catalog dedupe), items[{clause_id, masked_text,
 #             clause_labels, candidate_ids, related_clauses[]}]; batch=RISK_BATCH_SIZE
-#   response = risk_output_v1 (LLM KHÔNG trả basis_type, role, span)
+#   response = risk_output_v2 (LLM trả basis_type; KHÔNG trả severity, role, span, version pins)
 def detect_advice(text: str) -> list[str]                  # cụm: "bạn nên","NLĐ nên","nên sửa/bổ sung/thương lượng/yêu cầu","khuyến nghị"… KHÔNG match "nên" đơn
 def detect_unsupported_reference(text, allowed_citation_ids, candidates) -> list[str]
 def sanitize_explanation(text, bad_sentences) -> str       # xóa câu vi phạm; rỗng ⇒ AiOutputInvalid
@@ -366,7 +366,7 @@ def validate_citations(risk: RiskItemOut, candidate_ids: set[str], corpus, analy
 
 ```python
 # result/assembler.py
-def derive_risk_basis(risk_labels, risk_taxonomy) -> list[dict]     # one-to-one với risk_labels; thiếu mapping ⇒ PipelineInternalError
+def derive_risk_basis(risk_labels, basis_type, role, risk_taxonomy) -> list[dict]     # one-to-one với risk_labels; ô '-' ⇒ gỡ nhãn; nhãn ngoài taxonomy ⇒ PipelineInternalError
 def assemble(session) -> FinalResult
 #   join theo clause_id; quote/start/end CHỈ từ canonical Clause; citations từ ID đã validate; offset_unit="unicode_code_point"
 #   không risk ⇒ COMPLETED + thông điệp "không phát hiện rủi ro trong phạm vi phân tích" + disclaimer (không nói "an toàn")
@@ -421,7 +421,7 @@ async def _run(self, session, resume_from=None):
         items  = build_risk_items(clauses, labels, cands, graph, resolve_context)    # related masked context (≤3 clause, ≤6000 cp)
         raw    = await analyze_risks(session.role, items, catalog, taxonomy, provider, ledger, cfg, cancel)   # LLM #2
         valid  = [validate_citations(r, cand_ids[r.clause_id], corpus, session.analysis_date) for r in raw.items]
-        final  = assemble(session_with(valid))                                       # derive risk_basis, join clause_id
+        final  = assemble(session_with(valid))                                       # dựng risk_basis + tra severity, join clause_id
         self._publish(session, final)                                                # nguyên tử ⇒ COMPLETED
     except ValidationReject as e:          self._reject(session, e.code)            # REJECTED (cuối, không retry)
     except AiTimeout:                      self._fail(session, "AI_TIMEOUT", stage)
@@ -449,9 +449,9 @@ Số LLM call/hợp đồng ≈ `ceil(n/CLAUSE_BATCH_SIZE) + ceil(n/RISK_BATCH_S
 | CLAUSE_GRAPH | clauses + structure + masked | `ClauseGraph` (ID + edge_type) | node tồn tại, không self-loop, PARENT_OF không chu trình | `INTERNAL_ERROR` |
 | CLAUSE_CLASSIFICATION | `{clause_id, masked_text}` theo lô | `clause_output_v3` {items[{clause_id, clause_labels}], model_id, prompt_version, taxonomy_version} | mỗi ID đúng 1 lần, 1..3 nhãn hợp lệ | `AI_*` |
 | LEGAL_RETRIEVAL | masked clause + labels + analysis_date | `retrieval_v1` {per_clause[{clause_id, candidates[]}], corpus_version, data_graph_version, graph_enabled} | candidate tồn tại + hiệu lực, ≤ final_k | `INTERNAL_ERROR` |
-| RISK_ANALYSIS | role + items + candidate catalog | `risk_output_v1` {items[{clause_id, risk_labels, severity, explanation, evidence_status, citation_ids}], version pins} | nhãn ∈ taxonomy; SUPPORTED ⇒ citation + severity; INSUFFICIENT ⇒ `[]` + `null`; lint advice/tham chiếu | `AI_OUTPUT_INVALID` |
+| RISK_ANALYSIS | role + items + candidate catalog | `risk_output_v2` {items[{clause_id, basis_type, risk_labels, citation_ids, evidence_status, explanation}]} | nhãn ∈ taxonomy; SUPPORTED ⇒ citation + severity; INSUFFICIENT ⇒ `[]` + `null`; lint advice/tham chiếu | `AI_OUTPUT_INVALID` |
 | CITATION_VALIDATION | risk + candidate_ids + corpus | `ValidatedRisk` | citation ⊂ candidates ⊂ corpus ⊂ hiệu lực | — (hạ về INSUFFICIENT) |
-| ASSEMBLY | tất cả | `final_result_v1` | `risk_basis` derive đủ; không risk thiếu clause; thêm `offset_unit` | `INTERNAL_ERROR` |
+| ASSEMBLY | tất cả | `final_result_v1` | `risk_basis` dựng đủ, severity khớp bảng taxonomy; không risk thiếu clause; thêm `offset_unit` | `INTERNAL_ERROR` |
 
 ---
 
@@ -521,7 +521,7 @@ Quy tắc UI: REJECTED không có nút Retry; FAILED có Retry khi `manual_retry
 | `CLAUSE_GRAPH_ENABLED`, `CLAUSE_GRAPH_MAX_RELATED`(3), `CLAUSE_GRAPH_MAX_CONTEXT_CHARS`(6000) | `clause/graph_builder`, `context_resolver` |
 | `SCOPE_TITLE_SCAN_CHARS`(1000) | `document/scope_precheck` |
 
-Startup (fail-fast): config → taxonomy/rubric (+`basis_type`) → corpus + `validate_corpus` → BM25 + label_map + Data Graph → SQLite → store + lease + cleanup → threadpool → `readiness=true`. Demo: **1 Uvicorn worker**.
+Startup (fail-fast): config → taxonomy/rubric (bảng severity theo `basis_type`) → corpus + `validate_corpus` → BM25 + label_map + Data Graph → SQLite → store + lease + cleanup → threadpool → `readiness=true`. Demo: **1 Uvicorn worker**.
 
 ---
 
@@ -554,7 +554,7 @@ python -m ai_pipeline.evaluation.runner --dataset T2 --metric M8 --graph-enabled
 ## 13. Chưa có trong tài liệu / cần chốt khi code (đừng tự quyết ngầm)
 
 1. **Chữ ký hàm ở §5 là đề xuất** — nhóm review một lần ở tuần 1–2 rồi khóa.
-2. **12 nhãn clause taxonomy**: semantics nguồn ở data repo `docs/clause_taxonomy_v03.md`, code ở `taxonomy.py` (`TAXONOMY_VERSION=v04`; BRD/SRS chỉ nói "12 nhãn"); topic bảo mật/không cạnh tranh và giải quyết tranh chấp chưa có nhãn chốt; **risk taxonomy chưa có** (BRD OI-01, hạn MS-1) → `risk_adapter` và `derive_risk_basis` chưa viết hết được trước khi có.
+2. **12 nhãn clause taxonomy**: semantics nguồn ở data repo `docs/clause_taxonomy_v03.md`, code ở `taxonomy.py` (`TAXONOMY_VERSION=v04`; BRD/SRS chỉ nói "12 nhãn"); topic bảo mật/không cạnh tranh và giải quyết tranh chấp chưa có nhãn chốt; risk taxonomy v0.1 (21 nhãn) đã có ở `docs/RISK_TAXONOMY_v0.1.md` và `app/risk/taxonomy.py`, chờ đóng băng ở MS-1 (BRD OI-01).
 3. Hard byte cap khi upload (§3 ghi chú) — cách hiện thực chưa chốt.
 4. `GET /status` trả `progress.completed_units/total_units` — đơn vị (batch? clause?) TDD chưa định nghĩa; đề xuất: đơn vị = clause đã xong ở stage hiện tại.
 5. Mã `retry` trả về 200 hay 202 — TDD chưa nêu rõ.

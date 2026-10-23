@@ -8,7 +8,7 @@
 |---|---|---|
 | Session | session_id, role, status, created_at, last_activity_at, manual_retry_count, filename, extraction_version, canonical_text, masked_text | session_id opaque, ngẫu nhiên; một vai trò và một hợp đồng; TTL 60 phút không hoạt động. Không có contract_id hay analysis_id. canonical_text là nguồn duy nhất cho quote, span, highlight; đổi extraction_version làm span cũ vô hiệu. |
 | Clause | clause_id, original_text, start_char, end_char, clause_labels | clause_id duy nhất trong phiên. Masked clause không lưu riêng mà là masked_text[start_char:end_char]. Không lưu score không định nghĩa. Span phải thỏa invariant. |
-| RiskResult | clause_id, role, risk_labels, risk_basis, severity, explanation, evidence_status, citation_ids, related_clause_ids? , các trường version (FR-29) | `risk_basis` do backend derive từ risk_labels và risk taxonomy, không do LLM tự khai. Severity thuộc HIGH/MEDIUM/LOW khi SUPPORTED; null khi INSUFFICIENT_EVIDENCE. `related_clause_ids` là optional; nếu có phải là subset context của target clause. |
+| RiskResult | clause_id, role, risk_labels, risk_basis, severity, explanation, evidence_status, citation_ids, related_clause_ids? , các trường version (FR-29) | `risk_basis` do backend dựng từ `basis_type` (LLM trả, một giá trị cho mỗi clause) và risk_labels sau khi kiểm theo risk taxonomy. Severity do backend tra bảng taxonomy. Severity thuộc HIGH/MEDIUM/LOW khi SUPPORTED; null khi INSUFFICIENT_EVIDENCE. `related_clause_ids` là optional; nếu có phải là subset context của target clause. |
 | LegalProvision | citation_id, document_id, document_name, version, article, clause, point, parent_path, content, effective_from, effective_to | Là đơn vị retrievable và citable, thuộc closed corpus. citation_id sinh xác định từ document_id và đường dẫn điều, khoản, điểm. |
 | RunLog | session_id, stage, started_at, duration_ms, calls, tokens, estimated_cost, error_code | Không chứa nội dung hợp đồng, canonical text hay dữ liệu cá nhân (NFR-SEC-05); phục vụ NFR-COST-01. |
 | LegalEdge | from_citation_id, to_citation_id, edge_type, origin | Thuộc dữ liệu kho luật. origin chỉ AUTO hoặc MANUAL: PARENT_OF sinh từ parent_path là AUTO; REFERS_TO/GUIDES chỉ load runtime khi đã được xác minh và ghi MANUAL. Gợi ý tự động chưa xác minh không phải LegalEdge runtime. Hai đầu cạnh phải tồn tại. |
@@ -23,7 +23,7 @@
 * Response của LLM join bằng clause_id; AI không có thẩm quyền đối với quote và span.
 * Span cũ không được dùng lại với canonical_text của extraction_version mới.
 * Citation trả ra phải thuộc candidate list và closed legal corpus, đúng phiên bản hiệu lực tại ngày phân tích.
-* Không tồn tại RiskResult không có clause_id; `risk_basis` phải khớp xác định với `risk_labels` trong risk taxonomy. `related_clause_ids` nếu có phải là subset context đã cung cấp cho target.
+* Không tồn tại RiskResult không có clause_id; `risk_basis` một-một với `risk_labels` và mỗi (label, basis_type, vai trò) phải hợp lệ theo risk taxonomy. `related_clause_ids` nếu có phải là subset context đã cung cấp cho target.
 * Không tồn tại bảng ánh xạ từ placeholder sang giá trị gốc.
 * Mọi LegalEdge trỏ tới hai citation_id tồn tại trong closed corpus; cạnh PARENT_OF không tạo vòng.
 * Mở rộng qua Data Graph chỉ trả provision thuộc closed corpus và hiệu lực tại ngày phân tích; kết quả vẫn nằm trong candidate list mà LLM được chọn.
@@ -43,5 +43,5 @@
 | Clause Classification | clause_id, masked clause, optional structural masked context; **không role** | clause_id, clause_labels[] |
 | Legal Retrieval | clause_id, masked clause, clause_labels[], role, Data Graph | legal_candidates[] (citation_id, content, metadata), đã mở rộng qua Data Graph |
 | Clause Graph context resolution | target clause_id, Clause Graph | related_clauses[] (clause_id, relation, masked text) + ContextResolutionTrace |
-| Risk, Severity, Explanation | clause_id, masked clause, clause_labels[], role, legal_candidates[], optional related_clauses[] | clause_id, risk_labels[], severity, explanation, citation_ids[], evidence_status, optional related_clause_ids[] |
-| Assembler | output AI và clause chuẩn | Kết quả cuối với original_text, span, `risk_basis` derive từ taxonomy và phân tích AI |
+| Risk, Explanation (severity do backend tra bảng) | clause_id, masked clause, clause_labels[], role, legal_candidates[], optional related_clauses[] | clause_id, risk_labels[], basis_type, explanation, citation_ids[], evidence_status, optional related_clause_ids[] |
+| Assembler | output AI và clause chuẩn | Kết quả cuối với original_text, span, `risk_basis` dựng từ `basis_type` của AI và kiểm theo taxonomy; severity tra bảng taxonomy |

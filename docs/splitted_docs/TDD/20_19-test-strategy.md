@@ -7,7 +7,7 @@
 | Mức | Ví dụ bắt buộc |
 |---|---|
 | Unit | canonicalization, code-point offsets, PII placeholder length, legacy-font detector, segmentation partition, graph build, citation ID/effectivity, quota arithmetic. |
-| Contract | Pydantic/JSON Schema, Gemini response_schema mock, API error body, risk_basis derivation. |
+| Contract | Pydantic/JSON Schema, Gemini response_schema mock, API error body, risk_basis assembly/validation. |
 | Integration | PDF/DOCX -> canonical -> mask -> segment; corpus build; graph fair on/off; retry/lease/cleanup. |
 | E2E mock LLM | 6 operations, state transitions, no partial, frontend polling contract, export DOCX. |
 | Provider smoke | Gemini paid tier de-identified fixture, retry matrix, token/cost log. |

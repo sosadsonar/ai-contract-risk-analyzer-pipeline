@@ -4,7 +4,7 @@
 
 Hệ thống gồm web frontend, một backend duy nhất, kho luật nội bộ, Gemini Flash là LLM sản phẩm và một evaluation harness ngoại tuyến. Claude chỉ dùng cho đánh giá, không nằm trong product runtime.
 
-![](/diagrams/system_context.png)
+![](/docs/diagrams/system_context.png)
 
 *Hình 1. System Context*
 

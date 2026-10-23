@@ -22,7 +22,7 @@
 | R-16 | Điều khoản có lợi hơn mức pháp luật yêu cầu cho một vai trò không bị gắn rủi ro cho vai trò đó (BRD 3.2). | Mới |
 | R-17 | Data Graph chỉ mở rộng candidate trong closed corpus và hiệu lực tại ngày phân tích; hệ thống phải chạy đúng khi tắt mở rộng (FR-30, DEC-21). | Mới |
 | R-18 | Clause Graph chỉ chứa clause_id và loại cạnh; không có thẩm quyền đối với quote, span và highlight (FR-31). | Mới |
-| R-19 | `basis_type` của mỗi risk label lấy xác định từ risk taxonomy; backend derive `risk_basis`, LLM không được tự khai basis type. | Mới 1.4 |
+| R-19 | `basis_type` do LLM chọn một lần cho mỗi clause; backend phải kiểm (label, basis_type, vai trò) theo risk taxonomy và dựng `risk_basis`; severity do backend tra bảng, LLM không trả. | Mới 1.4 |
 | R-20 | Span dùng Unicode code point sau NFC và các clause span không chồng lấn; nested structure không được tạo hai quote/highlight phủ cùng body text. | Mới 1.4 |
 | R-21 | Manual retry phải giành lại processing slot; lỗi local quay lại VALIDATING, lỗi processing quay lại PROCESSING; SYSTEM_BUSY không tiêu hao retry count. | Mới 1.4 |
 | R-22 | EV-08 graph on/off phải dùng cùng final candidate budget; primary M8 dùng predicted clause labels. | Mới 1.4 |
