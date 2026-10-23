@@ -26,6 +26,8 @@ Ngày: 12/10/2026
 
 Bản 0.2 rà soát lại TDD 0.1 theo BRD 0.5, SRS 1.3, SDD 0.1 và review kỹ thuật. Các thay đổi chính: thống nhất upload bất đồng bộ và trạng thái REJECTED; bổ sung basis type ở final view nhưng giữ `risk_labels` của SRS; sửa retry/processing lock; làm M8 graph on/off công bằng; khóa partition clause không chồng lấn; tăng kiểm tra PDF font cũ; sửa Clause Graph REFERS_TO; tối ưu payload/token; bổ sung frontend contract, fixture format, privacy/BL-1/annotation metrics; và khóa deployment một worker cho session store in-memory.
 
+Điều chỉnh 23/10/2026: risk taxonomy v0.1 có ba loại căn cứ cho mỗi nhãn nên `risk_basis` không thể suy từ nhãn. Risk LLM trả thêm `basis_type` (một giá trị cho mỗi clause) và không trả `severity`; backend kiểm theo taxonomy, dựng `risk_basis` và tra `severity` (TDD-23, §6.3, §15, Phụ lục A, C, D).
+
 Các đề xuất đòi hỏi thay đổi SRS (ví dụ thêm trường `related_clause_ids` vào RiskResult) **không được tự ý đưa vào product schema**. TDD 0.2 dùng diagnostic/evaluation trace để chứng minh Clause Graph đã được dùng, đồng thời ghi mục cần backport SRS ở §21.
 
 ## **Quy tắc ưu tiên nguồn**
@@ -113,7 +115,7 @@ TDD chuyển SRS 1.3 và SDD 0.1 thành các hợp đồng kỹ thuật đủ c�
 | TDD-20 | Prompt khóa format/policy/version; few-shot là artifact versioned; không tuning trên T1/T2. Gemini dùng provider structured output/response schema. | EV-07, FR-29, SRS C-07. |
 | TDD-21 | Demo deploy đúng **1 backend worker/process**, không autoscale/serverless. CPU-bound extraction/regex chạy bằng threadpool để event loop vẫn phục vụ polling. | NFR-DATA-04, FR-26, NFR-PERF-02, SRS C-05. |
 | TDD-22 | `start_char/end_char` và mọi span backend/API tính theo Unicode code point sau NFC; frontend phải chuyển code-point offset sang UTF-16 index khi thao tác chuỗi JavaScript/DOM. | Làm rõ invariant cross-runtime. |
-| TDD-23 | Product `RiskResult` giữ `risk_labels[]` theo SRS; backend derive `risk_basis[] = [{label,basis_type}]` từ risk taxonomy cho final API/UI/export. LLM không tự khai `basis_type`. | Giữ tương thích SRS 4.1/FR-13 và tránh mất loại rủi ro. |
+| TDD-23 | Product `RiskResult` giữ `risk_labels[]` theo SRS; LLM trả `basis_type` (một giá trị cho mỗi clause); backend kiểm (label, basis_type, vai trò) theo risk taxonomy rồi dựng `risk_basis[] = [{label,basis_type}]` cho final API/UI/export; severity do backend tra bảng. | Giữ tương thích SRS 4.1/FR-13 và tránh mất loại rủi ro. |
 | TDD-24 | Clause Graph không thêm field product mới chưa có trong SRS. Dev/eval sinh `ContextResolutionTrace` để chứng minh related clauses nào đã được đưa vào Risk LLM. | Nghiệm thu FR-31 mà không tự đổi SRS. |
 | TDD-25 | `LLMProvider` abstraction cho phép Gemini paid ở demo/eval và optional local/dev adapter chỉ với dữ liệu de-identified; product path không tự host model. | NFR-SEC-06, SRS C-07. |
 
@@ -212,7 +214,7 @@ ai_pipeline/
     segmentation_v1.json
     clause_output_v3.json
     retrieval_v1.json
-    risk_output_v1.json
+    risk_output_v2.json
     final_result_v1.json
   evaluation/
     runner.py
@@ -279,7 +281,7 @@ Không tạo package explanation AI riêng vì explanation nằm trong Risk Anal
 ## **4.2 Startup sequence**
 
 1. Load config; validate numeric limits. Ở `demo/eval`, thiếu Gemini model/key hoặc daily quota/session reserve thì startup fail. Ở `dev`, local provider chỉ được phép với dữ liệu de-identified.
-2. Load clause taxonomy, risk taxonomy (gồm `basis_type`), severity rubric; validate version metadata.
+2. Load clause taxonomy, risk taxonomy (nhãn + bảng severity theo `basis_type` và vai trò), severity rubric; validate version metadata.
 3. Load legal corpus manifest/provisions/edges; validate citation IDs, version overlap, edge endpoints, PARENT_OF acyclic.
 4. Build BM25 index + weighted label map; build Data Graph adjacency index nếu enabled.
 5. Open operational metadata SQLite; migration chỉ cho metadata.
@@ -370,8 +372,8 @@ Chỉ COMPLETED trả 200. Các state khác dùng API-state code ở §5.8.
   ],
   "risks": [
     {"clause_id":"cl_0001",
-     "risk_labels":["PROBATION_WAGE_BELOW_MINIMUM"],
-     "risk_basis":[{"label":"PROBATION_WAGE_BELOW_MINIMUM","basis_type":"LEGAL_VIOLATION"}],
+     "risk_labels":["PROBATION"],
+     "risk_basis":[{"label":"PROBATION","basis_type":"LEGAL_VIOLATION"}],
      "severity":"HIGH","explanation":"...","evidence_status":"SUPPORTED",
      "citation_ids":["BLLD2019:art26"]}
   ],
@@ -385,7 +387,7 @@ Chỉ COMPLETED trả 200. Các state khác dùng API-state code ở §5.8.
 }
 ```
 
-`risk_basis` do backend derive từ risk taxonomy sau khi validate `risk_labels`; LLM không được tự khai `basis_type`.
+`risk_basis` do backend dựng từ `basis_type` của LLM và `risk_labels` sau khi validate (label, basis_type, vai trò) theo risk taxonomy; `severity` do backend tra bảng.
 
 ## **5.5 POST /api/v1/sessions/{session_id}/retry**
 
@@ -506,9 +508,9 @@ Clause {
 RiskResult {
   "clause_id": "cl_0001",
   "role": "EMPLOYEE",
-  "risk_labels": ["PROBATION_WAGE_BELOW_MINIMUM"],
+  "risk_labels": ["PROBATION"],
   "risk_basis": [
-    {"label":"PROBATION_WAGE_BELOW_MINIMUM", "basis_type":"LEGAL_VIOLATION"}
+    {"label":"PROBATION", "basis_type":"LEGAL_VIOLATION"}
   ],
   "severity": "HIGH",
   "explanation": "...",
@@ -518,7 +520,7 @@ RiskResult {
 }
 ```
 
-`risk_labels[]` là field nguồn theo SRS. `risk_basis[]` là field **derived by backend** từ risk taxonomy và phải one-to-one với `risk_labels`; không nằm trong AI output. Severity/explanation/citation vẫn ở cấp clause đúng entity tối thiểu SRS. Nếu nhóm muốn severity riêng cho từng label thì phải sửa SRS trước.
+`risk_labels[]` là field nguồn theo SRS. `risk_basis[]` là field **dựng bởi backend** từ `basis_type` trong AI output và `risk_labels`, phải one-to-one với `risk_labels`; AI output không có `risk_basis` và không có `severity`. Severity/explanation/citation vẫn ở cấp clause đúng entity tối thiểu SRS. Nếu nhóm muốn severity riêng cho từng label thì phải sửa SRS trước.
 
 ## **6.4 VersionPins**
 
@@ -526,7 +528,7 @@ RiskResult {
 {
   "extraction_version": "extract_v1.1",
   "clause_taxonomy_version": "clause_taxonomy_v03",
-  "risk_taxonomy_version": "risk_taxonomy_v01",
+  "risk_taxonomy_version": "risk_taxonomy_v02",
   "severity_rubric_version": "severity_v01",
   "corpus_version": "legal_corpus_2026-10-12",
   "data_graph_version": "legal_graph_2026-10-12",
@@ -549,8 +551,9 @@ RiskResult {
 | segmentation_v1 | schema_version, clauses[{clause_id,original_text,start_char,end_char,structure}], segmentation_version |
 | clause_output_v3 | schema_version, items[{clause_id,clause_labels[1..3]}], model_id,prompt_version,taxonomy_version |
 | retrieval_v1 | per_clause[{clause_id,candidates[]}], corpus_version,data_graph_version,graph_enabled |
-| risk_output_v1 | items[{clause_id,risk_labels,severity,explanation,evidence_status,citation_ids}], version pins |
-| final_result_v1 | offset_unit, session/role/date, canonical_text, clauses, risks(+derived risk_basis), citations, disclaimer, data_notice, version_pins |
+| risk_output_v2 | items[{clause_id,basis_type,risk_labels,citation_ids,evidence_status,explanation}]; không có severity và version pins (backend đóng dấu) |
+| risk_merged_v1 | output của `risk_assembler`: clauses[{clause_id,start_char,end_char,original_text,clause_labels,risk_labels,risk_basis,severity,explanation,evidence_status,citation_ids}], citations, version pins; đầu vào của final_result_v1 |
+| final_result_v1 | offset_unit, session/role/date, canonical_text, clauses, risks(+risk_basis dựng bởi backend, severity tra bảng), citations, disclaimer, data_notice, version_pins |
 
 `ContextResolutionTrace` là diagnostic artifact cho dev/eval, không phải field bắt buộc của RiskResult/API product.
 
@@ -562,7 +565,7 @@ RiskResult {
 * Clause Classification: every requested clause exactly once; 1..3 labels từ taxonomy; không span/quote; request không có role.
 * Retrieval: candidate exists/effective; count <= final_k; graph on/off cùng final_k.
 * Risk: labels valid; citation subset candidates; severity/evidence invariant; advice/citation-mention sanitizer pass.
-* Assembly: derive `risk_basis` từ taxonomy; no risk without clause; quote/span chỉ từ canonical Clause; add `offset_unit=unicode_code_point`.
+* Assembly: kiểm (label, basis_type, vai trò) theo taxonomy, dựng `risk_basis`, tra severity; no risk without clause; quote/span chỉ từ canonical Clause; add `offset_unit=unicode_code_point`.
 
 # **7\. Analysis Orchestrator, state machine và retry/resume**
 
@@ -1046,7 +1049,12 @@ Một provider call dùng candidate catalog chung để không lặp full legal 
   "schema_version":"risk_analysis_request_v2",
   "role":"EMPLOYEE",
   "risk_taxonomy":[
-    {"label":"PROBATION_WAGE_BELOW_MINIMUM","basis_type":"LEGAL_VIOLATION","definition":"..."}
+    {"label":"PROBATION","definition":"..."}
+  ],
+  "basis_types":[
+    {"type":"LEGAL_VIOLATION","definition":"..."},
+    {"type":"UNFAVORABLE","definition":"..."},
+    {"type":"AMBIGUOUS","definition":"..."}
   ],
   "candidates":{
     "BLLD2019:art26":{"content":"...","metadata":{"document_name":"...","article":"26"}}
@@ -1061,35 +1069,32 @@ Một provider call dùng candidate catalog chung để không lặp full legal 
 }
 ```
 
-Candidate order của mỗi item nằm trong `candidate_ids`. Payload không original/span. `risk_taxonomy` cung cấp `basis_type` để model hiểu semantics; model response vẫn chỉ trả labels, backend derive basis type.
+Candidate order của mỗi item nằm trong `candidate_ids`. Payload không original/span. `risk_taxonomy` cung cấp nhãn và định nghĩa, `basis_types` định nghĩa ba loại căn cứ; model trả `risk_labels` và `basis_type` cho mỗi clause, không trả severity (backend tra bảng).
 
 ## **15.2 Risk LLM response**
 
 ```json
 {
-  "schema_version":"risk_output_v1",
+  "schema_version":"risk_output_v2",
   "items":[{
     "clause_id":"cl_0001",
-    "risk_labels":["PROBATION_WAGE_BELOW_MINIMUM"],
-    "severity":"HIGH",
-    "explanation":"Mức lương thử việc thấp hơn mức tối thiểu trong căn cứ được cung cấp.",
+    "basis_type":"LEGAL_VIOLATION",
+    "risk_labels":["PROBATION"],
+    "citation_ids":["BLLD2019:art26"],
     "evidence_status":"SUPPORTED",
-    "citation_ids":["BLLD2019:art26"]
-  }],
-  "model_id":"...",
-  "prompt_version":"risk_prompt_v1",
-  "risk_taxonomy_version":"risk_taxonomy_v01",
-  "severity_rubric_version":"severity_v01"
+    "explanation":"Mức lương thử việc thấp hơn mức tối thiểu trong căn cứ được cung cấp."
+  }]
 }
 ```
 
-Gemini call bắt buộc dùng structured output/response schema tương ứng `risk_output_v1`.
+Gemini call bắt buộc dùng structured output/response schema tương ứng `risk_output_v2` (`ai_pipeline/schemas/risk_output_v2.json`). `model_id`, `prompt_version` và các version pin do backend đóng dấu, không nằm trong response của model.
 
 ## **15.3 Runtime validation và advice sanitizer**
 
 * clause_id thuộc batch; risk labels thuộc taxonomy; role không do model trả.
-* SUPPORTED => citation_ids non-empty, severity HIGH/MEDIUM/LOW.
-* INSUFFICIENT_EVIDENCE => citation_ids empty, severity null.
+* SUPPORTED => citation_ids non-empty.
+* INSUFFICIENT_EVIDENCE => citation_ids empty.
+* `basis_type` thuộc enum; (label, basis_type, vai trò) không rơi vào ô '-' của taxonomy, nếu rơi thì gỡ nhãn, hết nhãn thì bỏ clause khỏi kết quả và ghi need_review (dev/eval). Severity = mức cao nhất theo bảng taxonomy khi SUPPORTED, null khi INSUFFICIENT_EVIDENCE.
 * Citation IDs phải subset candidate IDs; ngoài candidate được log trước khi filter.
 * Advice detector **không match từ `nên` đơn lẻ**. Match các pattern có ngữ nghĩa khuyến nghị như `bạn nên`, `NLĐ nên`, `NSDLĐ nên`, `nên sửa/bổ sung/thương lượng/yêu cầu`, `đề nghị sửa`, `khuyến nghị`.
 * Explanation legal-reference lint: nếu text nhắc rõ “Điều/Khoản ...” hoặc tên văn bản mà không tương ứng với citation hợp lệ đã chọn, coi là unsupported reference.
@@ -1124,7 +1129,7 @@ Runtime không tự chấm relevance semantic; M3b là evaluation property.
 
 * Join RiskResult -> Clause bằng clause_id.
 * Quote/start/end chỉ từ canonical Clause.
-* Derive `risk_basis` cho từng risk label từ risk taxonomy; unknown mapping là internal error trước publish.
+* Dựng `risk_basis` từ `basis_type` + risk_labels; nhãn ngoài taxonomy là internal error trước publish; tổ hợp (label, basis_type, vai trò) ở ô '-' thì gỡ nhãn (hết nhãn thì bỏ clause). Severity tra bảng taxonomy.
 * Citation objects từ validated IDs.
 * No-risk -> COMPLETED + exact no-risk message + disclaimer, không khẳng định an toàn.
 * Final publish atomically; FAILED không expose partial.
@@ -1259,7 +1264,7 @@ Harness dùng shared modules trực tiếp, không HTTP, không product quota/ra
 | :---- | :---- |
 | seg.json | start_char,end_char,gold clause ref, offset_unit |
 | clause.json | gold labels, annotator/source, taxonomy_version |
-| risk.json | clause ref, role, risk_label, basis_type, gold citation_id, source |
+| risk.json | clause ref, role, risk_label, basis_type (gán tay ở mức clause), gold citation_id, source |
 | injected.json | injection_id, clause ref, role, risk_label, gold citation_id, insertion span |
 | privacy.json | PII gold spans/types + preserve-field spans |
 | judge.json | output id, human labels x2, adjudicated label, judge label |
@@ -1304,7 +1309,7 @@ Evaluation output luôn ghi version pins, config snapshot và commit. Locked eva
 | Mức | Ví dụ bắt buộc |
 | :---- | :---- |
 | Unit | canonicalization, code-point offsets, PII placeholder length, legacy-font detector, segmentation partition, graph build, citation ID/effectivity, quota arithmetic. |
-| Contract | Pydantic/JSON Schema, Gemini response_schema mock, API error body, risk_basis derivation. |
+| Contract | Pydantic/JSON Schema, Gemini response_schema mock, API error body, risk_basis assembly/validation. |
 | Integration | PDF/DOCX -> canonical -> mask -> segment; corpus build; graph fair on/off; retry/lease/cleanup. |
 | E2E mock LLM | 6 operations, state transitions, no partial, frontend polling contract, export DOCX. |
 | Provider smoke | Gemini paid tier de-identified fixture, retry matrix, token/cost log. |
@@ -1392,7 +1397,7 @@ tests/fixtures/
 
 | Milestone kỹ thuật | SRS Appendix C | Kết quả |
 | :---- | :---- | :---- |
-| M0 \- Schema first | C-04,C-03,C-17 | Tạo enums/source-of-truth taxonomy, schema clause\_output\_v3/risk\_output\_v1, pytest skeleton và mocks mới. |
+| M0 \- Schema first | C-04,C-03,C-17 | Tạo enums/source-of-truth taxonomy, schema clause\_output\_v3/risk_output_v2, pytest skeleton và mocks mới. |
 | M1 \- Session/API | C-05,C-06,C-16 | InMemorySessionStore, state machine, 6 operation, global lock, metadata-only ops DB. |
 | M2 \- Local preprocessing | C-08,C-10,C-09,C-01,C-02 | Extractor PDF/DOCX, scope, masking, segmentation; ưu tiên invariant trước AI. |
 | M3 \- AI classification | C-07,C-11 | Gemini client chuẩn, classification batch. |
@@ -1451,35 +1456,34 @@ Các DEC-16..21 trong SRS vẫn có mục “đề xuất/chờ nhóm duyệt”
 
 Enum label phải sinh từ source-of-truth taxonomy hoặc có test đối chiếu theo DEC-20.
 
-## **A.2 risk_output_v1**
+## **A.2 risk_output_v2**
 
 ```json
 {
-  "$id":"risk_output_v1",
+  "$id":"risk_output_v2",
   "type":"object",
   "additionalProperties":false,
-  "required":["schema_version","items","model_id","prompt_version",
-              "risk_taxonomy_version","severity_rubric_version"],
+  "required":["schema_version","items"],
   "properties":{
-    "schema_version":{"const":"risk_output_v1"},
+    "schema_version":{"const":"risk_output_v2"},
     "items":{"type":"array","items":{
       "type":"object","additionalProperties":false,
-      "required":["clause_id","risk_labels","severity","explanation",
-                  "evidence_status","citation_ids"],
+      "required":["clause_id","basis_type","risk_labels","citation_ids","evidence_status","explanation"],
       "properties":{
-        "clause_id":{"type":"string"},
-        "risk_labels":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
-        "severity":{"type":["string","null"],"enum":["HIGH","MEDIUM","LOW",null]},
-        "explanation":{"type":"string","minLength":1},
+        "clause_id":{"type":"string","pattern":"^cl_[0-9]{4}$"},
+        "basis_type":{"enum":["LEGAL_VIOLATION","UNFAVORABLE","AMBIGUOUS"]},
+        "risk_labels":{"type":"array","minItems":1,"maxItems":3,"uniqueItems":true,
+          "items":{"type":"string","enum":"<generated from risk taxonomy source>"}},
+        "citation_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
         "evidence_status":{"enum":["SUPPORTED","INSUFFICIENT_EVIDENCE"]},
-        "citation_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}
+        "explanation":{"type":"string","minLength":10}
       }
     }}
   }
 }
 ```
 
-`risk_basis` **không nằm trong AI schema**; backend derive từ risk taxonomy. Pydantic model thực hiện cross-field validation SUPPORTED/INSUFFICIENT_EVIDENCE. Cùng JSON Schema được truyền làm provider response schema/structured output.
+Schema đầy đủ (kèm `allOf` cho SUPPORTED/INSUFFICIENT_EVIDENCE) nằm ở `ai_pipeline/schemas/risk_output_v2.json`. AI schema **không có** `risk_basis` và `severity`: backend dựng `risk_basis` từ `basis_type` và tra `severity` từ risk taxonomy. `model_id`, `prompt_version` và các version pin do backend đóng dấu. Cross-field validation SUPPORTED/INSUFFICIENT_EVIDENCE do `allOf` hoặc Pydantic thực hiện. Cùng JSON Schema được truyền làm provider response schema/structured output.
 
 # **Phụ lục B. .env.example**
 
@@ -1532,19 +1536,19 @@ Demo profile phải chạy 1 worker. `APP_ENV=eval` bypass runtime quota/rate nh
 ## **C.2 Risk prompt - bắt buộc**
 
 * Nhận role, target masked clause, clause labels, candidate IDs/catalog và optional related clauses.
-* Risk taxonomy đi kèm label + `basis_type` + definition; model chọn label, backend derive basis type.
+* Risk taxonomy đi kèm label + definition và định nghĩa ba `basis_type`; model chọn label và `basis_type`, backend kiểm theo taxonomy, dựng `risk_basis` và tra severity.
 * Chỉ clause hiện có; không missing-clause risk.
 * Citation chỉ candidate IDs. Không nhớ/viện dẫn luật ngoài candidate.
 * Thiếu căn cứ -> INSUFFICIENT_EVIDENCE, severity null, citations empty.
 * related_clauses chỉ context cho điều kiện/phụ thuộc/mâu thuẫn; output vẫn target clause_id.
 * Explanation tiếng Việt, trung tính; không lời khuyên/hành động; không nhắc điều luật ngoài selected valid citations.
-* Provider structured output theo `risk_output_v1`, không quote/span/Markdown.
+* Provider structured output theo `risk_output_v2`, không quote/span/Markdown.
 
 # **Phụ lục D. Checklist trước khi khóa demo**
 
 | Hạng mục | Điều kiện |
 | :---- | :---- |
-| Schema | clause_output_v3/risk_output_v1/final_result_v1 pass; risk_basis derive đúng. |
+| Schema | clause_output_v3/risk_output_v2/final_result_v1 pass; risk_basis dựng đúng, severity khớp bảng taxonomy. |
 | Privacy | BRD 7.3 đạt; outbound no raw PII; placeholder same length. |
 | Span | M4=100%; non-overlap partition; Unicode code-point offset; browser non-BMP test. |
 | Corpus | Build legal corpus/Data Graph pass; suggestions chưa verify không load. |

@@ -11,7 +11,12 @@ Một provider call dùng candidate catalog chung để không lặp full legal 
   "schema_version":"risk_analysis_request_v2",
   "role":"EMPLOYEE",
   "risk_taxonomy":[
-    {"label":"PROBATION_WAGE_BELOW_MINIMUM","basis_type":"LEGAL_VIOLATION","definition":"..."}
+    {"label":"PROBATION","definition":"..."}
+  ],
+  "basis_types":[
+    {"type":"LEGAL_VIOLATION","definition":"..."},
+    {"type":"UNFAVORABLE","definition":"..."},
+    {"type":"AMBIGUOUS","definition":"..."}
   ],
   "candidates":{
     "BLLD2019:art26":{"content":"...","metadata":{"document_name":"...","article":"26"}}
@@ -26,35 +31,32 @@ Một provider call dùng candidate catalog chung để không lặp full legal 
 }
 ```
 
-Candidate order của mỗi item nằm trong `candidate_ids`. Payload không original/span. `risk_taxonomy` cung cấp `basis_type` để model hiểu semantics; model response vẫn chỉ trả labels, backend derive basis type.
+Candidate order của mỗi item nằm trong `candidate_ids`. Payload không original/span. `risk_taxonomy` cung cấp nhãn và định nghĩa, `basis_types` định nghĩa ba loại căn cứ; model trả `risk_labels` và `basis_type` cho mỗi clause, không trả severity (backend tra bảng).
 
 ## 15.2 Risk LLM response
 
 ```json
 {
-  "schema_version":"risk_output_v1",
+  "schema_version":"risk_output_v2",
   "items":[{
     "clause_id":"cl_0001",
-    "risk_labels":["PROBATION_WAGE_BELOW_MINIMUM"],
-    "severity":"HIGH",
-    "explanation":"Mức lương thử việc thấp hơn mức tối thiểu trong căn cứ được cung cấp.",
+    "basis_type":"LEGAL_VIOLATION",
+    "risk_labels":["PROBATION"],
+    "citation_ids":["BLLD2019:art26"],
     "evidence_status":"SUPPORTED",
-    "citation_ids":["BLLD2019:art26"]
-  }],
-  "model_id":"...",
-  "prompt_version":"risk_prompt_v1",
-  "risk_taxonomy_version":"risk_taxonomy_v01",
-  "severity_rubric_version":"severity_v01"
+    "explanation":"Mức lương thử việc thấp hơn mức tối thiểu trong căn cứ được cung cấp."
+  }]
 }
 ```
 
-Gemini call bắt buộc dùng structured output/response schema tương ứng `risk_output_v1`.
+Gemini call bắt buộc dùng structured output/response schema tương ứng `risk_output_v2` (`ai_pipeline/schemas/risk_output_v2.json`). `model_id`, `prompt_version` và các version pin do backend đóng dấu, không nằm trong response của model.
 
 ## 15.3 Runtime validation và advice sanitizer
 
 * clause_id thuộc batch; risk labels thuộc taxonomy; role không do model trả.
-* SUPPORTED => citation_ids non-empty, severity HIGH/MEDIUM/LOW.
-* INSUFFICIENT_EVIDENCE => citation_ids empty, severity null.
+* SUPPORTED => citation_ids non-empty.
+* INSUFFICIENT_EVIDENCE => citation_ids empty.
+* `basis_type` thuộc enum; (label, basis_type, vai trò) không rơi vào ô '-' của taxonomy, nếu rơi thì gỡ nhãn, hết nhãn thì bỏ clause khỏi kết quả và ghi need_review (dev/eval). Severity = mức cao nhất theo bảng taxonomy khi SUPPORTED, null khi INSUFFICIENT_EVIDENCE.
 * Citation IDs phải subset candidate IDs; ngoài candidate được log trước khi filter.
 * Advice detector **không match từ `nên` đơn lẻ**. Match các pattern có ngữ nghĩa khuyến nghị như `bạn nên`, `NLĐ nên`, `NSDLĐ nên`, `nên sửa/bổ sung/thương lượng/yêu cầu`, `đề nghị sửa`, `khuyến nghị`.
 * Explanation legal-reference lint: nếu text nhắc rõ “Điều/Khoản ...” hoặc tên văn bản mà không tương ứng với citation hợp lệ đã chọn, coi là unsupported reference.
@@ -89,7 +91,7 @@ Runtime không tự chấm relevance semantic; M3b là evaluation property.
 
 * Join RiskResult -> Clause bằng clause_id.
 * Quote/start/end chỉ từ canonical Clause.
-* Derive `risk_basis` cho từng risk label từ risk taxonomy; unknown mapping là internal error trước publish.
+* Dựng `risk_basis` từ `basis_type` + risk_labels; nhãn ngoài taxonomy là internal error trước publish; tổ hợp (label, basis_type, vai trò) ở ô '-' thì gỡ nhãn (hết nhãn thì bỏ clause). Severity tra bảng taxonomy.
 * Citation objects từ validated IDs.
 * No-risk -> COMPLETED + exact no-risk message + disclaimer, không khẳng định an toàn.
 * Final publish atomically; FAILED không expose partial.

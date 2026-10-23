@@ -1,76 +1,45 @@
 """
 risk_assembler.py
 -----------------
-Gộp upstream clause data + AI delta response (risk_output_v2) thành merged output.
+Ghép dữ liệu clause từ stage trước + câu trả lời của LLM (risk_output_v2) + citation đã resolve
+thành file đầy đủ `risk_merged_v1` cho backend. Hàm thuần: không gọi LLM, không đổi input,
+không import api/ hay session/ (AI_CONTEXT §8).
 
-Quy tắc:
-- Chỉ giữ clause CÓ trong AI items[] (clause không rủi ro bị loại bỏ).
-- risk_basis lấy thẳng từ AI response (AI xác định bước 1 của quy trình gán nhãn).
-- Backend validate (risk_label, risk_basis, role) không được ánh xạ sang '-' trong taxonomy.
-- Backend điền: session_id, role, clause_stage, citations (đã resolve).
-- Output: dict hợp lệ theo structure risk_merged_v1.
+Nguồn của từng trường trong output:
+- clause_id, clause_number, start_char, end_char, original_text, clause_labels: stage trước
+  (canonical). LLM không bao giờ cung cấp span hay quote (INV-01, INV-05).
+- risk_labels, evidence_status, citation_ids, explanation: câu trả lời LLM.
+- risk_basis = [{label, basis_type}], một-một với risk_labels: backend dựng từ `basis_type`
+  (LLM trả, một giá trị cho cả clause) và risk_labels, sau khi kiểm (nhãn, basis_type, vai trò)
+  theo bảng taxonomy. Đây là field sản phẩm theo SRS 4.1 / TDD 6.3.
+- severity: KHÔNG lấy từ LLM (schema không có trường này). Assembler tra bảng taxonomy:
+  SUPPORTED lấy mức cao nhất trong các risk_labels hợp lệ cho vai trò, INSUFFICIENT_EVIDENCE
+  là null (INV-06).
+- session_id, role, citations, version pin (model_id, prompt_version, risk_taxonomy_version,
+  severity_rubric_version): backend qua AssemblerContext. Các version pin KHÔNG lấy từ LLM.
 
-Input upstream clause data format (segmentation_v1 + clause_output_v3 đã join):
-{
-  "clauses": [
-    {
-      "clause_id": "cl_0001",
-      "clause_number": "7.2",
-      "span": {"start_char": 1200, "end_char": 1287},
-      "original_text": "...",
-      "clause_labels": ["WORKING_CONDITIONS"]
-    },
-    ...
-  ]
-}
+Xử lý theo bảng taxonomy: nếu (risk_label, basis_type, vai trò) rơi vào ô '-' thì nhãn đó bị
+gỡ. Hết nhãn thì clause bị loại khỏi `clauses` (không phải rủi ro của vai trò này, gắn
+need_review trong diagnostics) thay vì xuất một rủi ro mâu thuẫn với taxonomy.
 
-Input AI response format (risk_output_v2):
-{
-  "schema_version": "risk_output_v2",
-  "model_id": "...",
-  "prompt_version": "...",
-  "risk_taxonomy_version": "...",
-  "severity_rubric_version": "...",
-  "items": [
-    {
-      "clause_id": "cl_0001",
-      "risk_basis": "LEGAL_VIOLATION",
-      "risk_labels": ["DEPOSIT_DOCUMENT_HELD"],
-      "severity": "HIGH",
-      "explanation": "...",
-      "evidence_status": "SUPPORTED",
-      "citation_ids": ["BLLD2019:art17:k1"]
-    }
-  ]
-}
+Input clause upstream (segmentation_v1 join clause_output_v3):
+  {"clause_id": "cl_0001", "clause_number": "7.2", "start_char": 1200, "end_char": 1287,
+   "original_text": "...", "clause_labels": ["WORKING_CONDITIONS"]}
+  Chấp nhận thêm dạng "span": {"start_char", "end_char"}; output luôn là start_char/end_char
+  phẳng như entity Clause và API Get Result (TDD §5, §6.3). Offset = Unicode code point,
+  end_char exclusive (INV-04).
 
-Output (risk_merged_v1) structure:
-{
-  "schema_version": "risk_merged_v1",
-  "session_id": "...",          # điền bởi caller
-  "role": "EMPLOYEE",           # điền bởi caller
-  "clause_stage": {...},        # điền bởi caller (metadata stage trước)
-  "risk_taxonomy_version": "...",
-  "severity_rubric_version": "...",
-  "model_id": "...",
-  "prompt_version": "...",
-  "citations": [...],           # điền bởi caller (resolved citation objects)
-  "clauses": [                  # chỉ clause có rủi ro
-    {
-      "clause_id": "cl_0001",
-      "clause_number": "7.2",
-      "span": {"start_char": 1200, "end_char": 1287},
-      "original_text": "...",
-      "clause_labels": ["WORKING_CONDITIONS"],
-      "risk_basis": "LEGAL_VIOLATION",    # từ AI response
-      "risk_labels": ["DEPOSIT_DOCUMENT_HELD"],
-      "severity": "HIGH",
-      "explanation": "...",
-      "evidence_status": "SUPPORTED",
-      "citation_ids": ["BLLD2019:art17:k1"]
-    }
-  ]
-}
+Output `merged` (risk_merged_v1), không chứa trường dev/eval:
+  {"schema_version": "risk_merged_v1", "session_id", "role", "clause_stage": {...},
+   "risk_taxonomy_version", "severity_rubric_version", "model_id", "prompt_version",
+   "citations": [...chỉ các citation được dùng...],
+   "clauses": [{clause_id, clause_number, start_char, end_char, original_text, clause_labels,
+                risk_labels, risk_basis, severity, explanation, evidence_status,
+                citation_ids}]}
+`clauses` theo thứ tự xuất hiện trong hợp đồng. Không có rủi ro thì `clauses` rỗng.
+
+Output `diagnostics` chỉ cho dev/eval/log, KHÔNG đưa vào response sản phẩm (không chứa text):
+  {"need_review": [{clause_id, labels, basis_type}], "labels_dropped": [...]}
 """
 
 from __future__ import annotations
@@ -78,217 +47,212 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-# ---------------------------------------------------------------------------
-# Bảng validate (risk_label, risk_basis, role) từ RISK_TAXONOMY_v0.1.md.
-# Key: (risk_label, risk_basis). Value: {role: severity | None}.
-# None = '-' trong bảng = không phải rủi ro cho vai trò này → "need review".
-# ---------------------------------------------------------------------------
-_TAXONOMY_SEVERITY: dict[tuple[str, str], dict[str, str | None]] = {
-    # (risk_label, risk_basis): {"EMPLOYEE": severity|None, "EMPLOYER": severity|None}
-    ("CONTRACT_TERM_TYPE",          "LEGAL_VIOLATION"): {"EMPLOYEE": "MEDIUM", "EMPLOYER": "HIGH"},
-    ("CONTRACT_TERM_TYPE",          "UNFAVORABLE"):     {"EMPLOYEE": "LOW",    "EMPLOYER": "LOW"},
-    ("CONTRACT_TERM_TYPE",          "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("PROBATION",                   "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("PROBATION",                   "UNFAVORABLE"):     {"EMPLOYEE": "LOW",    "EMPLOYER": None},
-    ("PROBATION",                   "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("WAGE_AMOUNT_COMPONENTS",      "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("WAGE_AMOUNT_COMPONENTS",      "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("WAGE_AMOUNT_COMPONENTS",      "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("BONUS_BENEFITS",              "LEGAL_VIOLATION"): {"EMPLOYEE": "LOW",    "EMPLOYER": "HIGH"},
-    ("BONUS_BENEFITS",              "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("BONUS_BENEFITS",              "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("PAYMENT_TIMING_METHOD",       "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("PAYMENT_TIMING_METHOD",       "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": None},
-    ("PAYMENT_TIMING_METHOD",       "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("WORKING_HOURS_OVERTIME",      "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("WORKING_HOURS_OVERTIME",      "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("WORKING_HOURS_OVERTIME",      "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("REST_AND_LEAVE",              "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("REST_AND_LEAVE",              "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("REST_AND_LEAVE",              "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("SOCIAL_INSURANCE",            "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("SOCIAL_INSURANCE",            "UNFAVORABLE"):     {"EMPLOYEE": None,     "EMPLOYER": None},
-    ("SOCIAL_INSURANCE",            "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("OSH_OBLIGATION",              "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("OSH_OBLIGATION",              "UNFAVORABLE"):     {"EMPLOYEE": None,     "EMPLOYER": None},
-    ("OSH_OBLIGATION",              "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("UNILATERAL_CHANGE",           "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "MEDIUM"},
-    ("UNILATERAL_CHANGE",           "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("UNILATERAL_CHANGE",           "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("PENALTY_DEDUCTION_DAMAGES",   "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("PENALTY_DEDUCTION_DAMAGES",   "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("PENALTY_DEDUCTION_DAMAGES",   "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("DISCIPLINE_OBLIGATION",       "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("DISCIPLINE_OBLIGATION",       "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("DISCIPLINE_OBLIGATION",       "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("POST_EMPLOYMENT_RESTRICTION", "LEGAL_VIOLATION"): {"EMPLOYEE": "MEDIUM", "EMPLOYER": None},
-    ("POST_EMPLOYMENT_RESTRICTION", "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("POST_EMPLOYMENT_RESTRICTION", "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("DEPOSIT_DOCUMENT_HELD",       "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("DEPOSIT_DOCUMENT_HELD",       "UNFAVORABLE"):     {"EMPLOYEE": None,     "EMPLOYER": None},
-    ("DEPOSIT_DOCUMENT_HELD",       "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("DISCRIMINATION_PROTECTED_GROUPS", "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("DISCRIMINATION_PROTECTED_GROUPS", "UNFAVORABLE"):     {"EMPLOYEE": None,     "EMPLOYER": None},
-    ("DISCRIMINATION_PROTECTED_GROUPS", "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("TRAINING_COMMITMENT",         "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("TRAINING_COMMITMENT",         "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("TRAINING_COMMITMENT",         "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("TERMINATION_GROUNDS_NOTICE",  "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("TERMINATION_GROUNDS_NOTICE",  "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("TERMINATION_GROUNDS_NOTICE",  "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("TERMINATION_SETTLEMENT",      "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("TERMINATION_SETTLEMENT",      "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("TERMINATION_SETTLEMENT",      "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("WAIVER_RIGHTS_DISPUTE",       "LEGAL_VIOLATION"): {"EMPLOYEE": "HIGH",   "EMPLOYER": "HIGH"},
-    ("WAIVER_RIGHTS_DISPUTE",       "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": None},
-    ("WAIVER_RIGHTS_DISPUTE",       "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "LOW"},
-    ("PERSONAL_DATA_PRIVACY",       "LEGAL_VIOLATION"): {"EMPLOYEE": "MEDIUM", "EMPLOYER": "HIGH"},
-    ("PERSONAL_DATA_PRIVACY",       "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": None},
-    ("PERSONAL_DATA_PRIVACY",       "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("CONTRACT_FORM_RULES",         "LEGAL_VIOLATION"): {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-    ("CONTRACT_FORM_RULES",         "UNFAVORABLE"):     {"EMPLOYEE": "MEDIUM", "EMPLOYER": None},
-    ("CONTRACT_FORM_RULES",         "AMBIGUOUS"):       {"EMPLOYEE": "MEDIUM", "EMPLOYER": "MEDIUM"},
-}
+from app.core.enums import BasisType, EvidenceStatus, Role
+from app.risk.taxonomy import (
+    RISK_TAXONOMY_VERSION,
+    SEVERITY_RUBRIC_VERSION,
+    invalid_labels_for_role,
+    severity_for_labels,
+)
 
+AI_SCHEMA_VERSION = "risk_output_v2"
+MERGED_SCHEMA_VERSION = "risk_merged_v1"
 
-def validate_risk_basis_labels(
-    risk_labels: list[str],
-    risk_basis: str,
-    role: str,
-) -> list[str]:
-    """
-    Kiểm tra từng (risk_label, risk_basis, role) trong bảng taxonomy.
-    Trả về list các label có severity='-' (None) → cần flag "need review".
-    Nếu (label, basis) không có trong bảng → RiskAssemblerError (unknown mapping).
-    """
-    invalid: list[str] = []
-    for label in risk_labels:
-        key = (label, risk_basis)
-        row = _TAXONOMY_SEVERITY.get(key)
-        if row is None:
-            raise RiskAssemblerError(
-                f"Không tìm thấy ({label}, {risk_basis}) trong _TAXONOMY_SEVERITY. "
-                "Kiểm tra taxonomy version hoặc cập nhật bảng."
-            )
-        severity_for_role = row.get(role)
-        if severity_for_role is None:
-            invalid.append(label)
-    return invalid
-
-
-@dataclass
-class AssemblerContext:
-    """Metadata mà caller (orchestrator/backend) cung cấp khi gộp."""
-    session_id: str
-    role: str                        # "EMPLOYEE" | "EMPLOYER"
-    clause_stage: dict[str, Any]     # metadata của stage clause classification
-    citations: list[dict[str, Any]]  # citation objects đã resolve từ kho luật
+_REQUIRED_UPSTREAM = ("clause_id", "original_text", "clause_labels")
+_REQUIRED_AI_ITEM = (
+    "clause_id",
+    "basis_type",
+    "risk_labels",
+    "explanation",
+    "evidence_status",
+    "citation_ids",
+)
 
 
 class RiskAssemblerError(Exception):
-    """Raised khi input không hợp lệ để merge."""
+    """Input không hợp lệ để ghép. Orchestrator ánh xạ thành INTERNAL_ERROR / AI_OUTPUT_INVALID."""
+
+
+@dataclass(frozen=True)
+class AssemblerContext:
+    """Metadata do backend cung cấp khi ghép."""
+
+    session_id: str
+    role: str  # "EMPLOYEE" | "EMPLOYER"
+    clause_stage: dict[str, Any]  # version pin / metadata của stage clause classification
+    citations: list[dict[str, Any]]  # citation object đã resolve; mỗi cái có "citation_id"
+    model_id: str
+    prompt_version: str
+    risk_taxonomy_version: str = RISK_TAXONOMY_VERSION
+    severity_rubric_version: str = SEVERITY_RUBRIC_VERSION
+
+
+@dataclass(frozen=True)
+class AssemblyResult:
+    merged: dict[str, Any]
+    diagnostics: dict[str, Any]
+
+
+def _upstream_span(clause: dict[str, Any]) -> tuple[int, int]:
+    span = clause.get("span")
+    start = span.get("start_char") if isinstance(span, dict) else clause.get("start_char")
+    end = span.get("end_char") if isinstance(span, dict) else clause.get("end_char")
+    if not (isinstance(start, int) and isinstance(end, int) and 0 <= start < end):
+        raise RiskAssemblerError(
+            f"clause '{clause.get('clause_id')}' thiếu hoặc sai start/end_char"
+        )
+    return start, end
+
+
+def _check_upstream(
+    upstream_clauses: list[dict[str, Any]], canonical_text: str | None
+) -> dict[str, dict[str, Any]]:
+    by_id: dict[str, dict[str, Any]] = {}
+    for clause in upstream_clauses:
+        for key in _REQUIRED_UPSTREAM:
+            if key not in clause:
+                raise RiskAssemblerError(
+                    f"upstream clause thiếu trường '{key}': {clause.get('clause_id')}"
+                )
+        cid = clause["clause_id"]
+        if cid in by_id:
+            raise RiskAssemblerError(f"clause_id '{cid}' bị trùng trong upstream_clauses")
+        start, end = _upstream_span(clause)
+        if canonical_text is not None and canonical_text[start:end] != clause["original_text"]:
+            raise RiskAssemblerError(
+                f"clause '{cid}': canonical_text[start:end] != original_text (INV-03)"
+            )
+        by_id[cid] = clause
+    return by_id
+
+
+def _check_ai_item(item: dict[str, Any], citation_ids_known: set[str]) -> None:
+    for key in _REQUIRED_AI_ITEM:
+        if key not in item:
+            raise RiskAssemblerError(f"AI item thiếu trường '{key}': {item.get('clause_id')}")
+    cid = item["clause_id"]
+    if item["basis_type"] not in {b.value for b in BasisType}:
+        raise RiskAssemblerError(f"clause '{cid}': basis_type không hợp lệ: {item['basis_type']!r}")
+    labels = item["risk_labels"]
+    if not isinstance(labels, list) or not labels or len(set(labels)) != len(labels):
+        raise RiskAssemblerError(
+            f"clause '{cid}': risk_labels phải là list không rỗng, không trùng"
+        )
+    if not isinstance(item["explanation"], str) or not item["explanation"].strip():
+        raise RiskAssemblerError(f"clause '{cid}': explanation rỗng")
+    status, cites = item["evidence_status"], item["citation_ids"]
+    if status == EvidenceStatus.SUPPORTED.value:
+        if not cites:
+            raise RiskAssemblerError(f"clause '{cid}': SUPPORTED cần citation_ids (INV-06)")
+    elif status == EvidenceStatus.INSUFFICIENT_EVIDENCE.value:
+        if cites:
+            raise RiskAssemblerError(
+                f"clause '{cid}': INSUFFICIENT_EVIDENCE cần citation_ids=[]"
+            )
+    else:
+        raise RiskAssemblerError(f"clause '{cid}': evidence_status không hợp lệ: {status!r}")
+    missing = [c for c in cites if c not in citation_ids_known]
+    if missing:
+        raise RiskAssemblerError(
+            f"clause '{cid}': citation chưa resolve trong ctx.citations: {missing}"
+        )
 
 
 def assemble_risk_output(
     upstream_clauses: list[dict[str, Any]],
     ai_response: dict[str, Any],
     ctx: AssemblerContext,
-) -> dict[str, Any]:
-    """
-    Gộp upstream clause data + AI delta response thành risk_merged_v1.
-
-    Args:
-        upstream_clauses: list clause từ stage trước (segmentation + classification đã join).
-                          Mỗi item cần: clause_id, clause_number, span, original_text, clause_labels.
-        ai_response:      dict parse từ AI response theo schema risk_output_v2.
-        ctx:              metadata backend cung cấp (session_id, role, clause_stage, citations).
-
-    Returns:
-        dict theo structure risk_merged_v1.
+    canonical_text: str | None = None,
+) -> AssemblyResult:
+    """Ghép upstream + câu trả lời LLM thành risk_merged_v1 (+ diagnostics cho dev/eval).
 
     Raises:
-        RiskAssemblerError: khi schema_version sai, clause_id không tồn tại ở upstream,
-                            clause_id bị duplicate, hoặc (risk_label, risk_basis) không có
-                            trong bảng taxonomy.
+        RiskAssemblerError: role sai, schema_version sai, clause_id lạ hoặc trùng, item thiếu
+            trường hoặc vi phạm SUPPORTED/INSUFFICIENT_EVIDENCE, citation chưa resolve, nhãn
+            ngoài taxonomy, hoặc (khi có canonical_text) vi phạm
+            canonical_text[start:end] == original_text.
     """
-    # Validate schema_version
-    schema_ver = ai_response.get("schema_version")
-    if schema_ver != "risk_output_v2":
+    if ctx.role not in {r.value for r in Role}:
+        raise RiskAssemblerError(f"role không hợp lệ: {ctx.role!r}")
+    got_version = ai_response.get("schema_version")
+    if got_version != AI_SCHEMA_VERSION:
         raise RiskAssemblerError(
-            f"AI response có schema_version='{schema_ver}', expected 'risk_output_v2'"
+            f"AI response có schema_version={got_version!r}, cần '{AI_SCHEMA_VERSION}'"
         )
 
-    # Build lookup upstream theo clause_id
-    upstream_map: dict[str, dict[str, Any]] = {
-        cl["clause_id"]: cl for cl in upstream_clauses
-    }
+    upstream = _check_upstream(upstream_clauses, canonical_text)
+    order = {c["clause_id"]: i for i, c in enumerate(upstream_clauses)}
+    resolved = {c["citation_id"]: c for c in ctx.citations}
 
-    ai_items: list[dict[str, Any]] = ai_response.get("items", [])
-
-    # Kiểm tra duplicate clause_id trong AI response
-    seen_ids: set[str] = set()
-    for item in ai_items:
+    items: dict[str, dict[str, Any]] = {}
+    for item in ai_response.get("items", []):
+        _check_ai_item(item, set(resolved))
         cid = item["clause_id"]
-        if cid in seen_ids:
+        if cid in items:
+            raise RiskAssemblerError(f"clause_id '{cid}' xuất hiện nhiều hơn một lần trong items[]")
+        if cid not in upstream:
             raise RiskAssemblerError(
-                f"clause_id '{cid}' xuất hiện nhiều hơn 1 lần trong AI response items[]"
+                f"clause_id '{cid}' có trong AI response nhưng không có trong upstream "
+                "(model bịa clause_id hoặc batch không khớp)"
             )
-        seen_ids.add(cid)
+        items[cid] = item
 
+    diagnostics: dict[str, list[dict[str, Any]]] = {"need_review": [], "labels_dropped": []}
     merged_clauses: list[dict[str, Any]] = []
-    for item in ai_items:
-        cid = item["clause_id"]
+    used_citations: set[str] = set()
 
-        # Clause phải tồn tại ở upstream
-        upstream_cl = upstream_map.get(cid)
-        if upstream_cl is None:
-            raise RiskAssemblerError(
-                f"clause_id '{cid}' có trong AI response nhưng không có trong upstream_clauses. "
-                "Có thể AI hallucinate clause_id hoặc input batch không khớp."
+    for cid in sorted(items, key=order.__getitem__):
+        item, clause = items[cid], upstream[cid]
+        basis = item["basis_type"]
+        try:
+            bad = invalid_labels_for_role(item["risk_labels"], basis, ctx.role)
+        except ValueError as exc:  # nhãn ngoài taxonomy
+            raise RiskAssemblerError(f"clause '{cid}': {exc}") from exc
+        labels = [x for x in item["risk_labels"] if x not in bad]
+        if bad:
+            diagnostics["labels_dropped"].append(
+                {"clause_id": cid, "labels": bad, "basis_type": basis}
             )
+        if not labels:
+            diagnostics["need_review"].append(
+                {"clause_id": cid, "labels": bad, "basis_type": basis}
+            )
+            continue
 
-        risk_labels: list[str] = item["risk_labels"]
-        risk_basis: str = item["risk_basis"]   # AI xác định ở bước 1
+        severity = None
+        if item["evidence_status"] == EvidenceStatus.SUPPORTED.value:
+            table = severity_for_labels(labels, basis, ctx.role)  # còn >= 1 nhãn hợp lệ
+            severity = table.value if table is not None else None
 
-        # Validate (risk_label, risk_basis, role) trong taxonomy
-        # → trả về labels với severity '-': cần flag "need review" ở caller
-        invalid_labels = validate_risk_basis_labels(risk_labels, risk_basis, ctx.role)
-        if invalid_labels:
-            # Không raise hard error ở đây; caller quyết định flag hay reject
-            # Gắn vào output để caller xử lý
-            item["_need_review"] = invalid_labels
+        start, end = _upstream_span(clause)
+        used_citations.update(item["citation_ids"])
+        merged_clauses.append(
+            {
+                "clause_id": cid,
+                "clause_number": clause.get("clause_number"),
+                "start_char": start,
+                "end_char": end,
+                "original_text": clause["original_text"],
+                "clause_labels": list(clause["clause_labels"]),
+                "risk_labels": labels,
+                "risk_basis": [{"label": x, "basis_type": basis} for x in labels],
+                "severity": severity,
+                "explanation": item["explanation"],
+                "evidence_status": item["evidence_status"],
+                "citation_ids": list(item["citation_ids"]),
+            }
+        )
 
-        merged_cl: dict[str, Any] = {
-            # --- Upstream fields ---
-            "clause_id":     upstream_cl["clause_id"],
-            "clause_number": upstream_cl.get("clause_number"),
-            "span":          upstream_cl["span"],
-            "original_text": upstream_cl["original_text"],
-            "clause_labels": upstream_cl["clause_labels"],
-            # --- AI fields (từ risk_output_v2) ---
-            "risk_basis":       risk_basis,
-            "risk_labels":      risk_labels,
-            "severity":         item["severity"],
-            "explanation":      item["explanation"],
-            "evidence_status":  item["evidence_status"],
-            "citation_ids":     item["citation_ids"],
-        }
-
-        # Đính kèm need_review nếu có
-        if "_need_review" in item:
-            merged_cl["_need_review"] = item["_need_review"]
-
-        merged_clauses.append(merged_cl)
-
-    return {
-        "schema_version":          "risk_merged_v1",
-        "session_id":              ctx.session_id,
-        "role":                    ctx.role,
-        "clause_stage":            ctx.clause_stage,
-        "risk_taxonomy_version":   ai_response["risk_taxonomy_version"],
-        "severity_rubric_version": ai_response["severity_rubric_version"],
-        "model_id":                ai_response["model_id"],
-        "prompt_version":          ai_response["prompt_version"],
-        "citations":               ctx.citations,
-        "clauses":                 merged_clauses,
+    merged = {
+        "schema_version": MERGED_SCHEMA_VERSION,
+        "session_id": ctx.session_id,
+        "role": ctx.role,
+        "clause_stage": ctx.clause_stage,
+        "risk_taxonomy_version": ctx.risk_taxonomy_version,
+        "severity_rubric_version": ctx.severity_rubric_version,
+        "model_id": ctx.model_id,
+        "prompt_version": ctx.prompt_version,
+        "citations": [c for c in ctx.citations if c["citation_id"] in used_citations],
+        "clauses": merged_clauses,
     }
+    return AssemblyResult(merged=merged, diagnostics=diagnostics)

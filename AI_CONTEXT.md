@@ -11,7 +11,7 @@
 - Căn cứ pháp lý chỉ lấy từ **kho luật đóng** (closed corpus); không đủ căn cứ → `INSUFFICIENT_EVIDENCE`, không bịa citation.
 - Bắt buộc có **Data Graph** (đồ thị kho luật, phục vụ retrieval) và **Clause Graph** (đồ thị điều khoản trong 1 hợp đồng, phục vụ reasoning) — giảng viên yêu cầu (BR-17, BR-18).
 - Nhóm 5 người, **8 tuần xây dựng** (12/10 → demo 06/12/2026) + 2 tuần đánh giá. Ngân sách $20 ($5 vận hành, $15 đánh giá). Không có luật sư.
-- Chỉ **2 lần gọi LLM** bắt buộc (Gemini Flash trả phí): (1) Clause Classification, (2) Risk + Severity + Explanation + chọn citation. Mọi thứ còn lại chạy local.
+- Chỉ **2 lần gọi LLM** bắt buộc (Gemini Flash trả phí): (1) Clause Classification, (2) Risk + Explanation + chọn citation (severity do backend tra bảng taxonomy). Mọi thứ còn lại chạy local.
 
 ## 2. Thứ tự ưu tiên nguồn (khi tài liệu mâu thuẫn)
 
@@ -27,7 +27,7 @@ TDD sai so với BRD/SRS thì **TDD phải sửa**. Không tự ý đổi schema
 5. Chỉ **masked text** được gửi ra LLM. LLM **không** nhận role ở bước classification, **không** tạo/sửa span/quote. Mọi output AI join bằng `clause_id`.
 6. Citation ∈ candidate list ∈ closed corpus ∈ hiệu lực tại `analysis_date`. `INSUFFICIENT_EVIDENCE` ⇒ `citation_ids=[]` và `severity=null`.
 7. Clause Graph chỉ chứa `clause_id` + `edge_type` (không có text), không đổi segmentation/span. `REFERS_TO` loại trừ dẫn chiếu văn bản pháp luật ("Điều 26 Bộ luật Lao động…").
-8. `risk_basis` do **backend derive** từ risk taxonomy; LLM không tự khai `basis_type`.
+8. LLM trả `risk_labels` và `basis_type` (một giá trị cho mỗi clause); backend kiểm (label, basis_type, role) theo risk taxonomy, dựng `risk_basis` và tra `severity` từ bảng. LLM không trả `severity`.
 9. Không lưu nội dung hợp đồng ở nơi bền vững. Session ở RAM, TTL 60 phút không hoạt động; restart = mất session. SQLite chỉ chứa metadata (RunLog, quota, rate, tombstone).
 10. Một phiên `VALIDATING/PROCESSING` tại một thời điểm (processing lease capacity=1). Demo chạy **đúng 1 worker**.
 11. `REJECTED` là cuối, không retry. `FAILED` retry thủ công tối đa 2 lần; retry phải `try_acquire` lease **trước** khi tăng counter. Không bao giờ trả partial result.
@@ -51,9 +51,9 @@ Chatbot, tài khoản/đăng nhập, missing-clause detection, OCR/scan, mobile,
 | Masked text | Canonical đã thay PII bằng placeholder cùng độ dài (`<EMAIL>____`, tên 2 ký tự → `NN`). |
 | Clause | Đơn vị điều khoản: `clause_id` (`cl_0001`…), `start_char`, `end_char`, `clause_labels` (1–3). |
 | Clause taxonomy | 12 nhãn loại điều khoản (đóng băng MS-1). Semantics nguồn: data repo `clause_taxonomy_v03`; code: `taxonomy.py` (`TAXONOMY_VERSION=v04`, chỉ sửa định nghĩa prompt). Nguồn duy nhất trong code: `taxonomy.py`. |
-| Risk taxonomy | Nhãn rủi ro theo role, mỗi nhãn có `basis_type`. Tách biệt clause taxonomy. |
-| `basis_type` | `LEGAL_VIOLATION` / `UNFAVORABLE` / `AMBIGUOUS`. |
-| Severity | `HIGH/MEDIUM/LOW`, `null` nếu thiếu căn cứ. Có thể khác nhau giữa 2 role. |
+| Risk taxonomy | Nhãn rủi ro kèm bảng severity theo (nhãn, `basis_type`, role). Tách biệt clause taxonomy. |
+| `basis_type` | `LEGAL_VIOLATION` / `UNFAVORABLE` / `AMBIGUOUS`. Một giá trị cho mỗi clause, do LLM chọn. |
+| Severity | `HIGH/MEDIUM/LOW`, `null` nếu thiếu căn cứ. Có thể khác nhau giữa 2 role. Backend tra bảng taxonomy, LLM không trả. |
 | Evidence status | `SUPPORTED` / `INSUFFICIENT_EVIDENCE`. |
 | Candidate | Điều luật ứng viên cho 1 clause (`citation_id` dạng `BLLD2019:art26`). |
 | Data Graph | Nút = LegalProvision; cạnh `PARENT_OF`(AUTO) / `REFERS_TO`, `GUIDES`(MANUAL, đã xác minh). |

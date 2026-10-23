@@ -1,36 +1,41 @@
-# Risk Taxonomy — Contract Risk Analyzer
+# Risk Taxonomy - Contract Risk Analyzer
 
 ## TL;DR
-21 nhãn: `CONTRACT_TERM_TYPE`, `PROBATION`, `WAGE_AMOUNT_COMPONENTS`, `BONUS_BENEFITS`, `PAYMENT_TIMING_METHOD`, `WORKING_HOURS_OVERTIME`, 
-`REST_AND_LEAVE`, `SOCIAL_INSURANCE`, `OSH_OBLIGATION`, `UNILATERAL_CHANGE`, `PENALTY_DEDUCTION_DAMAGES`, `DISCIPLINE_OBLIGATION`, `POST_EMPLOYMENT_RESTRICTION`, `DEPOSIT_DOCUMENT_HELD`, `DISCRIMINATION_PROTECTED_GROUPS`, `TRAINING_COMMITMENT`, `TERMINATION_GROUNDS_NOTICE`, `TERMINATION_SETTLEMENT`, `WAIVER_RIGHTS_DISPUTE`, `PERSONAL_DATA_PRIVACY`, `CONTRACT_FORM_RULES`
+21 nhãn: `CONTRACT_TERM_TYPE`, `PROBATION`, `WAGE_AMOUNT_COMPONENTS`, `BONUS_BENEFITS`, `PAYMENT_TIMING_METHOD`, `WORKING_HOURS_OVERTIME`, `REST_AND_LEAVE`, `SOCIAL_INSURANCE`, `OSH_OBLIGATION`, `UNILATERAL_CHANGE`, `PENALTY_DEDUCTION_DAMAGES`, `DISCIPLINE_OBLIGATION`, `POST_EMPLOYMENT_RESTRICTION`, `DEPOSIT_DOCUMENT_HELD`, `DISCRIMINATION_PROTECTED_GROUPS`, `TRAINING_COMMITMENT`, `TERMINATION_GROUNDS_NOTICE`, `TERMINATION_SETTLEMENT`, `WAIVER_RIGHTS_DISPUTE`, `PERSONAL_DATA_PRIVACY`, `CONTRACT_FORM_RULES`
 
-## Taxonomy
+Version: `risk_taxonomy_v02`, rubric `severity_v01` (rubric chữ ở SRS 2.3). Nguồn duy nhất trong code: `backend/app/risk/taxonomy.py`. Test `tests/unit/test_risk_taxonomy.py` đọc bảng bên dưới và so với code, nên sửa bảng thì phải sửa code (và ngược lại). Đóng băng ở MS-1 (25/10).
 
-#### Note
-- Một clause, nếu có rủi ro, trước hết được phân vào 1 trong 3 loại (risk types):
-  - LEGAL_VIOLATION (LV)
-  - UNFAVORABLE (UF)
-  - AMBIGUOUS (AM)
-- sau đó nó sẽ được gán risk label, gán severity dựa theo risk label đó + vai trò, tra trong bảng ở dưới.
+## Quy trình gán nhãn (theo vai trò của phiên)
+1. **basis_type**: một giá trị cho cả clause (LLM trả).
+   - `LEGAL_VIOLATION` (LV): trái quy định cấm hoặc bắt buộc, hoặc vượt ngưỡng pháp luật rõ ràng trong kho luật.
+   - `UNFAVORABLE` (UF): không trái luật nhưng bất lợi đáng kể cho vai trò đang phân tích.
+   - `AMBIGUOUS` (AM): câu chữ mơ hồ, thiếu điều kiện hoặc mức cụ thể, có thể dẫn đến tranh chấp.
+   - Nếu thỏa nhiều loại, ưu tiên LV, rồi UF, rồi AM. [Đề xuất, chờ nhóm chốt]
+2. **risk_labels**: 1 đến 3 nhãn trong bảng. Clause thường chỉ có một ý chính nên thường một nhãn.
+3. **severity**: backend tra bảng theo (nhãn, basis_type, vai trò), LLM không trả severity. Nhiều nhãn thì lấy mức cao nhất. Severity phụ thuộc cả risk_basis, không chỉ nhãn và vai trò.
+4. Nếu `evidence_status = INSUFFICIENT_EVIDENCE` thì severity trong kết quả là `null` bất kể bảng (SRS 2.3).
 
-#### Giải thích bảng Taxonomy
-- risk_id: risk label
-- Clause label chính: Clause được gán risk_label này khả năng cao thuộc về clause label nào (cross-reference)
-- expression: Cơ sở để gắn nhãn risk (clause này có ý gì -> risk)
-- EMPLOYEE (LV/UF/AM): severity theo risk type + vai trò **người lao động**.
-- EMPLOYER (LV/UF/AM): severity theo risk type + vai trò **người sử dụng lao động**.
-  - Severity LOW - MEDIUM - HIGH, nếu '-' nghĩa là loại đó không phải rủi ro cho vai trò này (ví dụ điều khoản có lợi hơn luật cho một bên thì không phải rủi ro của bên đó). 
-  - Phần có dấu '-' để kiểm tra xem types và risk label được gán chuẩn không. Nếu 2 bước gán đó trả về kết quả có severity là - thì gắn cờ "need review" và coi là fail.
-- Căn cứ: Căn cứ vào điều luật nào (chỉ là candidate/nói chung chung, CHUẨN/CHÍNH XÁC là phải truy xuất trong corpus theo nội dung clause).
+Lưu ý: basis_type là phán đoán về nội dung clause (trái luật, bất lợi hay mơ hồ), không phải hàm của nhãn. Vì vậy chỉ có thể tra xuôi (basis thành severity), không tra ngược severity hay nhãn về basis được.
 
-#### Nội dung
+## Cách đọc bảng
+- `risk_id`: nhãn rủi ro.
+- `Clause label tham khảo`: clause thường mang nhãn clause này (cross-reference). Chỉ để tham khảo: một clause có 1 đến 3 nhãn clause và `OTHER` gom nhiều chủ đề, nên KHÔNG dùng cột này để lọc hay giới hạn nhãn rủi ro.
+- `Gom từ (expression)`: dấu hiệu trong clause dẫn đến nhãn này.
+- `EMPLOYEE` / `EMPLOYER`: severity theo thứ tự `LV / UF / AM` của vai trò đó. `H` = HIGH, `M` = MEDIUM, `L` = LOW.
+- `-`: tổ hợp đó KHÔNG phải rủi ro của vai trò này (ví dụ điều khoản có lợi hơn luật cho một bên thì không phải rủi ro của bên đó, BRD 3.2).
+- `Căn cứ (candidate)`: điều luật có thể liên quan, chỉ là gợi ý. Căn cứ chính xác phải truy xuất trong corpus theo nội dung clause; LLM chỉ được trích citation nằm trong candidate của clause.
 
-| risk_id | Clause label chính | Gom từ (expression) | EMPLOYEE (LV/UF/AM) | EMPLOYER (LV/UF/AM) | Căn cứ (candidate) |
+## Xử lý khi gặp ô `-`
+Nếu bước 1 và 2 cho ra (nhãn, basis_type, vai trò) rơi vào `-` thì coi là gán sai: gắn cờ `need_review`, nhãn đó bị gỡ. Hết nhãn thì clause không xuất ra sản phẩm (không phải rủi ro của vai trò này) và được tính là fail khi chấm nhãn. Assembler (`backend/app/integrations/risk_assembler.py`) làm việc này, rồi dựng `risk_basis = [{label, basis_type}]` cho response sản phẩm và ghi vào `diagnostics`, không đưa vào response sản phẩm.
+
+## Bảng
+
+| risk_id | Clause label tham khảo | Gom từ (expression) | EMPLOYEE (LV/UF/AM) | EMPLOYER (LV/UF/AM) | Căn cứ (candidate) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | CONTRACT_TERM_TYPE | CONTRACT_TERM | Quá 36 tháng, ký nối tiếp quá số lần, hết hạn tự động | M / L / M | H / L / M | Điều 20 |
 | PROBATION | CONTRACT_TERM | Thời gian, lương dưới 85%, phạt khi hủy | H / L / M | H / - / M | Điều 24 đến 27 |
 | WAGE_AMOUNT_COMPONENTS | COMPENSATION_BENEFITS | Dưới tối thiểu vùng, lương gộp, tiền làm thêm giờ dưới luật, gross/net và thuế | H / M / M | H / M / M | NĐ 293/2025; Điều 98; Luật BHXH 2024 Điều 31; Luật Thuế TNCN 2025 |
-| BONUS_BENEFITS | COMPENSATION_BENEFITS | Thưởng, phụ cấp do công ty toàn quyền, nhưng PHẢI công khai, nếu không -> LV; khoản chi cố định cam kết | L / M / M | H / M / L | Điều 104 |
+| BONUS_BENEFITS | COMPENSATION_BENEFITS | Thưởng, phụ cấp do công ty toàn quyền, nhưng PHẢI công khai, nếu không -> LV; khoản chi cố định cam kết | M / M / M | H / M / L | Điều 104 |
 | PAYMENT_TIMING_METHOD | COMPENSATION_BENEFITS | Kỳ hạn, phương thức, lương phụ thuộc điều kiện | H / M / M | H / - / M | Điều 94 đến 97 |
 | WORKING_HOURS_OVERTIME | WORKING_TIME | Giờ làm việc thường, làm thêm bắt buộc, vượt trần | H / M / M | H / L / L | Điều 105, 107 |
 | REST_AND_LEAVE | LEAVE | Nghỉ giữa ca, hằng tuần, phép năm, lễ, việc riêng, thanh toán phép chưa nghỉ | H / M / M | H / L / L | Điều 109 đến 115 |
@@ -39,7 +44,7 @@
 | UNILATERAL_CHANGE | EMPLOYER_RIGHTS_OBLIGATIONS | Đơn phương đổi lương, công việc, địa điểm, ca; sửa hợp đồng; mô tả công việc để mở | H / M / M | M / L / L | Điều 21.1, 29, 33 |
 | PENALTY_DEDUCTION_DAMAGES | EMPLOYEE_OBLIGATIONS_DISCIPLINE | Phạt tiền, khấu trừ lương, bồi thường vượt luật, phạt khi nghỉ việc | H / M / M | H / L / M | Điều 40, 101, 129 |
 | DISCIPLINE_OBLIGATION | EMPLOYEE_OBLIGATIONS_DISCIPLINE | Hình thức và căn cứ kỷ luật, tiêu chí đánh giá, nghĩa vụ một chiều | H / M / M | H / L / M | Điều 36.1.a; mục kỷ luật |
-| POST_EMPLOYMENT_RESTRICTION | EMPLOYEE_OBLIGATIONS_DISCIPLINE | Bảo mật, không cạnh tranh, chuyển giao sở hữu trí tuệ | M / M / M | - / L / M | Điều 5, 21.2; Luật SHTT |
+| POST_EMPLOYMENT_RESTRICTION | EMPLOYEE_OBLIGATIONS_DISCIPLINE | Bảo mật, không cạnh tranh, chuyển giao sở hữu trí tuệ | M / M / M | M / L / M | Điều 5, 21.2; Luật SHTT |
 | DEPOSIT_DOCUMENT_HELD | WORKING_CONDITIONS | Đặt cọc, ký quỹ, giữ bản chính giấy tờ | H / - / M | H / - / M | Điều 17 |
 | DISCRIMINATION_PROTECTED_GROUPS | WORKING_CONDITIONS | Phân biệt đối xử, cấm kết hôn hoặc mang thai | H / - / M | H / - / M | Điều 8, 137, 138 |
 | TRAINING_COMMITMENT | TRAINING | Hoàn trả chi phí đào tạo, thời gian cam kết, lợi dụng đào tạo để trục lợi | H / M / M | H / L / M | Điều 8, 61, 62 |

@@ -19,6 +19,7 @@ Thay đổi chính trong 1.4:
 * Bổ sung các API error phụ (`INVALID_SESSION_STATE`, `SESSION_NOT_READY`, `SESSION_REJECTED`, `SESSION_EXPIRED`, `FEATURE_NOT_ENABLED`) và làm rõ End Session trả xác nhận + EXPIRED (6.2, 9).
 * Sửa EV-08 để M8 graph on/off dùng cùng candidate budget/final_k và primary run dùng predicted clause labels; thêm EV-09 cho Clause Graph context trace và EV-10 tách quota/rate-limit của evaluation khỏi product runtime.
 * Demo runtime dùng một backend worker/process với session store trong memory; mọi actual provider request kể cả auto-retry được tính vào cost/call ledger; quota demo phải chốt từ D1 và cost model thay vì hard-code một con số tùy ý (NFR-SCALE-01, NFR-COST-02).
+* Điều chỉnh 23/10/2026 (risk taxonomy v0.1): LLM trả `basis_type` (một giá trị cho mỗi clause) cùng `risk_labels`; backend kiểm (label, basis_type, vai trò) theo risk taxonomy, tra severity theo bảng taxonomy (LLM không trả severity) và dựng `risk_basis` (DEC-24, FR-13, FR-14, 4.1, 4.3, R-19).
 
 Thay đổi chính trong 1.3:
 
@@ -66,7 +67,7 @@ Thay đổi chính trong 1.2:
 | DEC-21 | Thêm Data Graph (phục vụ Retrieval & Fact-finding: tìm kiếm thông tin, truy vấn tri thức) và Clause Graph (phục vụ Validation & Reasoning: kiểm tra mâu thuẫn, suy diễn điều kiện) theo yêu cầu giảng viên; Data Graph là lớp trên retrieval nền, hệ thống chạy được khi tắt graph; thiết kế chi tiết ở SDD và TDD | 12/10/2026 | Nhóm | FR-12, FR-30, FR-31, BRD BR-17, BR-18 |
 | DEC-22 | 10 tuần là 8 tuần xây dựng đến demo 06/12/2026 cộng 2 tuần đánh giá và báo cáo; mốc theo BRD 9.4 | 12/10/2026 | Cơ cấu 8+2 tuần đã xác nhận 12/10/2026; Nhóm | BRD 9 |
 | DEC-23 | Create/Upload sau admission gate tạo session và trả sớm; các lỗi validate file/phạm vi/segmentation sau đó biểu diễn bằng state REJECTED của chính session đó, không vừa trả lỗi đồng bộ vừa có session | 13/10/2026 | Nhóm | FR-02..06, FR-09, 6, 9 |
-| DEC-24 | `risk_basis` không do LLM tự khai mà backend derive từ `risk_labels` + risk taxonomy; Clause Graph cung cấp related context cho Risk stage và có ContextResolutionTrace; `related_clause_ids` trong RiskResult là tùy chọn, nếu có phải là tập con của context đã cấp | 13/10/2026 | Nhóm | FR-13, FR-31, 4, EV-09 |
+| DEC-24 | LLM trả `risk_labels` và một `basis_type` cho mỗi clause; backend kiểm (label, basis_type, vai trò) theo risk taxonomy rồi dựng `risk_basis`; severity do backend tra bảng taxonomy, LLM không trả; Clause Graph cung cấp related context cho Risk stage và có ContextResolutionTrace; `related_clause_ids` trong RiskResult là tùy chọn, nếu có phải là tập con của context đã cấp | 13/10/2026 | Nhóm | FR-13, FR-31, 4, EV-09 |
 | DEC-25 | Processing slot capacity=1 phải acquire atomically ở admission và acquire lại khi manual retry; FAILED local retry về VALIDATING, FAILED processing retry về PROCESSING; SYSTEM_BUSY không tăng retry counter | 13/10/2026 | Nhóm | FR-21, FR-26, 6 |
 | DEC-26 | Mọi span dùng Unicode code point sau NFC; clause spans không chồng lấn. Với cấu trúc cha-con, phần text của clause cha kết thúc trước phần body thuộc clause con | 13/10/2026 | Nhóm | FR-09, 4.2, NFR-DATA-02 |
 | DEC-27 | EV-08 so graph on/off với cùng final candidate budget và primary M8 dùng predicted clause labels; evaluation bypass runtime quota/rate-limit nhưng ghi cost ledger riêng | 13/10/2026 | Nhóm | FR-12, FR-30, EV-08, EV-10 |

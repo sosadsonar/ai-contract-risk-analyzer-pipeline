@@ -79,8 +79,8 @@ Chỉ COMPLETED trả 200. Các state khác dùng API-state code ở §5.8.
   ],
   "risks": [
     {"clause_id":"cl_0001",
-     "risk_labels":["PROBATION_WAGE_BELOW_MINIMUM"],
-     "risk_basis":[{"label":"PROBATION_WAGE_BELOW_MINIMUM","basis_type":"LEGAL_VIOLATION"}],
+     "risk_labels":["PROBATION"],
+     "risk_basis":[{"label":"PROBATION","basis_type":"LEGAL_VIOLATION"}],
      "severity":"HIGH","explanation":"...","evidence_status":"SUPPORTED",
      "citation_ids":["BLLD2019:art26"]}
   ],
@@ -94,7 +94,7 @@ Chỉ COMPLETED trả 200. Các state khác dùng API-state code ở §5.8.
 }
 ```
 
-`risk_basis` do backend derive từ risk taxonomy sau khi validate `risk_labels`; LLM không được tự khai `basis_type`.
+`risk_basis` do backend dựng từ `basis_type` của LLM và `risk_labels` sau khi validate (label, basis_type, vai trò) theo risk taxonomy; `severity` do backend tra bảng.
 
 ## 5.5 POST /api/v1/sessions/{session_id}/retry
 

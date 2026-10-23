@@ -2,53 +2,32 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "risk_output_v2",
   "title": "risk_output_v2",
-  "description": "Delta schema: AI response duy nhất cho stage Risk_Sev_Exp. Chỉ chứa các clause CÓ rủi ro — clause không rủi ro không xuất hiện trong items[]. Quy trình gán nhãn: (1) xác định risk_basis (LV/UF/AM) → (2) gán risk_labels → (3) xác định severity theo bảng taxonomy(risk_label × risk_basis × role). Backend điền thêm session_id, role, clause_stage, citations sau khi merge. Schema này được truyền trực tiếp cho provider làm response_schema / structured output.",
+  "description": "CHỈ là câu trả lời của LLM ở stage risk_severity_explain (LLM #2), không phải file đầy đủ cho backend. File đầy đủ (risk_merged_v1) do backend/app/integrations/risk_assembler.py ghép từ output stage trước (clause_id, span, original_text, clause_labels), câu trả lời này, citation đã resolve và các version pin. Chỉ chứa clause CÓ rủi ro cho vai trò của phiên; clause không rủi ro không xuất hiện trong items[]; items rỗng nghĩa là không phát hiện rủi ro. Quy trình gán: (1) basis_type, (2) risk_labels, (3) citation/evidence. Severity KHÔNG do LLM trả: backend tra bảng (risk_label, basis_type, vai trò) trong risk taxonomy. LLM KHÔNG trả: severity, role, span, quote, model_id, prompt_version, risk_taxonomy_version, severity_rubric_version (backend đóng dấu các version pin; model không biết các giá trị này nên sẽ bịa). Product field `risk_basis` ([{label, basis_type}], một-một với risk_labels) do backend dựng từ basis_type này và risk_labels.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
-    "model_id",
-    "prompt_version",
-    "risk_taxonomy_version",
-    "severity_rubric_version",
     "items"
   ],
   "properties": {
     "schema_version": {
       "const": "risk_output_v2",
-      "description": "Phải bằng đúng 'risk_output_v2'"
-    },
-    "model_id": {
-      "type": "string",
-      "description": "Model ID của stage Risk"
-    },
-    "prompt_version": {
-      "type": "string",
-      "description": "Prompt version của stage Risk"
-    },
-    "risk_taxonomy_version": {
-      "type": "string",
-      "description": "Version của bộ nhãn rủi ro đang dùng"
-    },
-    "severity_rubric_version": {
-      "type": "string",
-      "description": "Version của rubric đánh giá mức độ nghiêm trọng"
+      "description": "Phải bằng đúng 'risk_output_v2'."
     },
     "items": {
       "type": "array",
-      "description": "Danh sách clause CÓ rủi ro. Clause không rủi ro không xuất hiện ở đây. Backend loại bỏ chúng khi merge.",
+      "description": "Các clause CÓ rủi ro, mỗi clause_id tối đa một lần. Có thể rỗng.",
       "items": {
         "$ref": "#/$defs/risk_item"
       }
     }
   },
   "x-cross-field-rules": [
-    "evidence_status=SUPPORTED => citation_ids có ít nhất 1 phần tử AND severity thuộc HIGH|MEDIUM|LOW",
-    "evidence_status=INSUFFICIENT_EVIDENCE => citation_ids rỗng AND severity=null",
-    "risk_labels không rỗng (clause có trong items luôn có ít nhất 1 nhãn)",
-    "risk_basis phải nhất quán với risk_labels: nếu (risk_label, risk_basis, role) ánh xạ sang '-' trong bảng taxonomy → không hợp lệ, cần review",
-    "mỗi clause_id xuất hiện đúng 1 lần trong items[]",
-    "mỗi citation_ids[i] phải là subset của candidate_ids được gửi trong request"
+    "SUPPORTED cần citation_ids không rỗng; INSUFFICIENT_EVIDENCE cần citation_ids rỗng (đã nằm trong risk_item.allOf).",
+    "Mỗi clause_id phải thuộc batch gửi đi và xuất hiện tối đa một lần trong items[] (adapter/assembler kiểm).",
+    "Mỗi citation_ids[i] phải thuộc candidate_ids của clause đó trong request (citation validator kiểm).",
+    "(risk_label, basis_type, vai trò) không được rơi vào ô '-' của bảng taxonomy; nếu có thì clause bị gắn need_review và không xuất ra sản phẩm (assembler kiểm).",
+    "severity do assembler tra bảng taxonomy: SUPPORTED lấy mức cao nhất trong các risk_labels hợp lệ, INSUFFICIENT_EVIDENCE là null (INV-06)."
   ],
   "$defs": {
     "risk_label": {
@@ -64,40 +43,43 @@
         "OSH_OBLIGATION",
         "UNILATERAL_CHANGE",
         "PENALTY_DEDUCTION_DAMAGES",
-        "DEPOSIT_DOCUMENT_HELD",
-        "TRAINING_COMMITMENT",
-        "POST_EMPLOYMENT_RESTRICTION",
-        "PERSONAL_DATA_PRIVACY",
         "DISCIPLINE_OBLIGATION",
-        "CONTRACT_FORM_RULES",
-        "WAIVER_RIGHTS_DISPUTE",
+        "POST_EMPLOYMENT_RESTRICTION",
+        "DEPOSIT_DOCUMENT_HELD",
         "DISCRIMINATION_PROTECTED_GROUPS",
+        "TRAINING_COMMITMENT",
         "TERMINATION_GROUNDS_NOTICE",
-        "TERMINATION_SETTLEMENT"
+        "TERMINATION_SETTLEMENT",
+        "WAIVER_RIGHTS_DISPUTE",
+        "PERSONAL_DATA_PRIVACY",
+        "CONTRACT_FORM_RULES"
       ],
-      "description": "21 nhãn rủi ro; enum phải đối chiếu với source-of-truth risk taxonomy (BRD 8.2)"
+      "description": "Nhãn rủi ro. Enum phải khớp app.risk.taxonomy.RISK_LABELS (đúng thứ tự); tests/contract/test_schema_enums.py đối chiếu (DEC-20)."
     },
     "risk_item": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "clause_id",
-        "risk_basis",
+        "basis_type",
         "risk_labels",
-        "severity",
-        "explanation",
+        "citation_ids",
         "evidence_status",
-        "citation_ids"
+        "explanation"
       ],
       "properties": {
         "clause_id": {
           "type": "string",
           "pattern": "^cl_[0-9]{4}$",
-          "description": "Khóa join với upstream clause data. Phải tồn tại trong input batch."
+          "description": "Khóa join với clause upstream; phải thuộc batch trong request."
         },
-        "risk_basis": {
-          "enum": ["LEGAL_VIOLATION", "UNFAVORABLE", "AMBIGUOUS"],
-          "description": "Bước 1 của quy trình gán nhãn: phân loại rủi ro. LEGAL_VIOLATION (LV): vi phạm quy định pháp luật. UNFAVORABLE (UF): không vi phạm nhưng bất lợi hơn luật. AMBIGUOUS (AM): mơ hồ, thiếu rõ ràng, có thể bị lợi dụng. Một clause có đúng 1 risk_basis."
+        "basis_type": {
+          "enum": [
+            "LEGAL_VIOLATION",
+            "UNFAVORABLE",
+            "AMBIGUOUS"
+          ],
+          "description": "Bước 1, một giá trị cho cả clause. LEGAL_VIOLATION: trái quy định cấm/bắt buộc hoặc vượt ngưỡng pháp luật. UNFAVORABLE: hợp pháp nhưng bất lợi đáng kể cho vai trò đang phân tích. AMBIGUOUS: mơ hồ, có thể dẫn đến tranh chấp. Nếu thỏa nhiều loại, ưu tiên LEGAL_VIOLATION, rồi UNFAVORABLE, rồi AMBIGUOUS."
         },
         "risk_labels": {
           "type": "array",
@@ -107,65 +89,98 @@
           "items": {
             "$ref": "#/$defs/risk_label"
           },
-          "description": "Ít nhất 1 nhãn (clause không rủi ro không được đưa vào items)"
+          "description": "Bước 2. Clause thường chỉ một ý chính nên thường một nhãn; chỉ thêm nhãn khi thật sự có vấn đề thứ hai."
         },
-        "severity": {
-          "enum": [
-            "HIGH",
-            "MEDIUM",
-            "LOW",
-            null
-          ],
-          "description": "Mức nghiêm trọng. null khi và chỉ khi evidence_status=INSUFFICIENT_EVIDENCE."
-        },
-        "explanation": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Giải thích rủi ro. Không được null hay rỗng. Không chứa advice (nên sửa, khuyến nghị...) hay tham chiếu pháp lý không có trong citation_ids hợp lệ."
+        "citation_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Tập con của candidate_ids của clause này trong request. Rỗng khi INSUFFICIENT_EVIDENCE."
         },
         "evidence_status": {
           "enum": [
             "SUPPORTED",
             "INSUFFICIENT_EVIDENCE"
           ],
-          "description": "SUPPORTED: có citation hợp lệ trong kho luật. INSUFFICIENT_EVIDENCE: không tìm thấy căn cứ trong candidates được cung cấp."
+          "description": "SUPPORTED: có ít nhất một candidate làm căn cứ. INSUFFICIENT_EVIDENCE: candidates không đủ căn cứ; không bịa citation."
         },
-        "citation_ids": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "type": "string"
-          },
-          "description": "Subset của candidate_ids được gửi trong request. Rỗng khi evidence_status=INSUFFICIENT_EVIDENCE."
+        "explanation": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Văn bản hiển thị thẳng cho người dùng (không còn bước LLM nào sau stage này), tiếng Việt, trung tính. Nêu điều khoản gây rủi ro gì cho vai trò đang phân tích và vì sao theo basis_type. Không khuyên sửa/đàm phán; không nêu mức độ nghiêm trọng (severity do backend quyết định); không trích nguyên văn điều khoản và không lặp placeholder PII như <NAME>___ (quote do backend gắn từ canonical text); chỉ nhắc Điều/Luật có trong citation_ids; INSUFFICIENT_EVIDENCE thì không nhắc số điều hay tên văn bản pháp luật."
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "evidence_status": {
+                "const": "SUPPORTED"
+              }
+            },
+            "required": [
+              "evidence_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "citation_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "evidence_status": {
+                "const": "INSUFFICIENT_EVIDENCE"
+              }
+            },
+            "required": [
+              "evidence_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "citation_ids": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
     }
   },
+  
   "examples": [
     {
       "schema_version": "risk_output_v2",
-      "model_id": "gemini-2.0-flash",
-      "prompt_version": "risk_prompt_v2",
-      "risk_taxonomy_version": "rv01",
-      "severity_rubric_version": "srs-2.3",
       "items": [
         {
           "clause_id": "cl_0001",
-          "risk_basis": "LEGAL_VIOLATION",
-          "risk_labels": ["DEPOSIT_DOCUMENT_HELD"],
-          "severity": "HIGH",
-          "explanation": "Điều khoản cho phép công ty giữ bản chính văn bằng của người lao động trong suốt thời gian làm việc, vi phạm Điều 17 khoản 1 Bộ luật Lao động 2019.",
+          "basis_type": "LEGAL_VIOLATION",
+          "risk_labels": [
+            "DEPOSIT_DOCUMENT_HELD"
+          ],
+          "citation_ids": [
+            "BLLD2019:art17"
+          ],
           "evidence_status": "SUPPORTED",
-          "citation_ids": ["BLLD2019:art17:k1"]
+          "explanation": "Điều khoản cho phép công ty giữ bản chính văn bằng của người lao động trong suốt thời gian làm việc, trái với quy định cấm giữ bản chính giấy tờ tùy thân, văn bằng, chứng chỉ của người lao động tại Điều 17 Bộ luật Lao động 2019."
         },
         {
           "clause_id": "cl_0005",
-          "risk_basis": "UNFAVORABLE",
-          "risk_labels": ["TRAINING_COMMITMENT"],
-          "severity": null,
-          "explanation": "Điều khoản ràng buộc chi phí đào tạo nhưng không xác định rõ mức hoàn trả và điều kiện áp dụng.",
+          "basis_type": "AMBIGUOUS",
+          "risk_labels": [
+            "TRAINING_COMMITMENT"
+          ],
+          "citation_ids": [],
           "evidence_status": "INSUFFICIENT_EVIDENCE",
-          "citation_ids": []
+          "explanation": "Điều khoản ràng buộc người lao động hoàn trả chi phí đào tạo nhưng không nêu rõ mức hoàn trả và điều kiện áp dụng, có thể dẫn đến tranh chấp về nghĩa vụ này."
         }
       ]
     }

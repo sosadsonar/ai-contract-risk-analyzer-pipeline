@@ -37,7 +37,7 @@ Harness dùng shared modules trực tiếp, không HTTP, không product quota/ra
 |---|---|
 | seg.json | start_char,end_char,gold clause ref, offset_unit |
 | clause.json | gold labels, annotator/source, taxonomy_version |
-| risk.json | clause ref, role, risk_label, basis_type, gold citation_id, source |
+| risk.json | clause ref, role, risk_label, basis_type (gán tay ở mức clause), gold citation_id, source |
 | injected.json | injection_id, clause ref, role, risk_label, gold citation_id, insertion span |
 | privacy.json | PII gold spans/types + preserve-field spans |
 | judge.json | output id, human labels x2, adjudicated label, judge label |

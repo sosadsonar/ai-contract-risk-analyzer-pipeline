@@ -60,9 +60,9 @@ Clause {
 RiskResult {
   "clause_id": "cl_0001",
   "role": "EMPLOYEE",
-  "risk_labels": ["PROBATION_WAGE_BELOW_MINIMUM"],
+  "risk_labels": ["PROBATION"],
   "risk_basis": [
-    {"label":"PROBATION_WAGE_BELOW_MINIMUM", "basis_type":"LEGAL_VIOLATION"}
+    {"label":"PROBATION", "basis_type":"LEGAL_VIOLATION"}
   ],
   "severity": "HIGH",
   "explanation": "...",
@@ -72,7 +72,7 @@ RiskResult {
 }
 ```
 
-`risk_labels[]` là field nguồn theo SRS. `risk_basis[]` là field **derived by backend** từ risk taxonomy và phải one-to-one với `risk_labels`; không nằm trong AI output. Severity/explanation/citation vẫn ở cấp clause đúng entity tối thiểu SRS. Nếu nhóm muốn severity riêng cho từng label thì phải sửa SRS trước.
+`risk_labels[]` là field nguồn theo SRS. `risk_basis[]` là field **dựng bởi backend** từ `basis_type` trong AI output và `risk_labels`, phải one-to-one với `risk_labels`; AI output không có `risk_basis` và không có `severity`. Severity/explanation/citation vẫn ở cấp clause đúng entity tối thiểu SRS. Nếu nhóm muốn severity riêng cho từng label thì phải sửa SRS trước.
 
 ## 6.4 VersionPins
 
@@ -80,7 +80,7 @@ RiskResult {
 {
   "extraction_version": "extract_v1.1",
   "clause_taxonomy_version": "clause_taxonomy_v03",
-  "risk_taxonomy_version": "risk_taxonomy_v01",
+  "risk_taxonomy_version": "risk_taxonomy_v02",
   "severity_rubric_version": "severity_v01",
   "corpus_version": "legal_corpus_2026-10-12",
   "data_graph_version": "legal_graph_2026-10-12",
@@ -103,8 +103,9 @@ RiskResult {
 | segmentation_v1 | schema_version, clauses[{clause_id,original_text,start_char,end_char,structure}], segmentation_version |
 | clause_output_v3 | schema_version, items[{clause_id,clause_labels[1..3]}], model_id,prompt_version,taxonomy_version |
 | retrieval_v1 | per_clause[{clause_id,candidates[]}], corpus_version,data_graph_version,graph_enabled |
-| risk_output_v1 | items[{clause_id,risk_labels,severity,explanation,evidence_status,citation_ids}], version pins |
-| final_result_v1 | offset_unit, session/role/date, canonical_text, clauses, risks(+derived risk_basis), citations, disclaimer, data_notice, version_pins |
+| risk_output_v2 | items[{clause_id,basis_type,risk_labels,citation_ids,evidence_status,explanation}]; không có severity và version pins (backend đóng dấu) |
+| risk_merged_v1 | output của `risk_assembler`: clauses[{clause_id,start_char,end_char,original_text,clause_labels,risk_labels,risk_basis,severity,explanation,evidence_status,citation_ids}], citations, version pins; đầu vào của final_result_v1 |
+| final_result_v1 | offset_unit, session/role/date, canonical_text, clauses, risks(+risk_basis dựng bởi backend, severity tra bảng), citations, disclaimer, data_notice, version_pins |
 
 `ContextResolutionTrace` là diagnostic artifact cho dev/eval, không phải field bắt buộc của RiskResult/API product.
 
@@ -116,4 +117,4 @@ RiskResult {
 * Clause Classification: every requested clause exactly once; 1..3 labels từ taxonomy; không span/quote; request không có role.
 * Retrieval: candidate exists/effective; count <= final_k; graph on/off cùng final_k.
 * Risk: labels valid; citation subset candidates; severity/evidence invariant; advice/citation-mention sanitizer pass.
-* Assembly: derive `risk_basis` từ taxonomy; no risk without clause; quote/span chỉ từ canonical Clause; add `offset_unit=unicode_code_point`.
+* Assembly: kiểm (label, basis_type, vai trò) theo taxonomy, dựng `risk_basis`, tra severity; no risk without clause; quote/span chỉ từ canonical Clause; add `offset_unit=unicode_code_point`.

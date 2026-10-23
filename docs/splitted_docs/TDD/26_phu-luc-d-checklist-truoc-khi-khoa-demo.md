@@ -4,7 +4,7 @@
 
 | Hạng mục | Điều kiện |
 |---|---|
-| Schema | clause_output_v3/risk_output_v1/final_result_v1 pass; risk_basis derive đúng. |
+| Schema | clause_output_v3/risk_output_v2/final_result_v1 pass; risk_basis dựng đúng, severity khớp bảng taxonomy. |
 | Privacy | BRD 7.3 đạt; outbound no raw PII; placeholder same length. |
 | Span | M4=100%; non-overlap partition; Unicode code-point offset; browser non-BMP test. |
 | Corpus | Build legal corpus/Data Graph pass; suggestions chưa verify không load. |

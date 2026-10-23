@@ -30,32 +30,31 @@
 
 Enum label phải sinh từ source-of-truth taxonomy hoặc có test đối chiếu theo DEC-20.
 
-## A.2 risk_output_v1
+## A.2 risk_output_v2
 
 ```json
 {
-  "$id":"risk_output_v1",
+  "$id":"risk_output_v2",
   "type":"object",
   "additionalProperties":false,
-  "required":["schema_version","items","model_id","prompt_version",
-              "risk_taxonomy_version","severity_rubric_version"],
+  "required":["schema_version","items"],
   "properties":{
-    "schema_version":{"const":"risk_output_v1"},
+    "schema_version":{"const":"risk_output_v2"},
     "items":{"type":"array","items":{
       "type":"object","additionalProperties":false,
-      "required":["clause_id","risk_labels","severity","explanation",
-                  "evidence_status","citation_ids"],
+      "required":["clause_id","basis_type","risk_labels","citation_ids","evidence_status","explanation"],
       "properties":{
-        "clause_id":{"type":"string"},
-        "risk_labels":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
-        "severity":{"type":["string","null"],"enum":["HIGH","MEDIUM","LOW",null]},
-        "explanation":{"type":"string","minLength":1},
+        "clause_id":{"type":"string","pattern":"^cl_[0-9]{4}$"},
+        "basis_type":{"enum":["LEGAL_VIOLATION","UNFAVORABLE","AMBIGUOUS"]},
+        "risk_labels":{"type":"array","minItems":1,"maxItems":3,"uniqueItems":true,
+          "items":{"type":"string","enum":"<generated from risk taxonomy source>"}},
+        "citation_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
         "evidence_status":{"enum":["SUPPORTED","INSUFFICIENT_EVIDENCE"]},
-        "citation_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}
+        "explanation":{"type":"string","minLength":10}
       }
     }}
   }
 }
 ```
 
-`risk_basis` **không nằm trong AI schema**; backend derive từ risk taxonomy. Pydantic model thực hiện cross-field validation SUPPORTED/INSUFFICIENT_EVIDENCE. Cùng JSON Schema được truyền làm provider response schema/structured output.
+Schema đầy đủ (kèm `allOf` cho SUPPORTED/INSUFFICIENT_EVIDENCE) nằm ở `ai_pipeline/schemas/risk_output_v2.json`. AI schema **không có** `risk_basis` và `severity`: backend dựng `risk_basis` từ `basis_type` và tra `severity` từ risk taxonomy. `model_id`, `prompt_version` và các version pin do backend đóng dấu. Cross-field validation SUPPORTED/INSUFFICIENT_EVIDENCE do `allOf` hoặc Pydantic thực hiện. Cùng JSON Schema được truyền làm provider response schema/structured output.

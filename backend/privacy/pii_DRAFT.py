@@ -1,11 +1,22 @@
 """
-Module che dữ liệu nhạy cảm (Privacy & PII Masking)
-Tuân thủ:
-- domain/models.py: PiiSpan [TDD §6.2-6.4]
-- privacy/pii_types.py: PiiType, TYPE_TAG, TYPE_SHORT_CODE [TDD §10.1]
-- privacy/detector.py: detect() [TDD §10.2]
-- privacy/masker.py: mask_value(), mask() [TDD §10.1, §10.2]
-- clause/segmenter.py: boundary_guard() [TDD §10.3]
+Che dữ liệu nhạy cảm (PII masking) - BẢN NHÁP spike trước C-09, chưa nối vào pipeline.
+
+Tuân thủ TDD §10 (và INV-02, INV-03, INV-04):
+- Chạy trên TOÀN BỘ canonical_text trước segmentation, placeholder cùng độ dài (Unicode code point).
+- Không có bảng ánh xạ placeholder -> giá trị gốc; chỉ giữ pii_spans[{type,start,end}].
+- Không NER/LLM; chỉ regex có anchor + heuristic. Từ chỉ vai trò (NLĐ, NSDLĐ, "Công ty" dùng như
+  đại từ) KHÔNG bị mask; chỉ mask phần giá trị đi sau anchor.
+
+Cấu trúc đích sau C-09 (TDD §3.2): app/privacy/{pii_types,detector,masker}.py và boundary_guard
+ở clause/segmenter.py. File này giữ một chỗ cho tới lúc đó.
+
+Giới hạn đã biết (cần đo trên D1, SRS OI-12):
+- Tên người chỉ bắt được khi có anchor (Họ và tên:, Ông/Bà, Đại diện:, Người lao động:).
+  Tên đứng một mình trong câu không bị bắt.
+- Số điện thoại bàn có mã vùng 02x chưa hỗ trợ; chỉ di động 10 số (hoặc +84).
+- Tên pháp nhân dừng ở dấu , ; : ( ) hoặc từ nối (có, do, được, là...), nên "Co., Ltd" sau dấu
+  phẩy còn sót.
+- Địa chỉ cần anchor có dấu ':' và có từ hành chính/đường phố trong giá trị.
 """
 
 from __future__ import annotations
@@ -14,15 +25,16 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Set
+
+PII_MASKING_VERSION = "pii_draft_0.2"
 
 
 # ==============================================================================
-# 1. DOMAIN MODELS & PII TYPES (domain/models.py & privacy/pii_types.py)
+# 1. PII TYPES, PLACEHOLDER (TDD §10.1)
 # ==============================================================================
+
 
 class PiiType(str, Enum):
-    """Các loại thông tin định danh cá nhân theo TDD §10.1."""
     PERSON_NAME = "PERSON_NAME"
     DATE_OF_BIRTH = "DATE_OF_BIRTH"
     NATIONAL_ID_OR_PASSPORT = "NATIONAL_ID_OR_PASSPORT"
@@ -35,7 +47,8 @@ class PiiType(str, Enum):
 
 @dataclass(frozen=True)
 class PiiSpan:
-    """Span vị trí PII trên văn bản chuẩn hóa (domain/models.py)."""
+    """Vị trí PII trên canonical_text (code point, end exclusive)."""
+
     type: PiiType
     start: int
     end: int
@@ -43,13 +56,13 @@ class PiiSpan:
 
 @dataclass(frozen=True)
 class MaskResult:
-    """Kết quả che giấu PII (privacy/masker.py). Không lưu bảng ánh xạ ngược."""
+    """Kết quả che PII. Không lưu bảng ánh xạ ngược."""
+
     masked_text: str
-    pii_spans: List[PiiSpan]
+    pii_spans: list[PiiSpan]
 
 
-# Tag ưu tiên (ASCII tag) và Short code theo TDD §10.1
-TYPE_TAG: Dict[PiiType, str] = {
+TYPE_TAG: dict[PiiType, str] = {
     PiiType.PERSON_NAME: "<NAME>",
     PiiType.DATE_OF_BIRTH: "<DOB>",
     PiiType.NATIONAL_ID_OR_PASSPORT: "<ID>",
@@ -60,7 +73,7 @@ TYPE_TAG: Dict[PiiType, str] = {
     PiiType.LEGAL_ENTITY: "<ORG>",
 }
 
-TYPE_SHORT_CODE: Dict[PiiType, str] = {
+TYPE_SHORT_CODE: dict[PiiType, str] = {
     PiiType.PERSON_NAME: "N",
     PiiType.DATE_OF_BIRTH: "D",
     PiiType.NATIONAL_ID_OR_PASSPORT: "I",
@@ -73,162 +86,232 @@ TYPE_SHORT_CODE: Dict[PiiType, str] = {
 
 
 # ==============================================================================
-# 2. REGEX PATTERNS, ANCHORS & PRESERVE-LIST (privacy/detector.py)
+# 2. REGEX (TDD §10.2)
+# Quy ước: mỗi pattern có nhóm có tên `v` = phần giá trị cần mask; anchor nằm ngoài `v`.
+# Cờ (?i) chỉ bọc anchor bằng (?i:...). Không dùng (?i) toàn pattern vì sẽ làm [A-Z] khớp chữ
+# thường và biến cả câu ("có quyền được nghỉ...") thành "tên".
+# Khoảng trắng giữa anchor và giá trị dùng [ \t], không dùng \s, để không vượt qua dòng.
 # ==============================================================================
 
-# 2.1 Nhóm Regex High-precision (Độ chính xác cao - quét trước)
-REGEX_HIGH_PRECISION: Dict[PiiType, re.Pattern] = {
-    # Email
-    PiiType.EMAIL: re.compile(
-        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"
-    ),
+_UP = (
+    "A-ZÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬĐÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴ"
+)  # chữ hoa tiếng Việt, dạng dựng sẵn (NFC)
+_LO = "a-zàáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ"
 
-    # Số điện thoại (10 chữ số VN hoặc có mã quốc gia +84)
-    PiiType.PHONE: re.compile(
-        r"(?:\+84|84|0)[35789](?:[.\s-]?\d{2}){4}\b"
-    ),
+# Một từ trong tên người: Viết-hoa-đầu ("Nguyễn", "A") hoặc TOÀN CHỮ HOA ("NGUYỄN").
+_NAME_TOKEN = rf"(?:[{_UP}]{{2,}}|[{_UP}][{_LO}]*)\b"
+_HONORIFIC = r"(?i:ông/bà|ông|bà|anh|chị)"
+_SEP = r"[ \t]*[:：][ \t]*"  # dấu hai chấm bắt buộc
 
-    # CCCD (12 chữ số) hoặc Hộ chiếu (1 chữ cái + 7-8 số)
-    PiiType.NATIONAL_ID_OR_PASSPORT: re.compile(
-        r"\b(?:0(?:0[1-9]|[1-8]\d|9[0-6])[0-3]\d{8}|[A-Z]\d{7,8})\b"
-    ),
 
-    # Số tài khoản ngân hàng (Anchor: STK, Số tài khoản...) -> Group 1: anchor, Group 2: STK
-    PiiType.BANK_ACCOUNT: re.compile(
-        r"(?i)(\b(?:stk|số\s+tài\s+khoản|số\s+tk|tài\s+khoản\s+ngân\s+hàng)\s*[:：\s]\s*)([0-9]{8,16})\b"
-    ),
+def _name(min_tokens: int, max_tokens: int = 7) -> str:
+    return rf"{_NAME_TOKEN}(?:[ \t]+{_NAME_TOKEN}){{{min_tokens - 1},{max_tokens - 1}}}"
 
-    # Ngày sinh: Bắt buộc anchor (ngày sinh/sinh ngày/DOB) -> Group 1: anchor, Group 2: DOB
-    PiiType.DATE_OF_BIRTH: re.compile(
-        r"(?i)(\b(?:ngày\s+sinh|sinh\s+ngày|d\.?o\.?b)\s*[:：\s]\s*)((?:0[1-9]|[12]\d|3[01])[/\-.](?:0[1-9]|1[0-2])[/\-.](?:19\d{2}|20\d{2}))\b"
-    ),
 
-    # Địa chỉ cư trú: Bắt buộc anchor -> Group 1: anchor, Group 2: Address
-    PiiType.RESIDENTIAL_ADDRESS: re.compile(
-        r"(?i)(\b(?:địa\s+chỉ(?:\s+thường\s+trú|\s+cư\s+trú|\s+hiện\s+tại|\s+liên\s+lạc)?|nơi\s+(?:thường\s+trú|cư\s+trú|ở))\s*[:：\s]\s*)([^\r\n]+)"
-    ),
-}
-
-# 2.2 Nhóm Heuristic Entity (Quét sau - chỉ mask span value, không mask vai trò)
-HEURISTIC_ANCHORS: Dict[PiiType, re.Pattern] = {
-    # Họ tên cá nhân: Anchor "Họ [và ]tên:", "Ông/Bà", "Người lao động:", "Đại diện:"
-    PiiType.PERSON_NAME: re.compile(
-        r"(?i)(\b(?:họ\s+(?:và\s+)?tên|ông/bà|ông|bà|người\s+lao\s+động|đại\s+diện)\s*[:：\s]\s*)([A-ZÀ-Ỹ][a-zà-ỹ]+(?:\s+[A-ZÀ-Ỹ][a-zà-ỹ]+){1,6})"
-    ),
-
-    # Tên pháp nhân: Anchor "Công ty", "Tập đoàn", "MST"
-    PiiType.LEGAL_ENTITY: re.compile(
-        r"(?i)(\b(?:công\s+ty|tập\s+đoàn|tổng\s+công\s+ty|doanh\s+nghiệp)\s+(?:cổ\s+phần|tnhh|mtv|đầu\s+tư|thương\s+mại)?\s*)([A-Z0-9À-Ỹ][^\r\n,.;:]{2,50})"
-    ),
-}
-
-# 2.3 Preserve-list theo TDD §10.2: Tuyệt đối không mask nhầm
-PRESERVE_LIST: Set[str] = {
-    "người lao động", "nld", "nlđ",
-    "người sử dụng lao động", "nsdld", "nsdlđ",
-    "giám đốc", "tổng giám đốc", "trưởng phòng", "kế toán trưởng", "nhân viên",
-    "lương", "phụ cấp", "bảo hiểm", "giờ làm"
-}
-
-ADMIN_KEYWORDS_PATTERN = re.compile(
-    r"(?i)\b(?:xã|phường|thị\s+trấn|quận|huyện|thị\s+xã|tỉnh|thành\s+phố|tp\.?)\b"
+# Từ nối đánh dấu hết tên pháp nhân. Không gồm "và" vì "Thương mại và Dịch vụ ABC" là tên.
+_ORG_STOP = (
+    r"(?:có|do|được|là|sau|địa|mã|trụ|đại|đã|sẽ|thuộc|gọi|cùng|ký|thỏa|với|"
+    r"và[ \t]+(?:người|ông|bà))"
+)
+_ORG_FORM = (
+    r"(?:[ \t]+(?i:cổ[ \t]+phần|tnhh(?:[ \t]+một[ \t]+thành[ \t]+viên|[ \t]+mtv)?|"
+    r"trách[ \t]+nhiệm[ \t]+hữu[ \t]+hạn(?:[ \t]+một[ \t]+thành[ \t]+viên)?|mtv|hợp[ \t]+danh|"
+    r"tư[ \t]+nhân|liên[ \t]+doanh))*"
 )
 
+# Phần "high precision" quét trước. is_high_precision=True khi resolve overlap.
+_PATTERNS_HIGH: list[tuple[PiiType, re.Pattern[str]]] = [
+    (
+        PiiType.EMAIL,
+        re.compile(
+            r"(?<![\w.%+-])(?P<v>[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+"
+            r"(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})(?![\w-])"
+        ),
+    ),
+    (
+        # 10 số di động VN hoặc +84; chấp nhận dấu cách, dấu chấm, gạch nối giữa các số
+        # (0912 345 678, 0912.345.678, 091-234-5678, +84 912 345 678).
+        PiiType.PHONE,
+        re.compile(r"(?<![\d.])(?P<v>(?:\+?84|0)[ .-]?[35789](?:[ .-]?\d){8})(?!\d)"),
+    ),
+    (
+        # CCCD 12 số, không cần anchor (đầu 0 + mã tỉnh 001..096 + 1 số thế kỷ/giới 0..3).
+        PiiType.NATIONAL_ID_OR_PASSPORT,
+        re.compile(r"(?<!\d)(?P<v>0(?:0[1-9]|[1-8]\d|9[0-6])[0-3]\d{8})(?!\d)"),
+    ),
+    (
+        # CMND 9 số / CCCD 12 số / hộ chiếu (1 chữ + 7-8 số) có anchor.
+        PiiType.NATIONAL_ID_OR_PASSPORT,
+        re.compile(
+            r"(?i:cmnd|cmt|cccd|căn[ \t]+cước(?:[ \t]+công[ \t]+dân)?|"
+            r"chứng[ \t]+minh(?:[ \t]+nhân[ \t]+dân|[ \t]+thư)?|hộ[ \t]+chiếu|passport|"
+            r"số[ \t]+định[ \t]+danh(?:[ \t]+cá[ \t]+nhân)?)"
+            r"(?:[ \t]*(?i:số|no\.?))?[ \t]*[:：]?[ \t]*(?P<v>\d{12}|\d{9}|[A-Z]\d{7,8})(?!\d)"
+        ),
+    ),
+    (
+        PiiType.BANK_ACCOUNT,
+        re.compile(
+            r"(?i:stk|số[ \t]+tài[ \t]+khoản|số[ \t]+tk|tài[ \t]+khoản(?:[ \t]+ngân[ \t]+hàng)?)"
+            r"(?:[ \t]*\([^)\n]{0,20}\))?[ \t]*[:：]?[ \t]*(?P<v>\d(?:[ .-]?\d){7,18})(?!\d)"
+        ),
+    ),
+    (
+        # Ngày sinh: BẮT BUỘC anchor, để không mask ngày hiệu lực, ngày ký (TDD §10.2 preserve).
+        PiiType.DATE_OF_BIRTH,
+        re.compile(
+            r"(?i:ngày[ \t]+tháng[ \t]+năm[ \t]+sinh|ngày[ \t]+sinh|sinh[ \t]+ngày|"
+            r"sinh[ \t]+năm|d\.?o\.?b)"
+            r"[ \t]*[:：]?[ \t]*(?P<v>"
+            r"\d{1,2}[/\-.]\d{1,2}[/\-.](?:19|20)\d{2}"
+            r"|\d{1,2}[ \t]+tháng[ \t]+\d{1,2}[ \t]+năm[ \t]+(?:19|20)\d{2}"
+            r"|(?:19|20)\d{2})(?!\d)"
+        ),
+    ),
+    (
+        PiiType.RESIDENTIAL_ADDRESS,
+        re.compile(
+            r"(?i:địa[ \t]+chỉ(?:[ \t]+(?:thường[ \t]+trú|cư[ \t]+trú|hiện[ \t]+tại|"
+            r"liên[ \t]+(?:lạc|hệ)|nơi[ \t]+ở))?|"
+            r"nơi[ \t]+(?:thường[ \t]+trú|cư[ \t]+trú|ở)|hộ[ \t]+khẩu[ \t]+thường[ \t]+trú|"
+            r"chỗ[ \t]+ở(?:[ \t]+hiện[ \t]+nay)?)"
+            + _SEP
+            + r"(?P<v>[^\r\n]+)"
+        ),
+    ),
+]
+
+# Heuristic entity quét sau. Chỉ mask giá trị, không mask từ vai trò.
+_PATTERNS_HEURISTIC: list[tuple[PiiType, re.Pattern[str]]] = [
+    (  # Trường khai báo rõ ràng: cho phép tên 1 từ.
+        PiiType.PERSON_NAME,
+        re.compile(
+            r"(?i:họ[ \t]+(?:và[ \t]+)?tên(?:[ \t]+người[ \t]+lao[ \t]+động)?)"
+            + _SEP
+            + rf"(?:{_HONORIFIC}[ \t]+)?(?P<v>{_name(1)})"
+        ),
+    ),
+    (  # Anchor vai trò + ':' : cần >= 2 từ để không bắt "Người lao động: Có quyền ...".
+        PiiType.PERSON_NAME,
+        re.compile(
+            r"(?i:đại[ \t]+diện(?:[ \t]+(?:bởi|là|theo[ \t]+pháp[ \t]+luật))?|"
+            r"người[ \t]+lao[ \t]+động|nlđ)"
+            + _SEP
+            + rf"(?:{_HONORIFIC}[ \t]+)?(?P<v>{_name(2)})"
+        ),
+    ),
+    (  # Danh xưng + tên: "Ông Nguyễn Văn An", "Bà Trần Thị B".
+        PiiType.PERSON_NAME,
+        re.compile(rf"(?<![{_UP}{_LO}]){_HONORIFIC}[ \t]*[:：]?[ \t]+(?P<v>{_name(2)})"),
+    ),
+    (  # Công ty/Tập đoàn + tên riêng; giá trị phải bắt đầu bằng chữ hoa hoặc số,
+        # nên "Công ty có quyền" không khớp.
+        PiiType.LEGAL_ENTITY,
+        re.compile(
+            r"(?<![\w])(?i:tổng[ \t]+công[ \t]+ty|công[ \t]+ty|tập[ \t]+đoàn)"
+            + _ORG_FORM
+            + rf"[ \t]+(?P<v>[{_UP}0-9][^\r\n,;:()]{{0,79}}?)"
+            + rf"(?=[ \t]*(?:[,;:()\r\n.]|$)|[ \t]+{_ORG_STOP}\b)"
+        ),
+    ),
+    (  # Mã số thuế (định danh pháp nhân).
+        PiiType.LEGAL_ENTITY,
+        re.compile(r"(?i:mst|mã[ \t]+số[ \t]+thuế)[ \t]*[:：]?[ \t]*(?P<v>\d{10}(?:-\d{3})?)(?!\d)"),
+    ),
+]
+
+# Địa chỉ chỉ nhận khi giá trị có dấu hiệu địa chỉ (chặn "nơi ở: do công ty bố trí").
+_ADDRESS_HINT = re.compile(
+    r"(?i)\b(?:xã|phường|thị[ \t]+trấn|quận|huyện|thị[ \t]+xã|tỉnh|thành[ \t]+phố|tp\.?|"
+    r"đường|phố|ngõ|ngách|hẻm|thôn|xóm|ấp|khu[ \t]+phố|tổ)\b"
+)
+
+# Cắt đuôi tên khi regex lỡ ăn sang nhãn trường kế tiếp ("... Văn An Chức vụ").
+_NAME_STOP_TOKENS = frozenset(
+    {"chức", "sinh", "địa", "số", "điện", "email", "quốc", "cmnd", "cccd", "mst", "ngày",
+     "năm", "vụ"}
+)
+
+# Preserve-list (TDD §10.2): giá trị đúng bằng các cụm này không bị mask.
+PRESERVE_LIST: frozenset[str] = frozenset(
+    {
+        "người lao động", "nld", "nlđ", "người sử dụng lao động", "nsdld", "nsdlđ",
+        "giám đốc", "tổng giám đốc", "trưởng phòng", "kế toán trưởng", "nhân viên",
+        "lương", "phụ cấp", "bảo hiểm", "giờ làm", "công ty", "doanh nghiệp",
+    }
+)  # fmt: skip
+
 
 # ==============================================================================
-# 3. DETECTOR PIPELINE (privacy/detector.py)
+# 3. DETECTOR
 # ==============================================================================
 
-def _is_preserved(val: str) -> bool:
-    """Kiểm tra giá trị có thuộc preserve-list hay không."""
-    return val.strip().lower() in PRESERVE_LIST
+
+def _require_nfc(text: str) -> None:
+    """canonical_text phải đã NFC. Không tự chuẩn hóa: đổi độ dài sẽ phá INV-02/INV-03."""
+    if unicodedata.normalize("NFC", text) != text:
+        raise ValueError("canonical_text phải ở dạng NFC trước khi mask")
 
 
-def _resolve_overlaps(spans: List[Tuple[PiiSpan, bool]]) -> List[PiiSpan]:
+def _is_preserved(value: str) -> bool:
+    return value.strip().lower() in PRESERVE_LIST
+
+
+def _trim_name(value: str) -> str:
+    tokens = value.split()
+    for i, tok in enumerate(tokens):
+        if i >= 1 and tok.lower() in _NAME_STOP_TOKENS:
+            return " ".join(tokens[:i])
+    return value
+
+
+def _resolve_overlaps(candidates: list[tuple[PiiSpan, bool]]) -> list[PiiSpan]:
+    """Triệt overlap (TDD §10.2): high-precision trước, rồi span dài hơn, rồi start nhỏ hơn.
+
+    Trả list đã sort theo start, không chồng lấn.
     """
-    Resolve overlap theo TDD §10.2:
-    - Ưu tiên 1: High-precision regex > Heuristic entity.
-    - Ưu tiên 2: Chiều dài span lớn hơn (dài hơn ưu tiên trước).
-    - Triệt tiêu hoàn toàn overlap.
-    - Trả về list[PiiSpan] được sort theo start tăng dần.
-    """
-    # Key sắp xếp: (is_high_precision: True trước, length: lớn trước, start: nhỏ trước)
-    sorted_candidates = sorted(
-        spans,
-        key=lambda item: (item[1], item[0].end - item[0].start, -item[0].start),
-        reverse=True
+    ranked = sorted(
+        candidates,
+        key=lambda c: (not c[1], -(c[0].end - c[0].start), c[0].start),
     )
-
-    accepted: List[PiiSpan] = []
-    for span, _ in sorted_candidates:
-        overlap = any(
-            max(span.start, a.start) < min(span.end, a.end)
-            for a in accepted
-        )
-        if not overlap:
+    accepted: list[PiiSpan] = []
+    for span, _ in ranked:
+        if all(span.end <= a.start or span.start >= a.end for a in accepted):
             accepted.append(span)
-
     accepted.sort(key=lambda s: s.start)
     return accepted
 
 
-def detect(canonical_text: str) -> List[PiiSpan]:
-    """
-    Phát hiện các span PII trên văn bản canonical_text (privacy/detector.py).
-    Thực hiện theo thứ tự TDD §10.2:
-    1. Regex high-precision
-    2. Heuristic entity với anchor (chỉ lấy value)
-    3. Kiểm tra preserve-list
-    4. Resolve overlap
-    """
-    norm_text = unicodedata.normalize("NFC", canonical_text)
-    raw_spans: List[Tuple[PiiSpan, bool]] = []
+def detect(canonical_text: str) -> list[PiiSpan]:
+    """Phát hiện PII trên canonical_text (đã NFC): high-precision, heuristic, rồi resolve."""
+    _require_nfc(canonical_text)
+    found: list[tuple[PiiSpan, bool]] = []
 
-    # Bước 1: High-precision regex
-    for pii_type, pattern in REGEX_HIGH_PRECISION.items():
-        for m in pattern.finditer(norm_text):
-            if pii_type in (PiiType.BANK_ACCOUNT, PiiType.DATE_OF_BIRTH, PiiType.RESIDENTIAL_ADDRESS):
-                # Anchor ở Group 1, Value ở Group 2 -> chỉ mask Group 2
-                val = m.group(2).strip()
-                if not val or _is_preserved(val):
+    for rules, high in ((_PATTERNS_HIGH, True), (_PATTERNS_HEURISTIC, False)):
+        for pii_type, pattern in rules:
+            for m in pattern.finditer(canonical_text):
+                start, end = m.span("v")
+                value = canonical_text[start:end]
+                if pii_type is PiiType.PERSON_NAME:
+                    value = _trim_name(value)
+                value = value.rstrip()  # địa chỉ cuối dòng có thể còn khoảng trắng
+                if not value or _is_preserved(value):
                     continue
-                if pii_type == PiiType.RESIDENTIAL_ADDRESS and not ADMIN_KEYWORDS_PATTERN.search(val):
+                if pii_type is PiiType.RESIDENTIAL_ADDRESS and not _ADDRESS_HINT.search(value):
                     continue
-                start_idx = m.start(2)
-                end_idx = start_idx + len(val)
-                raw_spans.append((PiiSpan(type=pii_type, start=start_idx, end=end_idx), True))
-            else:
-                val = m.group(0).strip()
-                if not val or _is_preserved(val):
-                    continue
-                raw_spans.append((PiiSpan(type=pii_type, start=m.start(0), end=m.end(0)), True))
+                found.append((PiiSpan(pii_type, start, start + len(value)), high))
 
-    # Bước 2: Heuristic entity (Anchor ở Group 1, Value ở Group 2)
-    for pii_type, pattern in HEURISTIC_ANCHORS.items():
-        for m in pattern.finditer(norm_text):
-            val = m.group(2).strip()
-            if not val or _is_preserved(val):
-                continue
-            start_idx = m.start(2)
-            end_idx = start_idx + len(val)
-            raw_spans.append((PiiSpan(type=pii_type, start=start_idx, end=end_idx), False))
-
-    # Bước 3 & 4: Resolve overlaps
-    return _resolve_overlaps(raw_spans)
+    return _resolve_overlaps(found)
 
 
 # ==============================================================================
-# 4. MASKER & BOUNDARY GUARD (privacy/masker.py & clause/segmenter.py)
+# 4. MASKER VÀ BOUNDARY GUARD
 # ==============================================================================
+
 
 def mask_value(text: str, pii_type: PiiType) -> str:
-    """
-    Tạo placeholder thay thế giá trị PII (TDD §10.1).
-    Bảo toàn 100% số lượng Unicode code points sau NFC:
-    assert len(mask_value(text, pii_type)) == len(text)
-    """
-    norm_text = unicodedata.normalize("NFC", text)
-    n = len(norm_text)
+    """Placeholder cùng độ dài với `text` (TDD §10.1): tag + '_', hoặc mã 1 chữ nếu quá ngắn."""
+    n = len(text)
     tag = TYPE_TAG[pii_type]
     if n >= len(tag):
         return tag + "_" * (n - len(tag))
@@ -236,41 +319,29 @@ def mask_value(text: str, pii_type: PiiType) -> str:
 
 
 def mask(canonical_text: str) -> MaskResult:
-    """
-    Che giấu toàn bộ canonical_text TRƯỚC segmentation (privacy/masker.py).
-    Không lưu bảng ánh xạ ngược để đảm bảo an toàn riêng tư.
-    """
-    norm_text = unicodedata.normalize("NFC", canonical_text)
-    spans = detect(norm_text)
-
-    # Thay thế ngược từ cuối về đầu chuỗi để giữ nguyên index start:end
-    chars = list(norm_text)
-    for span in reversed(spans):
-        val = norm_text[span.start:span.end]
-        replacement = mask_value(val, span.type)
-        assert len(replacement) == (span.end - span.start), (
-            f"Lỗi: placeholder '{replacement}' khác độ dài với '{val}'"
-        )
-        chars[span.start:span.end] = list(replacement)
-
-    masked_text = "".join(chars)
-    assert len(masked_text) == len(norm_text), "Bất biến vi phạm: độ dài chuỗi bị thay đổi sau mask!"
-    return MaskResult(masked_text=masked_text, pii_spans=spans)
+    """Che PII trên toàn bộ canonical_text. len(masked_text) == len(canonical_text) (INV-02)."""
+    spans = detect(canonical_text)
+    pieces: list[str] = []
+    cursor = 0
+    for span in spans:
+        pieces.append(canonical_text[cursor : span.start])
+        pieces.append(mask_value(canonical_text[span.start : span.end], span.type))
+        cursor = span.end
+    pieces.append(canonical_text[cursor:])
+    masked = "".join(pieces)
+    if len(masked) != len(canonical_text):  # không dùng assert: -O sẽ bỏ qua
+        raise RuntimeError("Vi phạm INV-02: độ dài masked_text khác canonical_text")
+    return MaskResult(masked_text=masked, pii_spans=spans)
 
 
-def boundary_guard(pos: int, pii_spans: List[PiiSpan]) -> bool:
-    """
-    Quy tắc an toàn biên (clause/segmenter.py [TDD §10.3]):
-    Trả về False nếu start < pos < end của bất kỳ span nào.
-    """
+def boundary_guard(pos: int, pii_spans: list[PiiSpan]) -> bool:
+    """TDD §10.3: False nếu start < pos < end của span nào đó (biên rơi vào trong placeholder)."""
     return not any(span.start < pos < span.end for span in pii_spans)
 
 
-def adjust_boundary(pos: int, pii_spans: List[PiiSpan]) -> int:
-    """Dời biên pos ra đầu/cuối span gần nhất nếu rơi vào bên trong placeholder."""
+def adjust_boundary(pos: int, pii_spans: list[PiiSpan]) -> int:
+    """Dời biên ra đầu/cuối span nếu rơi vào trong placeholder (hòa thì về đầu)."""
     for span in pii_spans:
         if span.start < pos < span.end:
-            dist_to_start = pos - span.start
-            dist_to_end = span.end - pos
-            return span.start if dist_to_start <= dist_to_end else span.end
+            return span.start if pos - span.start <= span.end - pos else span.end
     return pos

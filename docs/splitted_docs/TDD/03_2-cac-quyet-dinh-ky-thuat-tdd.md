@@ -26,7 +26,7 @@
 | TDD-20 | Prompt khóa format/policy/version; few-shot là artifact versioned; không tuning trên T1/T2. Gemini dùng provider structured output/response schema. | EV-07, FR-29, SRS C-07. |
 | TDD-21 | Demo deploy đúng **1 backend worker/process**, không autoscale/serverless. CPU-bound extraction/regex chạy bằng threadpool để event loop vẫn phục vụ polling. | NFR-DATA-04, FR-26, NFR-PERF-02, SRS C-05. |
 | TDD-22 | `start_char/end_char` và mọi span backend/API tính theo Unicode code point sau NFC; frontend phải chuyển code-point offset sang UTF-16 index khi thao tác chuỗi JavaScript/DOM. | Làm rõ invariant cross-runtime. |
-| TDD-23 | Product `RiskResult` giữ `risk_labels[]` theo SRS; backend derive `risk_basis[] = [{label,basis_type}]` từ risk taxonomy cho final API/UI/export. LLM không tự khai `basis_type`. | Giữ tương thích SRS 4.1/FR-13 và tránh mất loại rủi ro. |
+| TDD-23 | Product `RiskResult` giữ `risk_labels[]` theo SRS; LLM trả `basis_type` (một giá trị cho mỗi clause); backend kiểm (label, basis_type, vai trò) theo risk taxonomy rồi dựng `risk_basis[] = [{label,basis_type}]` cho final API/UI/export; severity do backend tra bảng. | Giữ tương thích SRS 4.1/FR-13 và tránh mất loại rủi ro. |
 | TDD-24 | Clause Graph không thêm field product mới chưa có trong SRS. Dev/eval sinh `ContextResolutionTrace` để chứng minh related clauses nào đã được đưa vào Risk LLM. | Nghiệm thu FR-31 mà không tự đổi SRS. |
 | TDD-25 | `LLMProvider` abstraction cho phép Gemini paid ở demo/eval và optional local/dev adapter chỉ với dữ liệu de-identified; product path không tự host model. | NFR-SEC-06, SRS C-07. |
 

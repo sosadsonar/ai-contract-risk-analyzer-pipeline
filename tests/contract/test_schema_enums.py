@@ -9,7 +9,8 @@ from pathlib import Path
 
 import pytest
 from app.clause.taxonomy import CLAUSE_LABELS
-from app.core.enums import EvidenceStatus, Severity
+from app.core.enums import BasisType, EvidenceStatus
+from app.risk.taxonomy import RISK_LABELS
 
 SCHEMA_DIR = Path(__file__).resolve().parents[2] / "ai_pipeline" / "schemas"
 
@@ -35,15 +36,18 @@ def test_no_legacy_schema_left():
     assert not (SCHEMA_DIR / "clause_output_v2.json").exists()
 
 
-@pytest.mark.parametrize("name", ["risk_output_v1"])
+@pytest.mark.parametrize("name", ["risk_output_v2"])
 def test_risk_output_enums_match_code_when_schema_exists(name):
-    """risk_output_v1 do Người 3 tạo (X-01 / PROGRESS T1). 
-    Khi file xuất hiện, enum phải khớp code.
+    """risk_output_v2 do Người 3 tạo (X-01 / PROGRESS T1): schema CHỈ cho câu trả lời LLM.
+    Enum phải khớp code (basis_type, evidence_status, nhãn rủi ro theo đúng thứ tự);
+    severity không thuộc schema.
     """
     path = SCHEMA_DIR / f"{name}.json"
     if not path.exists():
         pytest.skip(f"{name}.json chưa có (việc của Người 3)")
     raw_schema = json.loads(path.read_text(encoding="utf-8"))
-    props = raw_schema["properties"]["items"]["items"]["properties"]
-    assert {x for x in props["severity"]["enum"] if x is not None} == {s.value for s in Severity}
+    props = raw_schema["$defs"]["risk_item"]["properties"]
+    assert tuple(raw_schema["$defs"]["risk_label"]["enum"]) == RISK_LABELS
+    assert set(props["basis_type"]["enum"]) == {b.value for b in BasisType}
+    assert "severity" not in props
     assert set(props["evidence_status"]["enum"]) == {e.value for e in EvidenceStatus}

@@ -39,7 +39,7 @@
 ## 4.2 Startup sequence
 
 1. Load config; validate numeric limits. Ở `demo/eval`, thiếu Gemini model/key hoặc daily quota/session reserve thì startup fail. Ở `dev`, local provider chỉ được phép với dữ liệu de-identified.
-2. Load clause taxonomy, risk taxonomy (gồm `basis_type`), severity rubric; validate version metadata.
+2. Load clause taxonomy, risk taxonomy (nhãn + bảng severity theo `basis_type` và vai trò), severity rubric; validate version metadata.
 3. Load legal corpus manifest/provisions/edges; validate citation IDs, version overlap, edge endpoints, PARENT_OF acyclic.
 4. Build BM25 index + weighted label map; build Data Graph adjacency index nếu enabled.
 5. Open operational metadata SQLite; migration chỉ cho metadata.

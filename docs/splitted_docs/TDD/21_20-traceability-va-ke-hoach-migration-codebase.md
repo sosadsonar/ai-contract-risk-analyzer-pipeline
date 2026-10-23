@@ -25,7 +25,7 @@
 
 | Milestone kỹ thuật | SRS Appendix C | Kết quả |
 |---|---|---|
-| M0 - Schema first | C-04,C-03,C-17 | Tạo enums/source-of-truth taxonomy, schema clause_output_v3/risk_output_v1, pytest skeleton và mocks mới. |
+| M0 - Schema first | C-04,C-03,C-17 | Tạo enums/source-of-truth taxonomy, schema clause_output_v3/risk_output_v2, pytest skeleton và mocks mới. |
 | M1 - Session/API | C-05,C-06,C-16 | InMemorySessionStore, state machine, 6 operation, global lock, metadata-only ops DB. |
 | M2 - Local preprocessing | C-08,C-10,C-09,C-01,C-02 | Extractor PDF/DOCX, scope, masking, segmentation; ưu tiên invariant trước AI. |
 | M3 - AI classification | C-07,C-11 | Gemini client chuẩn, classification batch. |

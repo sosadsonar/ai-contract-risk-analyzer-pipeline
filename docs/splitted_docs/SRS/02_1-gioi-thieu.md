@@ -53,7 +53,7 @@ Tài liệu đặc tả yêu cầu phần mềm của AI Labor Contract Risk Ana
 | Clause | Một điều khoản do bước tách điều khoản sinh ra, có clause_id, original_text và span. |
 | Span | Cặp start_char (bao gồm) và end_char (không bao gồm) trên canonical text, tính theo Unicode code point sau NFC. Vì masked text cùng độ dài theo code point nên cùng span áp dụng cho cả hai. |
 | Clause taxonomy | Tập 12 nhãn mô tả loại điều khoản. Tách biệt với risk taxonomy. |
-| Risk taxonomy | Tập nhãn mô tả loại rủi ro theo vai trò. Mỗi nhãn khai báo basis_type: LEGAL_VIOLATION, UNFAVORABLE hoặc AMBIGUOUS. Một clause có thể có nhiều risk label. |
+| Risk taxonomy | Tập nhãn mô tả loại rủi ro theo vai trò. Taxonomy khai báo severity theo (nhãn, basis_type, vai trò); basis_type (LEGAL_VIOLATION, UNFAVORABLE hoặc AMBIGUOUS) là loại căn cứ của rủi ro trên một clause, do LLM chọn. Một clause có thể có nhiều risk label. |
 | Kho luật | Nguồn đóng (closed corpus) duy nhất mà hệ thống được phép trích dẫn. |
 | Candidate | Điều luật do retriever cung cấp cho một clause; LLM chỉ được chọn citation trong danh sách candidate. |
 | Evidence status | SUPPORTED nếu có căn cứ từ candidate; INSUFFICIENT_EVIDENCE nếu thiếu căn cứ. |
