@@ -1,14 +1,5 @@
-"""
-Che dữ liệu nhạy cảm (PII masking) - BẢN NHÁP spike trước C-09, chưa nối vào pipeline.
-
-Tuân thủ TDD §10 (và INV-02, INV-03, INV-04):
-- Chạy trên TOÀN BỘ canonical_text trước segmentation, placeholder cùng độ dài (Unicode code point).
-- Không có bảng ánh xạ placeholder -> giá trị gốc; chỉ giữ pii_spans[{type,start,end}].
-- Không NER/LLM; chỉ regex có anchor + heuristic. Từ chỉ vai trò (NLĐ, NSDLĐ, "Công ty" dùng như
-  đại từ) KHÔNG bị mask; chỉ mask phần giá trị đi sau anchor.
-
-Cấu trúc đích sau C-09 (TDD §3.2): app/privacy/{pii_types,detector,masker}.py và boundary_guard
-ở clause/segmenter.py. File này giữ một chỗ cho tới lúc đó.
+"""Phát hiện PII trên canonical_text: regex có anchor (high precision) rồi heuristic, và
+resolve overlap (TDD §10.2). Bản đầu của C-09 (a), chưa nối vào pipeline.
 
 Giới hạn đã biết (cần đo trên D1, SRS OI-12):
 - Tên người chỉ bắt được khi có anchor (Họ và tên:, Ông/Bà, Đại diện:, Người lao động:).
@@ -23,67 +14,8 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from dataclasses import dataclass
-from enum import Enum
 
-PII_MASKING_VERSION = "pii_draft_0.2"
-
-
-# ==============================================================================
-# 1. PII TYPES, PLACEHOLDER (TDD §10.1)
-# ==============================================================================
-
-
-class PiiType(str, Enum):
-    PERSON_NAME = "PERSON_NAME"
-    DATE_OF_BIRTH = "DATE_OF_BIRTH"
-    NATIONAL_ID_OR_PASSPORT = "NATIONAL_ID_OR_PASSPORT"
-    RESIDENTIAL_ADDRESS = "RESIDENTIAL_ADDRESS"
-    PHONE = "PHONE"
-    EMAIL = "EMAIL"
-    BANK_ACCOUNT = "BANK_ACCOUNT"
-    LEGAL_ENTITY = "LEGAL_ENTITY"
-
-
-@dataclass(frozen=True)
-class PiiSpan:
-    """Vị trí PII trên canonical_text (code point, end exclusive)."""
-
-    type: PiiType
-    start: int
-    end: int
-
-
-@dataclass(frozen=True)
-class MaskResult:
-    """Kết quả che PII. Không lưu bảng ánh xạ ngược."""
-
-    masked_text: str
-    pii_spans: list[PiiSpan]
-
-
-TYPE_TAG: dict[PiiType, str] = {
-    PiiType.PERSON_NAME: "<NAME>",
-    PiiType.DATE_OF_BIRTH: "<DOB>",
-    PiiType.NATIONAL_ID_OR_PASSPORT: "<ID>",
-    PiiType.RESIDENTIAL_ADDRESS: "<ADDR>",
-    PiiType.PHONE: "<PHONE>",
-    PiiType.EMAIL: "<EMAIL>",
-    PiiType.BANK_ACCOUNT: "<BANK>",
-    PiiType.LEGAL_ENTITY: "<ORG>",
-}
-
-TYPE_SHORT_CODE: dict[PiiType, str] = {
-    PiiType.PERSON_NAME: "N",
-    PiiType.DATE_OF_BIRTH: "D",
-    PiiType.NATIONAL_ID_OR_PASSPORT: "I",
-    PiiType.RESIDENTIAL_ADDRESS: "R",
-    PiiType.PHONE: "P",
-    PiiType.EMAIL: "E",
-    PiiType.BANK_ACCOUNT: "B",
-    PiiType.LEGAL_ENTITY: "O",
-}
-
+from app.privacy.pii_types import PiiSpan, PiiType
 
 # ==============================================================================
 # 2. REGEX (TDD §10.2)
@@ -248,7 +180,7 @@ PRESERVE_LIST: frozenset[str] = frozenset(
 
 
 def _require_nfc(text: str) -> None:
-    """canonical_text phải đã NFC. Không tự chuẩn hóa: đổi độ dài sẽ phá INV-02/INV-03."""
+    """canonical_text phải đã NFC. Không tự chuẩn hóa: đổi độ dài sẽ phá INV-01/INV-03."""
     if unicodedata.normalize("NFC", text) != text:
         raise ValueError("canonical_text phải ở dạng NFC trước khi mask")
 
@@ -302,46 +234,3 @@ def detect(canonical_text: str) -> list[PiiSpan]:
                 found.append((PiiSpan(pii_type, start, start + len(value)), high))
 
     return _resolve_overlaps(found)
-
-
-# ==============================================================================
-# 4. MASKER VÀ BOUNDARY GUARD
-# ==============================================================================
-
-
-def mask_value(text: str, pii_type: PiiType) -> str:
-    """Placeholder cùng độ dài với `text` (TDD §10.1): tag + '_', hoặc mã 1 chữ nếu quá ngắn."""
-    n = len(text)
-    tag = TYPE_TAG[pii_type]
-    if n >= len(tag):
-        return tag + "_" * (n - len(tag))
-    return TYPE_SHORT_CODE[pii_type] * n
-
-
-def mask(canonical_text: str) -> MaskResult:
-    """Che PII trên toàn bộ canonical_text. len(masked_text) == len(canonical_text) (INV-02)."""
-    spans = detect(canonical_text)
-    pieces: list[str] = []
-    cursor = 0
-    for span in spans:
-        pieces.append(canonical_text[cursor : span.start])
-        pieces.append(mask_value(canonical_text[span.start : span.end], span.type))
-        cursor = span.end
-    pieces.append(canonical_text[cursor:])
-    masked = "".join(pieces)
-    if len(masked) != len(canonical_text):  # không dùng assert: -O sẽ bỏ qua
-        raise RuntimeError("Vi phạm INV-02: độ dài masked_text khác canonical_text")
-    return MaskResult(masked_text=masked, pii_spans=spans)
-
-
-def boundary_guard(pos: int, pii_spans: list[PiiSpan]) -> bool:
-    """TDD §10.3: False nếu start < pos < end của span nào đó (biên rơi vào trong placeholder)."""
-    return not any(span.start < pos < span.end for span in pii_spans)
-
-
-def adjust_boundary(pos: int, pii_spans: list[PiiSpan]) -> int:
-    """Dời biên ra đầu/cuối span nếu rơi vào trong placeholder (hòa thì về đầu)."""
-    for span in pii_spans:
-        if span.start < pos < span.end:
-            return span.start if pos - span.start <= span.end - pos else span.end
-    return pos

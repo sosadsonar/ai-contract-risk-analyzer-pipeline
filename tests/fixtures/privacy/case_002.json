@@ -1,0 +1,39 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_002",
+  "description": "Ký tự ngoài BMP trước, giữa, sau và bên trong giá trị PII",
+  "canonical_text": "😀 Họ và tên: Nguyễn Văn An 😀 SĐT 0912 345 678 𝐀 Email: an.nguyen@example.com\nĐịa chỉ: 12 đường Láng 🏠 phường Láng Thượng, quận Đống Đa, Hà Nội\nNgười lao động có quyền nghỉ phép năm 😀",
+  "pii_spans": [
+    {
+      "type": "PERSON_NAME",
+      "start": 13,
+      "end": 26,
+      "text": "Nguyễn Văn An"
+    },
+    {
+      "type": "PHONE",
+      "start": 33,
+      "end": 45,
+      "text": "0912 345 678"
+    },
+    {
+      "type": "EMAIL",
+      "start": 55,
+      "end": 76,
+      "text": "an.nguyen@example.com"
+    },
+    {
+      "type": "RESIDENTIAL_ADDRESS",
+      "start": 86,
+      "end": 142,
+      "text": "12 đường Láng 🏠 phường Láng Thượng, quận Đống Đa, Hà Nội"
+    }
+  ],
+  "preserve_spans": [
+    {
+      "start": 143,
+      "end": 157,
+      "text": "Người lao động"
+    }
+  ]
+}
