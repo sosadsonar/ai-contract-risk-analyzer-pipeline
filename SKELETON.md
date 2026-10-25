@@ -52,7 +52,7 @@ Quy tắc phụ thuộc: `api → session → {document, privacy, clause, ai, le
 | File / thứ đang có [Cũ] | Hành động | Đích | C-xx |
 |---|---|---|---|
 | `ai_pipeline/services/clause_extraction_service.py` (1 prompt LLM cắt + phân loại trên text chưa che; `_locate_span` dùng `str.find`) | **Tách đôi**; xóa `_locate_span`; giữ cách sinh prompt từ `LABEL_DEFINITIONS` | `clause/segmenter.py` (`segment`) + `ai/clause_adapter.py` (`classify`) + `ai/prompts/clause_v1.py` | C-01 |
-| `utils/text_processing.py` (`document_router` theo tỉ lệ heading, regex chỉ trả dòng tiêu đề) | **Bỏ router**; regex trả khoảng điều khoản; thêm fallback paragraph | `clause/structure_parser.py` | C-02 |
+| `utils/text_processing.py` (`document_router` theo tỉ lệ heading, regex chỉ trả dòng tiêu đề) | **Bỏ router**; regex trả khoảng điều khoản; thêm fallback paragraph — **XONG 25/10/2026: file đã xóa** | `clause/structure_parser.py` | C-02 |
 | `config/labeling.py` (`type_scores`, `max_content_risk_tier`, `review_zone`; 2 import hỏng `config.risk_routing`) | **Xóa** 3 khái niệm + 2 import; chỉ còn validate 1–3 nhãn, thuộc taxonomy, không trùng | `clause/taxonomy.py` + `core/enums.py` (một nguồn, DEC-20) | C-03 |
 | `schemas/clause_output_v2.json` (`contract_id` bắt buộc; `taxonomy_version` cố định v02 trong khi code đã v04; enum chép tay) | **Thay** | `ai_pipeline/schemas/clause_output_v3.json`, `risk_output_v2.json`, `final_result_v1.json`, … (enum sinh từ code hoặc có test đối chiếu) | C-04 |
 | Backend Postgres + SQLAlchemy + Alembic, bảng `contracts` lưu `original_text`, id số nguyên, status chữ thường | **Gỡ** cho nội dung hợp đồng | `session/store.py` (RAM), `ops/metadata_db.py` (sqlite metadata) | C-05 |
@@ -66,6 +66,8 @@ Quy tắc phụ thuộc: `api → session → {document, privacy, clause, ai, le
 | `docs/CLAUSE_TAXONOMY.md`, `docs/DATA_PLAN.md`, `README.md`, `CONTRIBUTING.md`, `backend/text_extraction_contract.md` | Thay bằng con trỏ về BRD; sửa contract cho khớp SRS | — | C-19 |
 | `pyproject.toml` (thiếu deps backend) | Gộp nguồn deps, thêm lib DOCX/export | — | C-20 |
 | **Chưa có**: DOCX, scope precheck, PII masking, kho luật/retrieval, Data Graph, Clause Graph, risk/citation/assembly, export, RunLog/quota/rate, frontend | **Viết mới** | xem §5 | C-09, 10, 12–16, 21 |
+
+> **Cập nhật 25/10/2026 (Người 1, T2):** C-02 và C-01 (a) xong — `backend/app/clause/{structure_parser,segmenter}.py`, `backend/app/domain/errors.py` (mới có `ValidationReject`), `utils/text_processing.py` đã xóa; xem `PROGRESS.md` §9. Còn lại của C-01: `classify()` (b).
 
 > **Cập nhật 20/10/2026 (Người 1, T1):** C-03 và C-04 đã xong — `ai_pipeline/config/{taxonomy,labeling}.py` đã bị xóa; nguồn nhãn nay ở `backend/app/clause/taxonomy.py` (+ `validate_labels`) và `backend/app/core/enums.py`; schema `ai_pipeline/schemas/clause_output_v3.json` thay `clause_output_v2.json`. Với `clause_extraction_service.py`, mô tả [Cũ] ở hàng C-01 đã được đối chiếu với mã thật — chênh lệch ghi ở `PROGRESS.md` §9 (bảng trên giữ nguyên để truy vết).
 
@@ -274,12 +276,16 @@ CLAUSE_LABELS: tuple[str, ...] ; LABEL_DEFINITIONS: dict[str,str]
 def validate_labels(labels: list[str]) -> list[str]    # 1..3, thuộc taxonomy, không trùng; else ValueError
 
 # clause/structure_parser.py
-def parse_structure(masked_text: str, boundary_guard: Callable[[int], bool]) -> list[HeadingMark]
-#   5 pattern: Điều n | n.n | n) | a) | gạch đầu dòng; gán level/number/parent; boundary rơi vào placeholder thì dời ra mép placeholder hoặc bỏ
+def parse_structure(masked_text: str, boundary_guard: Callable[[int], bool] = ...) -> list[HeadingMark]
+#   HeadingMark(start, kind, number, level, parent_index) — XONG 25/10 (C-02)
+#   5 pattern: Điều n | n.n | n) | a) | gạch đầu dòng; gán level/number/parent; boundary rơi vào placeholder thì **bỏ** (đã chọn bỏ, không dời — 25/10)
 
 # clause/segmenter.py
-def boundary_guard(pos: int, pii_spans: list[PiiSpan]) -> bool       # [TDD] False nếu start < pos < end của bất kỳ span
-def segment(canonical_text, masked_text, pii_spans) -> list[SegmentedClause]
+def boundary_guard(pos: int, pii_spans: list[PiiSpan]) -> bool       # [TDD] False nếu start < pos < end của bất kỳ span; HIỆN re-export từ privacy/masker.py (N3)
+def segment(canonical_text, masked_text, pii_spans, *, max_clauses=150) -> SegmentationResult
+#   XONG 25/10 (C-01 a): SegmentationResult(clauses: list[SegmentedClause], warnings, segmentation_version).to_dict() = `segmentation_v1`
+#   SegmentedClause(clause_id, original_text, start_char, end_char, structure=ClauseStructure(level, number, parent_clause_id))
+#   preamble trước heading đầu = clause paragraph; heading trong placeholder bị bỏ; lỗi: ValidationReject(TOO_MANY_CLAUSES) từ domain/errors.py
 #   chạy trên masked_text, span tính trên canonical (cùng độ dài); original_text = canonical[start:end]
 #   partition KHÔNG chồng lấn; mọi ranh giới kết thúc clause trước; fallback paragraph (<40 ký tự gộp neighbor)
 #   clause >4000 ký tự giữ nguyên + warning; >150 clause ⇒ ValidationReject(TOO_MANY_CLAUSES)

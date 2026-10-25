@@ -1,0 +1,205 @@
+# CI kiểm thử tự động (PROGRESS.md tuần 1 — N4 C-17 "CI chạy pytest"; N1 dựng ở tuần 2).
+#
+# 3 job:
+#   test  — pytest trên Python 3.10 (cận dưới pyproject) và 3.12 (bản chạy thật, AI_CONTEXT §8) +
+#           smoke script không cần API key. KHÔNG kéo submodule, KHÔNG cần secret, KHÔNG gọi LLM.
+#   data  — kéo submodule `ai_pipeline/data` rồi chạy test cần dữ liệu thật (tests/test_data_lead_review.py,
+#           tests/integration). Nếu không kéo được submodule (repo data private, runner không có quyền)
+#           chỉ cảnh báo, không đỏ CI — đặt secret SUBMODULE_TOKEN (PAT chỉ đọc repo data) để bật.
+#   lint  — ruff. Phần "sạch" bị chặn cứng; toàn repo chạy ở chế độ cảnh báo vì còn lỗi cũ.
+#
+# Job `test`/`data` KHÔNG gọi LLM hay Postgres (backend/tests/test_postgres_quota.py).
+# Test gọi LLM thật nằm ở job `llm-live` riêng: chỉ chạy tay (Actions → CI → Run workflow) và chỉ khi
+# repo có secret GEMINI_API_KEY; dùng văn bản tổng hợp, không gửi hợp đồng thật (AI_CONTEXT §3).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      run_llm:
+        description: "Chạy thêm job llm-live (gọi Gemini thật, tốn quota)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUTF8: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  test:
+    name: pytest (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Cài đặt (pyproject, extra dev)
+        run: pip install -e '.[dev]'
+
+      # test_data_lead_review.py cần submodule → chạy ở job `data`.
+      # tests/integration tự skip khi thiếu submodule.
+      - name: pytest (không cần submodule)
+        run: pytest --ignore=tests/test_data_lead_review.py --junitxml=pytest-report.xml
+
+      - name: Smoke script pipeline (không cần API key)
+        working-directory: ai_pipeline
+        run: python test_pipeline.py > /dev/null
+
+      - name: Tải báo cáo test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report-py${{ matrix.python-version }}
+          path: pytest-report.xml
+          if-no-files-found: ignore
+          retention-days: 7
+
+  data:
+    name: test cần dữ liệu (submodule)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout (cố kéo submodule)
+        id: checkout
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.SUBMODULE_TOKEN || github.token }}
+
+      - name: Checkout không submodule (dự phòng)
+        if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v4
+
+      - name: Kiểm tra dữ liệu
+        id: data
+        run: |
+          if [ -f ai_pipeline/data/data/processed/clauses_v06.csv ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Bỏ qua test dữ liệu::Không kéo được submodule ai_pipeline/data (repo private? đặt secret SUBMODULE_TOKEN)."
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.data.outputs.available == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Cài đặt
+        if: steps.data.outputs.available == 'true'
+        run: pip install -e '.[dev]'
+
+      - name: pytest (test review dữ liệu + segmenter trên hợp đồng thật)
+        if: steps.data.outputs.available == 'true'
+        run: pytest tests/test_data_lead_review.py tests/integration
+
+  lint:
+    name: ruff
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cài ruff
+        run: pip install "ruff>=0.1.0"
+
+      # Các đường dẫn đã sạch lint — CHẶN CỨNG. Khi sửa xong lint một file/thư mục khác, thêm vào đây.
+      - name: ruff check (đường dẫn sạch — bắt buộc)
+        run: |
+          ruff check \
+            backend/app/clause \
+            backend/app/domain \
+            backend/app/risk \
+            backend/app/integrations \
+            backend/app/core/enums.py \
+            tests/contract \
+            tests/integration \
+            tests/unit/test_clause_taxonomy.py \
+            tests/unit/test_clause_taxonomy_freeze.py \
+            tests/unit/test_segmenter.py \
+            tests/unit/test_structure_parser.py \
+            ai_pipeline/test_pipeline.py
+
+      # Toàn repo: chỉ cảnh báo (còn lỗi cũ ở file của người khác) — chủ file tự dọn dần.
+      - name: ruff check (toàn repo — chỉ cảnh báo)
+        continue-on-error: true
+        run: ruff check . --output-format=github
+
+  llm-live:
+    name: gọi LLM thật (thủ công)
+    # Không bao giờ chạy trên PR/push (fork không có secret, và tránh tốn quota).
+    if: github.event_name == 'workflow_dispatch' && inputs.run_llm
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: llm   # tùy chọn: tạo Environment "llm" để đặt secret ở đó và/hoặc yêu cầu người duyệt
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}
+      LLM_PROVIDER: gemini
+      LLM_RESULT_PATH: ${{ github.workspace }}/llm-result.json
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kiểm tra secret
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::error title=Thiếu secret::Settings → Secrets and variables → Actions → New repository secret: GEMINI_API_KEY"
+            exit 1
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - run: pip install -e '.[dev]'
+
+      - name: pytest -m llm
+        run: pytest -m llm tests/llm -s
+
+      - name: Hiển thị kết quả
+        if: always()
+        run: |
+          {
+            echo "### Kết quả LLM (văn bản tổng hợp)"
+            echo '```json'
+            cat llm-result.json 2>/dev/null || echo "(không có kết quả)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: llm-result
+          path: llm-result.json
+          if-no-files-found: ignore
+          retention-days: 7
