@@ -106,10 +106,10 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] **Mock API 6 operation theo schema mới** (thay `mock_clause_service.py`) để N5 làm UI
   - [ ] C-20: một nguồn deps, UTF-8, thêm python-docx/lxml/rank-bm25
 - **N5**
-  - [ ] Chọn framework (đề xuất React + TS + Vite), dựng skeleton `frontend/`; `api/types` theo mock
-  - [ ] `lib/offset.ts` (code point → UTF-16) + test non-BMP (INV-12)
-  - [ ] X-07: soạn disclaimer + data notice từ BRD Phụ lục A
-  - [ ] Trang Upload (role bắt buộc) chạy với mock
+  - [x] Chọn framework (đề xuất React + TS + Vite), dựng skeleton `frontend/`; `api/types` theo mock
+  - [x] `lib/offset.ts` (code point → UTF-16) + test non-BMP (INV-12)
+  - [x] X-07: soạn disclaimer + data notice từ BRD Phụ lục A
+  - [x] Trang Upload (role bắt buộc) chạy với mock
 
 **Cổng T1:** schema mới merge; mock chạy; không ai code trên schema cũ; `pytest` xanh; OI-04 (phân công) chốt.
 
