@@ -18,7 +18,9 @@ python test_pipeline.py          # không cần API key
 python test_llm_pipeline.py      # gọi LLM thật
 ```
 
-Hướng dẫn đầy đủ (cài đặt, `.env`, quy trình Git, submodule dữ liệu, đổi taxonomy): xem [CONTRIBUTING.md](CONTRIBUTING.md).
+Chạy kiểm thử tự động: `pytest` từ thư mục gốc (CI chạy cùng lệnh trên mỗi push/PR — `.github/workflows/ci.yml`).
+
+Hướng dẫn đầy đủ (cài đặt, `.env`, CI, quy trình Git, submodule dữ liệu, đổi taxonomy): xem [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## API phiên tuần 2 (chỉ môi trường dev)
 
@@ -29,5 +31,6 @@ Kết quả `final_result_v1` hiện là **fixture dev**, không phải phân t�
 ## Tài liệu
 
 - [docs/CLAUSE_TAXONOMY.md](docs/CLAUSE_TAXONOMY.md) — 12 nhãn clause (con trỏ tới taxonomy nguồn; không còn tier)
+- [docs/CLAUSE_TAXONOMY_FREEZE.md](docs/CLAUSE_TAXONOMY_FREEZE.md) — đóng băng MS-1 + chính sách đa nhãn (OI-10)
 - [docs/DATA_PLAN.md](docs/DATA_PLAN.md) — hiện trạng dataset và con trỏ tới BRD §8.2
 - `ai_pipeline/data/` — submodule dữ liệu (repo `data` của Người 2)

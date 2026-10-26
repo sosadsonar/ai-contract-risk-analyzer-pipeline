@@ -70,17 +70,26 @@ exclude = ["frontend*", "notebooks*", "tests*", "docs*"]
 # --- CẤU HÌNH TOOL CHO TEAM ---
 [tool.ruff]
 line-length = 100
-target-version = "py312"
-exclude = [".git", "__pycache__", "venv", "env"]
+target-version = "py310"
+exclude = [".git", "__pycache__", "venv", "env", ".venv"]
+# Submodule dữ liệu (repo của Người 2) có lint/CI riêng, không lint từ repo này.
+extend-exclude = ["ai_pipeline/data"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]  # Bật kiểm tra lỗi cơ bản và tự động sort import (I)
 ignore = []
 
+[tool.ruff.lint.per-file-ignores]
+# Chuỗi hợp đồng mẫu dài trong smoke script legacy (sẽ chuyển pytest ở C-17).
+"ai_pipeline/test_pipeline.py" = ["E501"]
+
 # Cấu hình Pytest
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q"
+addopts = "-ra -q -m \"not llm\""
+markers = [
+    "llm: gọi LLM thật qua API (cần GEMINI_API_KEY; chạy bằng `pytest -m llm`)",
+]
 # "." để import ai_pipeline.*; "backend" để import app.* (cùng cách backend chạy: app.main)
 pythonpath = [".", "backend"]
 testpaths = [
