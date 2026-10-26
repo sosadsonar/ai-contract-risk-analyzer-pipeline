@@ -1,15 +1,14 @@
 """Admission precedence, streaming boundaries and cancellation races."""
 import threading
-from concurrent.futures import ThreadPoolExecutor
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from uuid import UUID
-
-from fastapi.testclient import TestClient
 
 from app.core.enums import SessionStatus, Stage
 from app.main import app
 from app.session.store import utcnow
+from fastapi.testclient import TestClient
 
 BASE = "/api/v1/sessions"
 

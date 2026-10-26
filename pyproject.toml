@@ -15,7 +15,7 @@ authors = [
 
 ]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -69,7 +69,7 @@ exclude = ["frontend*", "notebooks*", "tests*", "docs*"]
 
 # --- CẤU HÌNH TOOL CHO TEAM ---
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py310"
 exclude = [".git", "__pycache__", "venv", "env", ".venv"]
 # Submodule dữ liệu (repo của Người 2) có lint/CI riêng, không lint từ repo này.

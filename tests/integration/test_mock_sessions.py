@@ -5,12 +5,11 @@ from datetime import timedelta
 from uuid import UUID, uuid4
 
 import pytest
-from docx import Document
-from fastapi.testclient import TestClient
-
 from app.core.enums import SessionStatus, Stage
 from app.main import app
 from app.session.store import utcnow
+from docx import Document
+from fastapi.testclient import TestClient
 
 BASE = "/api/v1/sessions"
 PDF = b"%PDF-1.4\n%%EOF\n"
