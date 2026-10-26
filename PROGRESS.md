@@ -106,10 +106,10 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [x] Mock API 6 operation cho N5: dev-only, fixture thay phân tích thật; không thực thi production admission/rate/quota/lease, pipeline C-05/C-06 còn chờ T2.
   - [x] C-20: `pyproject.toml` là nguồn deps UTF-8, Python 3.12; bỏ `backend/requirements.txt`.
 - **N5**
-  - [ ] Chọn framework (đề xuất React + TS + Vite), dựng skeleton `frontend/`; `api/types` theo mock
-  - [ ] `lib/offset.ts` (code point → UTF-16) + test non-BMP (INV-12)
-  - [ ] X-07: soạn disclaimer + data notice từ BRD Phụ lục A
-  - [ ] Trang Upload (role bắt buộc) chạy với mock
+  - [x] Chọn framework (đề xuất React + TS + Vite), dựng skeleton `frontend/`; `api/types` theo mock
+  - [x] `lib/offset.ts` (code point → UTF-16) + test non-BMP (INV-12)
+  - [x] X-07: soạn disclaimer + data notice từ BRD Phụ lục A
+  - [x] Trang Upload (role bắt buộc) chạy với mock
 
 **Cổng T1:** schema mới merge; mock chạy; không ai code trên schema cũ; `pytest` xanh; OI-04 (phân công) chốt.
 
