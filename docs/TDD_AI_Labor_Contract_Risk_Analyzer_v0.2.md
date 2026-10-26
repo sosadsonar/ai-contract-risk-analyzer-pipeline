@@ -528,7 +528,7 @@ RiskResult {
 {
   "extraction_version": "extract_v1.1",
   "clause_taxonomy_version": "clause_taxonomy_v03",
-  "risk_taxonomy_version": "risk_taxonomy_v02",
+  "risk_taxonomy_version": "risk_taxonomy_v01",
   "severity_rubric_version": "severity_v01",
   "corpus_version": "legal_corpus_2026-10-12",
   "data_graph_version": "legal_graph_2026-10-12",

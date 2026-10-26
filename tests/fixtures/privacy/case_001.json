@@ -1,0 +1,121 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_001",
+  "description": "Đoạn đầu hợp đồng đủ 8 loại PII và các trường cần giữ",
+  "canonical_text": "HỢP ĐỒNG LAO ĐỘNG\nSố: 01/2026/HĐLĐ\nBên A (Người sử dụng lao động): Công ty TNHH Sao Mai Việt Nam\nMã số thuế: 0312345678\nĐịa chỉ: 25 đường Lê Lợi, phường Bến Nghé, quận 1, Thành phố Hồ Chí Minh\nĐại diện: Ông Trần Văn Bình, Giám đốc\nĐiện thoại: 0987 654 321\nEmail: hr@saomai.example.com\nBên B (Người lao động): Bà Nguyễn Thị Hoa\nSinh ngày: 12/08/1994\nCCCD số: 079194012345\nĐịa chỉ thường trú: 18 ngõ 5, đường Láng, phường Láng Thượng, quận Đống Đa, Hà Nội\nSố tài khoản: 0123 4567 8901\nĐiều 2. Người lao động làm việc tại Hà Nội với chức danh Kế toán viên, thời hạn 12 tháng, lương 12.000.000 đồng/tháng, làm việc 08 giờ/ngày.",
+  "pii_spans": [
+    {
+      "type": "LEGAL_ENTITY",
+      "start": 80,
+      "end": 96,
+      "text": "Sao Mai Việt Nam"
+    },
+    {
+      "type": "LEGAL_ENTITY",
+      "start": 109,
+      "end": 119,
+      "text": "0312345678"
+    },
+    {
+      "type": "RESIDENTIAL_ADDRESS",
+      "start": 129,
+      "end": 192,
+      "text": "25 đường Lê Lợi, phường Bến Nghé, quận 1, Thành phố Hồ Chí Minh"
+    },
+    {
+      "type": "PERSON_NAME",
+      "start": 207,
+      "end": 220,
+      "text": "Trần Văn Bình"
+    },
+    {
+      "type": "PHONE",
+      "start": 243,
+      "end": 255,
+      "text": "0987 654 321"
+    },
+    {
+      "type": "EMAIL",
+      "start": 263,
+      "end": 284,
+      "text": "hr@saomai.example.com"
+    },
+    {
+      "type": "PERSON_NAME",
+      "start": 312,
+      "end": 326,
+      "text": "Nguyễn Thị Hoa"
+    },
+    {
+      "type": "DATE_OF_BIRTH",
+      "start": 338,
+      "end": 348,
+      "text": "12/08/1994"
+    },
+    {
+      "type": "NATIONAL_ID_OR_PASSPORT",
+      "start": 358,
+      "end": 370,
+      "text": "079194012345"
+    },
+    {
+      "type": "RESIDENTIAL_ADDRESS",
+      "start": 391,
+      "end": 453,
+      "text": "18 ngõ 5, đường Láng, phường Láng Thượng, quận Đống Đa, Hà Nội"
+    },
+    {
+      "type": "BANK_ACCOUNT",
+      "start": 468,
+      "end": 482,
+      "text": "0123 4567 8901"
+    }
+  ],
+  "preserve_spans": [
+    {
+      "start": 42,
+      "end": 64,
+      "text": "Người sử dụng lao động"
+    },
+    {
+      "start": 222,
+      "end": 230,
+      "text": "Giám đốc"
+    },
+    {
+      "start": 292,
+      "end": 306,
+      "text": "Người lao động"
+    },
+    {
+      "start": 491,
+      "end": 505,
+      "text": "Người lao động"
+    },
+    {
+      "start": 519,
+      "end": 525,
+      "text": "Hà Nội"
+    },
+    {
+      "start": 540,
+      "end": 552,
+      "text": "Kế toán viên"
+    },
+    {
+      "start": 563,
+      "end": 571,
+      "text": "12 tháng"
+    },
+    {
+      "start": 579,
+      "end": 600,
+      "text": "12.000.000 đồng/tháng"
+    },
+    {
+      "start": 611,
+      "end": 622,
+      "text": "08 giờ/ngày"
+    }
+  ]
+}
