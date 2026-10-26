@@ -1,0 +1,29 @@
+:root {
+  --bg: #f2f4f6; --surface: #fff; --ink: #17212b; --muted: #596574; --line: #d5dbe1;
+  --accent: #0e5a5a; --accent-ink: #fff; --danger: #a8261d;
+  --sans: "Be Vietnam Pro", system-ui, sans-serif; --serif: "Newsreader", Georgia, serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--sans); }
+.page { max-width: 640px; margin: 0 auto; padding: 48px 20px 64px; }
+h1 { font: 600 2rem/1.2 var(--serif); margin: 0 0 12px; }
+.lead { color: var(--muted); margin: 0 0 32px; }
+fieldset { border: 0; padding: 0; margin: 0 0 24px; display: grid; gap: 10px; }
+legend { font-weight: 600; margin-bottom: 10px; padding: 0; }
+.choice { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+.choice.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.choice input { margin-top: 5px; accent-color: var(--accent); }
+.choice small, .field small { display: block; color: var(--muted); font-size: .875rem; }
+.field { margin-bottom: 20px; }
+.field label { display: block; font-weight: 600; margin-bottom: 8px; }
+.field input[type=file] { display: block; width: 100%; padding: 12px; background: var(--surface);
+  border: 1px dashed var(--line); border-radius: 6px; font: inherit; }
+.error { min-height: 1.6em; margin: 0 0 8px; color: var(--danger); font-weight: 500; }
+button { font: 600 1rem var(--sans); padding: 12px 24px; border: 0; border-radius: 6px;
+  background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+button:disabled { opacity: .6; cursor: progress; }
+:focus-visible { outline: 3px solid #f0a500; outline-offset: 2px; }
+.notices { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: .875rem; }
+.notices p { margin: 0 0 10px; }
+.notices strong { color: var(--ink); }
