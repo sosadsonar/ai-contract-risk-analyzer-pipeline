@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     DAILY_LLM_CALL_QUOTA: int | None = Field(default=None, gt=0)
     SESSION_CALL_RESERVE: int | None = Field(default=None, gt=0)
     RATE_LIMIT_UPLOADS: int = Field(default=5, gt=0)
+    OPS_DB_PATH: str = "./runtime/ops_metadata.sqlite3"
+    RATE_LIMIT_HMAC_SALT: str | None = None
     RATE_LIMIT_WINDOW_SECONDS: int = Field(default=600, gt=0)
     DATA_GRAPH_ENABLED: bool = True
     CLAUSE_GRAPH_ENABLED: bool = True
@@ -54,7 +56,8 @@ def validate_for_env(s: Settings) -> None:
         if s.WEB_CONCURRENCY != 1:
             raise ValueError("Demo/eval require exactly one worker")
         if not all((s.GEMINI_API_KEY, s.GEMINI_MODEL_ID,
-                    s.DAILY_LLM_CALL_QUOTA, s.SESSION_CALL_RESERVE)):
-            raise ValueError("Demo/eval require Gemini key, model, daily quota and reserve")
+                    s.DAILY_LLM_CALL_QUOTA, s.SESSION_CALL_RESERVE,
+                    s.RATE_LIMIT_HMAC_SALT)):
+            raise ValueError("Demo/eval require Gemini key, model, daily quota, reserve and rate salt")
         if s.APP_ENV == "demo" and not s.CLAUSE_GRAPH_ENABLED:
             raise ValueError("Demo requires CLAUSE_GRAPH_ENABLED=true")
