@@ -1,4 +1,4 @@
-// Catalog thông báo tiếng Việt theo error_code (TDD Phụ lục E). Không hiển thị mã kỹ thuật một mình.
+// Catalog thông báo tiếng Việt theo error_code (TDD Phụ lục E + SRS 6.2). Không hiển thị mã kỹ thuật một mình.
 const MESSAGES: Record<string, string> = {
   SYSTEM_BUSY: "Hệ thống đang xử lý một hợp đồng khác. Vui lòng thử lại sau.",
   QUOTA_EXCEEDED: "Hệ thống đã đạt giới hạn phân tích hiện tại. Vui lòng thử lại sau.",
@@ -18,9 +18,17 @@ const MESSAGES: Record<string, string> = {
   INSUFFICIENT_EVIDENCE: "Chưa đủ căn cứ pháp lý trong kho luật.",
   NO_RISK: "Không phát hiện rủi ro trong phạm vi phân tích. Kết quả không đồng nghĩa hợp đồng an toàn.",
   EXPIRED: "Phiên đã kết thúc và dữ liệu phiên đã được xóa.",
-  // Ngoài catalog Phụ lục E — đề xuất, nhóm duyệt:
+  // Các mã bổ sung từ SRS 6.2 & TDD §5.8:
   ROLE_REQUIRED: "Vui lòng chọn vai trò trước khi tải hợp đồng.",
   NETWORK_ERROR: "Không kết nối được tới máy chủ. Vui lòng kiểm tra mạng và thử lại.",
+  RETRY_LIMIT_EXCEEDED: "Phiên đã vượt quá số lần thử lại cho phép (tối đa 2 lần).",
+  INVALID_SESSION_STATE: "Trạng thái phiên hiện tại không cho phép thực hiện thao tác này.",
+  SESSION_NOT_READY: "Kết quả phân tích chưa sẵn sàng. Vui lòng chờ hoàn tất.",
+  SESSION_REJECTED: "Tệp hợp đồng đã bị từ chối trong phiên này.",
+  SESSION_EXPIRED: "Phiên làm việc đã hết hạn và dữ liệu đã được xóa.",
+  SESSION_NOT_FOUND: "Không tìm thấy phiên làm việc hoặc phiên đã bị xóa.",
+  FEATURE_NOT_ENABLED: "Tính năng này hiện chưa được bật trong bản demo.",
+  INTERNAL_ERROR: "Hệ thống gặp sự cố nội bộ trong quá trình xử lý. Bạn có thể thử lại nếu phiên cho phép.",
 };
 
 export function messageFor(code: string | null | undefined): string {
