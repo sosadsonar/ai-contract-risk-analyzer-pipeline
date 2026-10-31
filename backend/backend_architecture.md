@@ -1,55 +1,23 @@
-# Backend Architecture v0.1
+# Backend Architecture
 
-## Architecture
+`ARCHITECTURE.md` và `SKELETON.md` là bản thiết kế tổng thể; file này ghi rõ trạng thái backend hiện tại và ranh giới tích hợp (C-11).
 
-Layered Modular Architecture
+## Hiện trạng tuần 3
 
-API
-↓
-Service
-↓
-Repository
-↓
-PostgreSQL
+- FastAPI phục vụ 6 operation tại `/api/v1/sessions`. `session/orchestrator.py` là nơi duy nhất đổi state; lease chỉ cho một phiên đang xử lý.
+- Nội dung phiên ở RAM với TTL 60 phút. SQLite chỉ chứa metadata quota/rate/RunLog/tombstone, không lưu nội dung hợp đồng.
+- `document/` đã có PDF extraction, canonicalization, quality gate và scope precheck cục bộ. Các stage này **chưa nối vào** orchestrator; `APP_ENV=dev` hiện trả kết quả mẫu đã de-identify, còn demo/eval chưa được phép khởi động.
+- `integrations/clause_ai.py` và `integrations/risk_ai.py` là adapter cũ đang rỗng; N1/N3 sẽ triển khai luồng thật ở `ai/clause_adapter.py` và `ai/risk_adapter.py`. `explanation_ai.py` đã xóa: không có adapter hoặc provider call thứ ba.
 
-AI integrations:
-- Clause AI
-- Risk AI
-- Explanation AI
+## Luồng đích
 
-## Backend Responsibilities
+```text
+Browser → API → Orchestrator
+              ├─ VALIDATING: PDF/DOCX → canonical → scope → mask toàn văn → segment → Clause Graph
+              └─ PROCESSING: Clause AI (LLM #1, chỉ masked text)
+                           → retrieval kho luật đóng
+                           → Risk AI (LLM #2, risk + explanation + chọn citation)
+                           → backend kiểm citation, dựng risk_basis, tra severity → result
+```
 
-- Document upload
-- Document parsing
-- Pipeline orchestration
-- Storage
-- API
-- AI integration
-
-## W1 Scope
-
-- FastAPI skeleton
-- PDF upload
-- PDF text extraction
-- PostgreSQL setup
-- Contract persistence
-
-## Diagram
-
-Frontend
-   │
-   ▼
-FastAPI
-   │
-   ▼
-Analysis Service
-   │
-   ├──── Clause AI
-   ├──── Risk AI
-   └──── Explanation AI
-   │
-   ▼
-Repository
-   │
-   ▼
-PostgreSQL
+Chỉ masked text được gửi ra provider. LLM không quyết định span, quote hay severity. Không publish partial result; export dùng kết quả hoàn chỉnh. Xem `AI_CONTEXT.md` §3 và `SKELETON.md` §1, §5 để đối chiếu invariant và chữ ký module.
