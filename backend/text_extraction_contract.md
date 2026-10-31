@@ -126,6 +126,28 @@ Increment it whenever a change can alter `canonical_text`, including normalizati
 
 A session is never re-extracted into an old result: a retry or new run recomputes all downstream artifacts (masking, spans, graph, AI output) from the new canonical text. Old spans are never reused with a different canonical text.
 
+### C-08(a) PDF implementation (`extract_pdf_v1`, 31/10/2026)
+
+`app.document.extractor.detect_kind(path, display_name)` checks `.pdf` and
+`%PDF-`; `extract(path, "pdf", max_pdf_pages=30, max_upload_bytes=10*1024*1024)`
+returns `ExtractionResult(canonical_text, extraction_version, page_count,
+char_count)`. Its `to_artifact(filename, role)` builds the **RAM-only**
+`ai_pipeline/schemas/extraction_v1.json` stage artifact. The filename and
+canonical text in that artifact must never enter SQLite/RunLog.
+
+`pdf_extractor` checks the page limit **before** reading all pages, orders
+two-column text within each column, flattens detected table rows with ` | `,
+and drops lone marginal page numbers and marginal lines repeated on at least
+60% of pages. `canonicalizer` preserves structural newlines and normalizes
+Unicode NFC. `quality` rejects <100 non-whitespace characters and runs the
+TDD §8.5 replacement/control/printable and two-stage legacy-font checks.
+The legacy fixture is synthetic, **not** a D1 measurement; D1 smoke and any
+threshold tuning remain pending N2's confirmed D1 selection.
+
+The extractor is synchronous; the future orchestrator must invoke it via
+`asyncio.to_thread` and pass configured limits. No runtime API/orchestrator
+path is changed in this commit. DOCX extraction belongs to C-08(b), Week 4.
+
 ---
 
 ## 10. Responsibility and Review
