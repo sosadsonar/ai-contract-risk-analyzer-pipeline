@@ -154,7 +154,8 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [x] C-08 (a) (31/10 — commit 1 `feat: implement PDF extraction and canonical quality gates (C-08a)`): PyMuPDF, 2 cột, header/footer ≥60% trang, bảng `|`, `canonicalizer`, `quality` (fixture legacy TCVN3 fail); `extraction_v1` schema, smoke PDF tiếng Việt cục bộ; **chưa chạy D1** (N2 chưa xác nhận bộ D1), chưa nối API/orchestrator.
   - [x] C-10 (31/10 — commit 2 `feat: add local labor-contract scope precheck (C-10)`): `scope_rules_v1` chấm điểm theo TDD §9 trên bản sao canonical, fixture dương/âm và biên tiêu đề; smoke PDF tiếng Việt thật sau C-08(a). **Ngưỡng OI-03 chỉ tạm thời, chờ đo D1**; chưa nối vào Orchestrator (commit 4).
   - [x] C-11 (31/10 — commit 3 `refactor: remove standalone explanation AI adapter (C-11)`): xóa adapter rỗng `integrations/explanation_ai.py`; cập nhật `backend_architecture.md` về đúng 2 lần gọi LLM và hiện trạng dev mock; không đụng `PROCESSING` hoặc adapter N1/N3.
-  - [ ] Nối thật `VALIDATING`: extract → scope → mask → segment (stage chưa xong thì stub)
+  - [x] Commit 4 (chưa commit): `session/local_validation.py` ghép PDF → canonical → scope → mask toàn văn → segment chạy cục bộ qua threadpool; kiểm chứng PDF tiếng Việt thật, từ chối ngoài phạm vi và vượt giới hạn clause; INV-01/02/03 trên fixture PDF. Không tạo kết quả mẫu/ghi nội dung ra đĩa từ runner. **Chưa chạy D1** và chưa nối HTTP `VALIDATING` vào runner.
+  - [ ] Nối HTTP `VALIDATING` vào pipeline thật khi có stage tiếp theo: upload giữ đầu vào trong RAM, quản lý lease/cancel/retry/REJECTED; dev sample tách biệt, không trả fixture cho PDF thật. Chưa thể đánh dấu hoàn tất khi Clause Graph/PROCESSING chưa có.
 - **N5**
   - [ ] Result page highlight thật trên mock; nút Retry/End; đủ nhánh REJECTED/FAILED/EXPIRED
   - [ ] C-21 (a): `build_report_model` trên mock
