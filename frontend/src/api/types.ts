@@ -42,7 +42,7 @@ export interface Clause {
 
 export interface RiskResult {
   clause_id: string;
-  risk_labels: string[]; // 1–3 nhãn thuộc risk_taxonomy_v02 (21 nhãn)
+  risk_labels: string[]; // 1–3 nhãn thuộc risk_taxonomy_v01 (21 nhãn)
   // Backend dựng từ basis_type (LLM chọn 1 giá trị cho cả clause) + risk_labels, một-một với risk_labels.
   // Vì vậy mọi phần tử của một clause có cùng basis_type.
   risk_basis: { label: string; basis_type: BasisType }[];

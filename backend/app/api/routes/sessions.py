@@ -14,6 +14,19 @@ from app.session.store import Session, utcnow
 router = APIRouter(prefix="/api/v1/sessions", tags=["sessions"])
 
 
+def format_timestamp(value):
+    return value.isoformat().replace("+00:00", "Z")
+
+
+def status_payload(session: Session) -> dict:
+    completed = {SessionStatus.UPLOADED: 0, SessionStatus.VALIDATING: 1,
+                 SessionStatus.PROCESSING: 2, SessionStatus.COMPLETED: 3}.get(session.status, 0)
+    return {"session_id": str(session.session_id), "status": session.status.value,
+            "stage": session.stage.value, "manual_retry_count": session.manual_retry_count,
+            "progress": {"completed_units": completed, "total_units": 3},
+            "error_code": session.error_code, "updated_at": format_timestamp(session.updated_at)}
+
+
 def lookup(request: Request, raw_id: str) -> Session | JSONResponse:
     try:
         sid = UUID(raw_id)
@@ -73,10 +86,16 @@ async def create(request: Request):
         return rejection
     if session is None:
         return api_error(400, "ROLE_REQUIRED")
+    # Dev sample selection stores only a fixed variant key, never the raw filename.
+    filename = (upload.filename or "").lower()
+    session.mock_variant = (
+        "norisk" if "norisk" in filename else
+        "insufficient" if "insufficient" in filename else None
+    )
     state.orchestrator.start(session, upload.error)
     return JSONResponse(status_code=201, content={
         "session_id": str(session.session_id), "status": "UPLOADED",
-        "created_at": session.created_at.isoformat().replace("+00:00", "Z")})
+        "created_at": format_timestamp(session.created_at)})
 
 
 @router.get("/{session_id}/status")
@@ -87,14 +106,9 @@ def status(request: Request, session_id: str):
             when = request.app.state.db.tombstone(UUID(session_id))
             return {"session_id": session_id, "status": "EXPIRED", "stage": None,
                     "manual_retry_count": 0, "progress": {"completed_units": 0, "total_units": 0},
-                    "error_code": None, "updated_at": when.isoformat()}
+                    "error_code": None, "updated_at": format_timestamp(when)}
         return session
-    completed = {SessionStatus.UPLOADED: 0, SessionStatus.VALIDATING: 1,
-                 SessionStatus.PROCESSING: 2, SessionStatus.COMPLETED: 3}.get(session.status, 0)
-    return {"session_id": session_id, "status": session.status.value,
-            "stage": session.stage.value, "manual_retry_count": session.manual_retry_count,
-            "progress": {"completed_units": completed, "total_units": 3},
-            "error_code": session.error_code, "updated_at": session.updated_at.isoformat()}
+    return status_payload(session)
 
 
 @router.get("/{session_id}/result")
@@ -120,8 +134,7 @@ async def retry(request: Request, session_id: str):
         return api_error(409, "RETRY_LIMIT_EXCEEDED")
     if not request.app.state.orchestrator.retry(session):
         return api_error(409, "SYSTEM_BUSY")
-    return {"session_id": session_id, "status": session.status.value,
-            "manual_retry_count": session.manual_retry_count}
+    return status_payload(session)
 
 
 @router.get("/{session_id}/export")
