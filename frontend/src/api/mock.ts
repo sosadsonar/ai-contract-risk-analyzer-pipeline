@@ -155,7 +155,7 @@ function buildSample(id: string, role: Role, fileName: string): FinalResult {
     version_pins: {
       extraction_version: "extract_v1.1",
       clause_taxonomy_version: "clause_taxonomy_v03",
-      risk_taxonomy_version: "risk_taxonomy_v02",
+      risk_taxonomy_version: "risk_taxonomy_v01",
       severity_rubric_version: "severity_v01",
     },
   };
