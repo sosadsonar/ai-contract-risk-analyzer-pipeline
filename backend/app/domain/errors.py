@@ -1,8 +1,7 @@
 """Typed exception của pipeline (TDD §7.2, AI_CONTEXT §8).
 
-Hiện chỉ có ValidationReject (cần cho `clause.segmenter`, TOO_MANY_CLAUSES). N4 bổ sung các lỗi
-còn lại (AiTimeout, AiProviderError, AiOutputInvalid, PipelineInternalError, LegalCorpusConflict)
-vào CÙNG file này khi dựng orchestrator — đừng tạo file thứ hai.
+ValidationReject phục vụ segmentation; LegalCorpusConflict phục vụ C-12 (N2).
+Các lỗi provider/orchestrator còn lại do N4 bổ sung vào cùng file này.
 """
 
 
@@ -13,3 +12,9 @@ class ValidationReject(Exception):
         super().__init__(f"{code}: {message}" if message else code)
         self.code = code
         self.message = message
+
+
+class LegalCorpusConflict(Exception):
+    """Corpus sai cấu trúc, hiệu lực hoặc provenance: chặn build/reload index."""
+
+    code = "LEGAL_CORPUS_CONFLICT"

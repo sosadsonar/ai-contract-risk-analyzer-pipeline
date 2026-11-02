@@ -92,9 +92,9 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [x] C-19 (phần 1b, 17/10 — chưa có PR): `README.md`, `CONTRIBUTING.md` (cây thư mục, §3, §7, cảnh báo free tier), `text_extraction_contract.md` (bỏ DOC/`review_zone`/DB, gộp 2 đoạn `extraction_version`, offset code point, masked text) đã khớp SRS/TDD
   - [ ] C-19 (phần 2, T7): `CONTRIBUTING.md` §1–§3 (provider/`.env`, cách chạy test) viết lại khi C-07/C-17 xong
 - **N2**
-  - [ ] Định dạng corpus (`manifest.yaml`, `provisions.jsonl`, `edges.jsonl`, `label_map.yaml`) + 3–5 provision mẫu cho dev
-  - [ ] Bản nháp **danh mục kho luật tầng 1** (OI-02) để chốt ở MS-1
-  - [ ] Kiểm kê D1 (BRD 8.2: 4 HĐ, 183 clause): còn PII không, đã de-identify chưa; **đối chiếu với data repo v06 (5 HĐ / 234 clause, 183 annotation lịch sử)** và chốt D1 gồm HĐ nào (không tự sửa BRD)
+  - [x] Định dạng corpus (`manifest.yaml`, `provisions.jsonl`, `edges.jsonl`, `label_map.yaml`) + 3–5 provision mẫu cho dev (N2 28/10: 5 điểm Điều 21 tại `data/legal_corpus/`, **DRAFT**, chưa duyệt hiệu lực/cho runtime)
+  - [x] Bản nháp **danh mục kho luật tầng 1** (theo mục OI-02 trong PROGRESS; trùng mã OI-02 khác nghĩa ở SRS §13) để nhóm chốt ở MS-1 (N2 28/10: shortlist P0/P1 có nguồn chính thức tại `data/legal_corpus/README.md`; **chưa duyệt/chưa đóng cổng MS-1**)
+  - [x] Kiểm kê D1 (BRD 8.2: 4 HĐ, 183 clause): còn PII không, đã de-identify chưa; **đối chiếu với data repo v06 (5 HĐ / 234 clause, 183 annotation lịch sử)** và chốt D1 gồm HĐ nào (không tự sửa BRD) — N2 02/11: scope D1 giữ HDLD001–004 (183); HDLD005 là phần bổ sung. Regex canonical 0 email/phone/chuỗi 9–12 số nhưng không chứng minh đã khử PII; review hình/metadata/rights còn mở. BRD không đổi; xem `ai_pipeline/data/docs/archive/reports/D1_DATA_INVENTORY_2026-10-19.md`.
 - **N3**
   - [x] X-01: bản đầu **risk taxonomy** theo role, bảng severity theo (nhãn, `basis_type`, role) với `basis_type` = LEGAL_VIOLATION/UNFAVORABLE/AMBIGUOUS; nháp severity rubric
   - [x] `risk_output_v2.json` (chỉ cho câu trả lời LLM, thay tên `risk_output_v1`); `backend/app/risk/taxonomy.py` là nguồn duy nhất của nhãn + bảng severity; `risk_assembler.py` ghép ra `risk_merged_v1`; test đối chiếu doc ↔ code ↔ schema (xem `changes.md`)
@@ -120,8 +120,8 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] **Freeze** clause taxonomy + chính sách đa nhãn (OI-10) — **xong một phần, chờ N2/N3**: phần **kỹ thuật đã khóa** (`docs/CLAUSE_TAXONOMY_FREEZE.md` §1 + `tests/unit/test_clause_taxonomy_freeze.py`, fingerprint). Phần **chính sách** (đa nhãn §2; bảo mật/không cạnh tranh, giải quyết tranh chấp, bồi thường NLĐ §3) là **[Đề xuất N1] — chờ N2/N3 sign-off** (§4 của file đó); chưa xác nhận nên **chưa đổi** `LABEL_DEFINITIONS`
 - **N2**
   - [ ] **Freeze** annotation guideline; **chốt danh mục tầng 1** (MS-1)
-  - [ ] X-03: nhập provisions tầng 1 đợt 1 + `label_map` v0
-  - [ ] X-10: bắt đầu thu hợp đồng T1; quy trình de-identify
+  - [x] X-03: nhập provisions tầng 1 đợt 1 + `label_map` v0 — N2 02/11: corpus DRAFT có 16 provision candidate, 16 citation ID duy nhất và 5 label mappings; mọi dòng vẫn chờ đối chiếu chữ/hiệu lực pháp lý, xem `data/legal_corpus/README.md` và review queue ở repo dữ liệu. Đây là hoàn tất nhập batch nháp, không phải duyệt corpus.
+  - [x] X-10 kickoff: bắt đầu tìm/triage nguồn T1 và lập quy trình intake + de-identify — N2 02/11: manifest repo dữ liệu có 22 ứng viên; đã có hướng dẫn cổng quyền sử dụng/ẩn danh và hàng chờ xin quyền; test intake gate 9/9 pass. **Chỉ hoàn thành mốc khởi động**: 0/22 ứng viên đủ điều kiện T1, yêu cầu liên hệ chưa gửi, chưa có quyền dùng hay bản dẫn xuất ẩn danh được nghiệm thu; mục tiêu X-10 ≥10 hợp đồng T1 vẫn mở.
 - **N3**
   - [x] **Freeze** risk taxonomy + severity rubric (MS-1) — cả nhóm review
   - [x] C-09 (a): `pii_types`, `mask_value`, `detector` regex (email, SĐT, CCCD, TK NH)
@@ -143,8 +143,8 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] C-07: `LLMProvider`, `GeminiProductClient` (paid, `response_schema`, timeout 30s, retry matrix, key qua header), `CallLedger`; `DevLocalClient` chỉ dev
   - [ ] `ai/prompts/clause_v1.py` (sinh từ taxonomy); `clause_adapter` khung với provider mock
 - **N2**
-  - [ ] C-12 (a): `corpus_loader`, `corpus_validator` (overlap hiệu lực, endpoint cạnh, PARENT_OF acyclic) + fixture `valid/`, `invalid_overlap/`, `invalid_edge/`
-  - [ ] X-03: provisions tầng 1 đủ để baseline chạy
+  - [x] C-12 (a): `corpus_loader`, `corpus_validator` (overlap hiệu lực, endpoint cạnh, PARENT_OF acyclic) + fixture `valid/`, `invalid_overlap/`, `invalid_edge/` (N2 28/10: offline loader/checksum/approval gate và test; chưa tích hợp production)
+  - [x] X-03: provisions tầng 1 đủ để baseline chạy ở chế độ offline/DRAFT — N2 02/11: `test_draft_corpus_retriever_is_blocked_by_default` nạp corpus thật với `allow_draft=True` và xác nhận BaselineRetriever trả candidate; mặc định vẫn chặn. Đây là smoke test cấu trúc, không phải chạy benchmark, Recall@5 hay chứng minh mức bao phủ luật.
   - [ ] X-04: bắt đầu gold segmentation D1 (sửa tay ranh giới) để đo M1 — dataset v06 là gold nhãn clause (1 dòng/1 nhãn, bỏ heading, 9 dòng `CONTEXT` `span=null`), **không** dùng làm gold M1; viết adapter v06 → `clause.json` (TDD §18.3) và policy `CONTEXT` trước khi tính F1
 - **N3**
   - [ ] C-09 (b): heuristic tên / pháp nhân / địa chỉ / ngày sinh, preserve-list, resolve overlap
@@ -167,8 +167,9 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] Chạy trên D1 (Gemini paid, dữ liệu đã che); đo sơ bộ M1, M7
   - [ ] C-14 (a): `graph_builder` NEXT + PARENT_OF; **INV-08**
 - **N2**
-  - [ ] C-12 (b): `BaselineRetriever` (label_map + BM25 `0.70/0.30`, hiệu lực, dedupe, seed/pool)
-  - [ ] C-13 (a): Data Graph cấu trúc (PARENT_OF tự sinh) + REFERS_TO/GUIDES verified đợt 1
+  - [x] C-12 (b): `BaselineRetriever` (label_map + BM25 `0.70/0.30`, hiệu lực, dedupe, seed/pool) — N2 28/10: module độc lập có unit test, từ chối DRAFT mặc định; **chưa có tích hợp startup/runtime, chưa đo M8 trên gold D1/D2**
+  - [x] C-13 (a): Data Graph cấu trúc (PARENT_OF tự sinh) + REFERS_TO/GUIDES verified đợt 1 — N2 02/11: `DataGraph` in-memory + PARENT_OF tự sinh; thêm cạnh thật `BLLD2019:art14:cl1` → `BLLD2019:art14:cl2` (`REFERS_TO`) sau khi đối chiếu trực quan trang 7 PDF chính thức 18/VBHN-VPQH (SHA-256 ghi trong `data/legal_corpus/README.md`); unit tests corpus/graph 50 pass. **Chỉ đóng batch kỹ thuật đầu tiên**: cạnh và corpus vẫn DRAFT/chờ reviewer pháp lý độc lập; chưa xác nhận hiệu lực hiện tại hoặc đủ điều kiện cite/đánh giá hợp đồng.
+    - [x] N2 28/10: `DataGraph` in-memory + PARENT_OF từ `parent_path`, MANUAL edge index, duyệt hai chiều có lọc ngày hiệu lực; fixture và unit test. Tại checkpoint này chưa có cạnh thật; được bổ sung và source-check ở ghi chú N2 02/11 phía trên.
   - [ ] Kho luật tầng 1 bản đầu; gold clause labels D1
 - **N3**
   - [ ] **Báo cáo số đo PII đầu tiên trên D1** (recall theo nhóm + preserve rate vs BRD 7.3); nếu không đạt → quyết định local NER (OI-12) tại MS-2
@@ -189,7 +190,7 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] C-14 (b): `REFERS_TO` (regex) **loại trừ dẫn chiếu pháp luật**; `resolve_context` (≤3 clause, ≤6000 code point); `ContextResolutionTrace`; fixture `refers_contract`, `excludes_legal_reference`
   - [ ] Tuning classification trên D1/D2 (version config)
 - **N2**
-  - [ ] C-13 (b): `DataGraph.expand` + `get_candidates` (seed-first, merge, **cùng `final_k`**; lỗi runtime → fallback + `graph_fallback`); **INV-11**
+  - [x] C-13 (b) (01/11, fixture/offline): `DataGraph.expand` + `get_candidates` (seed-first, merge, **cùng `final_k`**; lỗi runtime → fallback + `graph_fallback`); 25 graph test cases cover ranking/direction, caps, dedupe, date gates, graph-off/fallback, invalid caps and budget alignment. Full suite green (9 private-data skips); Ruff clean. **Not production-wired; corpus remains DRAFT; no Recall@5 claim.**
   - [ ] Tuning `label_map`/trọng số trên D1/D2
   - [ ] X-04: D2 lỗi chèn (dev, tách quy định khỏi T2); gold seg T1 cho hợp đồng đã thu
 - **N3**
@@ -210,7 +211,8 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] Pipeline thật (Gemini paid) trên D1 cho cả 2 vai trò; sửa lỗi segmentation/classification
   - [ ] `metrics/segmentation.py` (M1), `metrics/clause_classification.py` (M7)
 - **N2**
-  - [ ] `runner.py` + `load_dataset`; `metrics/citation_validity.py` (M3a), `quote_span.py` (M4), `injected_recall.py` (M5), `retrieval.py` (M8 on/off, predicted labels primary)
+  - [x] `runner.py` + `load_dataset`; `metrics/citation_validity.py` (M3a), `quote_span.py` (M4), `injected_recall.py` (M5), `retrieval.py` (M8 on/off, predicted labels primary) — N2 02/11: offline/fixture scope complete; 32 focused tests pass. No claim that C-18 as a whole is complete: production adapter, M1/M2/M6/M7, approved gold and D1/T2 runs remain open.
+    - [x] N2 01/11: strict JSON dataset loader (duplicate-key/path-escape checks); pure M3a/M4/M5 metrics; paired M8 metric + callback runner dùng cùng masked text/predicted labels/date/final_k cho graph off/on. Fixture/offline only; no approved corpus/gold or D1/T2 evaluation.
   - [ ] X-04: bắt đầu **T2** — chèn lỗi (mục tiêu ≥30, mỗi role ≥10), 2 người xác minh mỗi lỗi
 - **N3**
   - [ ] Chạy M5/M8 trên D2 (dev) để tune lint + prompt (version prompt)
@@ -310,3 +312,5 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
 | 2026-10-25 | N3 | Freeze risk taxonomy (21 nhãn, version risk_taxonomy_v01/severity_v01, fingerprint test), chuyển PII masking từ backend/privacy/pii_DRAFT.py sang backend/app/privacy/{pii_types,detector,masker}.py, test INV-01 + fixture tests/fixtures/privacy (chưa có PR) | Bỏ cột clause label tham khảo khỏi code (chỉ còn trong doc). Tham chiếu tên doc trong taxonomy.py đổi thành `docs/risk_taxonomy*.md`, test tự tìm doc. Detector chưa sửa gì; đã biết `detect` gán MST `0312345678` là PHONE thay vì LEGAL_ENTITY (fixture case_001 ghi đúng loại, để C-09 (b) đo). C-09 (b) còn lại ở T3 |
 | 2026-10-25 | N1 | C-02, C-01 (a), freeze kỹ thuật clause taxonomy, CI `.github/workflows/ci.yml` (T2; chưa có PR/commit) | **Đã làm:** `backend/app/clause/{structure_parser,segmenter}.py`, `backend/app/domain/errors.py` (chỉ `ValidationReject`; N4 thêm các lỗi khác vào CÙNG file), xóa `ai_pipeline/utils/text_processing.py` (`document_router`), `ai_pipeline/test_pipeline.py` chạy qua `mask` → `segment`; test `tests/unit/test_{structure_parser,segmenter,clause_taxonomy_freeze}.py`, `tests/integration/test_segmenter_real_contracts.py`; fixture `tests/fixtures/segmentation/`; `docs/CLAUSE_TAXONOMY_FREEZE.md`; `pyproject.toml`: ruff `extend-exclude=ai_pipeline/data` + `.venv`, ignore E501 cho `test_pipeline.py` (**N4/C-20 chú ý khi merge**). **Quyết định kỹ thuật (đã ghi trong code):** (1) preamble trước heading đầu (quốc hiệu, thông tin các bên) là clause paragraph chứ không bị bỏ — mọi ký tự khác khoảng trắng thuộc đúng 1 clause; (2) heading nằm trong placeholder PII bị **bỏ** (không dời) — TDD §10.3 cho phép cả hai; (3) số có dấu phân cách nghìn (`2.000.000`, cả `5.100`) không là heading decimal; (4) list `n.`/`a)`/`-` chỉ thành clause khi ≥2 mục anh em và đánh số liên tiếp từ 1/a; (5) `boundary_guard` vẫn ở `privacy/masker.py` (N3), `segmenter` re-export — chưa chuyển để không sửa test của N3. **Số đo:** 6 hợp đồng thật → 40–68 clause (≤150), clause dài nhất 3.625 ký tự (<4.000); INV-02/03 pass; chưa chấm M1 (chưa có gold segmentation). **Phát hiện:** repo còn ~100 lỗi ruff ở file của người khác (E501, I001, E70x) — CI chặn cứng chỉ các đường dẫn sạch, toàn repo ở chế độ cảnh báo. `tests/test_data_lead_review.py` cần submodule → chạy ở job `data` riêng, tự bỏ qua nếu repo data private (đặt secret `SUBMODULE_TOKEN`). **Bổ sung (cùng ngày):** job `llm-live` thủ công (secret `GEMINI_API_KEY`) + `tests/llm/test_llm_live.py` (marker `llm`, mặc định bị bỏ qua) — hiện chỉ test service legacy, thêm test `classify()` khi C-01 (b) xong. **Còn mở:** sign-off N2/N3 cho policy đa nhãn + 3 topic (freeze doc §4); `classify()` C-01 (b) |
 | 2026-10-26 | N4 | Ghi sai khác W1/W2 theo yêu cầu freeze docs; không sửa BRD/SRS/SDD/TDD hoặc bản split | **O-09:** SRS §6.2 thực tế đã có `INVALID_SESSION_STATE`, `SESSION_NOT_READY`, `SESSION_REJECTED`, `SESSION_EXPIRED`, `FEATURE_NOT_ENABLED`; TDD §5.1/§5.8/§21 vẫn nói chưa backport → đề xuất sửa mô tả TDD sau khi duyệt, không thêm code trùng ở SRS. **O-11:** hình `docs/diagrams/state_machine.png`/SDD §8 thiếu VALIDATING→FAILED và FAILED→VALIDATING khi retry local; bảng component thiếu Cleanup Scheduler, startup §13.1 đánh số 14–20 → đề xuất errata SDD/bản split. **BR-14:** BRD nói cập nhật kho luật phải sửa mã, trái SRS NFR-MAINT-03 → đề xuất cập nhật artifact dữ liệu version hóa không cần sửa mã, chờ chủ BRD duyệt. **DEC-17** chưa được nhóm chấp thuận; không tự phê duyệt. Runtime W2 hiện là dev sample (không extractor/LLM/corpus), `before_call` chỉ dành cho tích hợp provider; C-05 mới có barrier trên lease, chưa có barrier hai HTTP Create. |
+| 2026-10-28 | N2 | C-12(a)/(b) offline, corpus skeleton + 5 điểm Điều 21 (branch `data/c12-legal-corpus-foundation`, local) | Đặt tại `data/legal_corpus/` theo TDD §14; `release_status=DRAFT` chặn runtime khi chưa Data/Legal sign-off. Thêm loader/validator/citation ID/checksum, chặn duplicate JSON/YAML, fixture và unit tests; retriever dùng label-map + BM25 (0.70/0.30), lọc hiệu lực/dedupe và seed/pool; **chưa nối runtime, chưa đo M8**. Nguồn: 45/2019/QH14 + VBHN 18/VBHN-VPQH 2026, chưa xác nhận từng mốc hiệu lực/từng thay đổi → không dùng làm căn cứ đánh giá hợp đồng. Danh mục P0/P1 là bản nháp, cần nhóm duyệt; PROGRESS OI-02 bị trùng mã khác nghĩa với SRS §13. Gold D1, OI-10/multilabel, C-13 và corpus đầy đủ còn mở. |
+| 2026-10-28 | N2 | C-13(a) code offline (`data_graph.py`) | Build index hai chiều từ PARENT_OF canonical và REFERS_TO/GUIDES MANUAL trong fixture, filter endpoint có hiệu lực tại ngày phân tích; không load suggestion. Corpus thật vẫn DRAFT/0 manual edges; **C-13(a) chưa hoàn thành phần verified content; C-13(b) expand/rank/fallback để T5**. |
