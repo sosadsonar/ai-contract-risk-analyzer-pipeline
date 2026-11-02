@@ -136,6 +136,7 @@ jobs:
         run: |
           ruff check \
             backend/app/clause \
+            backend/app/legal \
             backend/app/domain \
             backend/app/risk \
             backend/app/integrations \
@@ -146,6 +147,10 @@ jobs:
             tests/unit/test_clause_taxonomy_freeze.py \
             tests/unit/test_segmenter.py \
             tests/unit/test_structure_parser.py \
+            tests/unit/test_legal_corpus.py \
+            tests/unit/test_baseline_retriever.py \
+            tests/unit/test_data_graph.py \
+            scripts/update_legal_corpus_checksums.py \
             ai_pipeline/test_pipeline.py
 
       # Toàn repo: chỉ cảnh báo (còn lỗi cũ ở file của người khác) — chủ file tự dọn dần.
