@@ -27,6 +27,7 @@ class Session:
     manual_retry_count: int = 0
     task: asyncio.Task | None = field(default=None, repr=False)
     result: dict | None = field(default=None, repr=False)
+    mock_variant: str | None = None
     cancelled: bool = False
 
 

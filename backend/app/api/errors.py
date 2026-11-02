@@ -22,7 +22,7 @@ MESSAGES = {
 
 
 def api_error(status: int, code: str, *, details: dict | None = None) -> JSONResponse:
-    payload = {"code": code, "message": MESSAGES[code],
+    payload = {"code": code, "message": MESSAGES.get(code, MESSAGES["INTERNAL_ERROR"]),
                "retryable": code in {"SYSTEM_BUSY", "RATE_LIMITED", "QUOTA_EXCEEDED", "INTERNAL_ERROR"}}
     if details is not None:
         payload["details"] = details

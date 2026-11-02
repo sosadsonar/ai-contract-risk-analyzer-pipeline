@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contract-risk-analyzer.local/schemas/extraction_v1.json",
+  "title": "Extraction stage artifact (RAM only)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "filename", "role", "extraction_version", "canonical_text", "page_count", "char_count"],
+  "properties": {
+    "schema_version": {"const": "extraction_v1"},
+    "filename": {"type": "string", "minLength": 1},
+    "role": {"enum": ["EMPLOYEE", "EMPLOYER"]},
+    "extraction_version": {"type": "string", "minLength": 1},
+    "canonical_text": {"type": "string", "minLength": 1},
+    "page_count": {"type": "integer", "minimum": 1},
+    "char_count": {"type": "integer", "minimum": 1}
+  }
+}
