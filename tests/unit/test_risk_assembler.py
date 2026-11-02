@@ -61,7 +61,7 @@ def test_happy_path_flat_span_pins_from_ctx_and_only_used_citations():
     m = res.merged
     assert m["schema_version"] == "risk_merged_v1"
     assert (m["model_id"], m["prompt_version"]) == ("m", "risk_prompt_v1")
-    assert m["risk_taxonomy_version"] == "risk_taxonomy_v02"
+    assert m["risk_taxonomy_version"] == "risk_taxonomy_v01"
     assert m["citations"] == [{"citation_id": "BLLD2019:art17"}]
     c = m["clauses"][0]
     assert (c["start_char"], c["end_char"], c["original_text"]) == (10, 30, "B" * 20)

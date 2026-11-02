@@ -2,7 +2,7 @@
 Risk taxonomy = nhãn rủi ro + bảng severity theo (nhãn, basis_type, vai trò).
 NGUỒN DUY NHẤT trong code (DEC-20), tương tự `app.clause.taxonomy`.
 
-Nội dung nguồn: docs/RISK_TAXONOMY_v0.1.md. Test `tests/unit/test_risk_taxonomy.py` đọc
+Nội dung nguồn: docs/risk_taxonomy*.md. Test `tests/unit/test_risk_taxonomy.py` đọc
 bảng trong file đó và so với `_ROWS` ở đây, nên sửa một nơi mà quên nơi kia là test đỏ.
 Không chép lại danh sách nhãn / bảng severity ở chỗ khác (assembler, prompt, schema).
 
@@ -15,8 +15,6 @@ Quy trình gán nhãn cho một clause có rủi ro (theo vai trò của phiên)
      Ô '-' nghĩa là tổ hợp đó KHÔNG phải rủi ro của vai trò này (điều khoản có lợi hơn luật
      cho một bên không phải rủi ro của bên đó, BRD 3.2) => kết quả gán sai, cần review.
 
-Cột "clause label tham khảo" chỉ là gợi ý (clause có 1..3 nhãn clause, nhãn OTHER gom nhiều
-chủ đề). KHÔNG dùng nó để lọc hay giới hạn nhãn rủi ro.
 """
 
 from __future__ import annotations
@@ -24,42 +22,41 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from types import MappingProxyType
 
-from app.clause.taxonomy import CLAUSE_LABEL_SET
 from app.core.enums import BasisType, Role, Severity
 
-# Tên version theo TDD §15.2. Bản nội dung hiện tại = docs/RISK_TAXONOMY_v0.1.md.
+# Tên version theo TDD §15.2. Bản nội dung hiện tại = docs/risk_taxonomy*.md.
 # Đóng băng ở MS-1 (25/10): đổi nhãn hoặc bảng severity thì tăng version có chủ đích.
-RISK_TAXONOMY_VERSION = "risk_taxonomy_v02"
+RISK_TAXONOMY_VERSION = "risk_taxonomy_v01"
 SEVERITY_RUBRIC_VERSION = "severity_v01"  # rubric HIGH/MEDIUM/LOW ở SRS 2.3
 
 MAX_RISK_LABELS_PER_CLAUSE = 3
 
-# Mỗi dòng: (risk_label, clause label tham khảo, severity NLĐ, severity NSDLĐ).
+# Mỗi dòng: (risk_label, severity NLĐ, severity NSDLĐ).
 # Chuỗi severity có 3 ký tự theo thứ tự (LEGAL_VIOLATION, UNFAVORABLE, AMBIGUOUS);
 # H=HIGH, M=MEDIUM, L=LOW, '-'=không phải rủi ro của vai trò này.
 # Thứ tự dòng = thứ tự trong doc = thứ tự enum trong risk_output_v2.json.
-_ROWS: tuple[tuple[str, str, str, str], ...] = (
-    ("CONTRACT_TERM_TYPE", "CONTRACT_TERM", "MLM", "HLM"),
-    ("PROBATION", "CONTRACT_TERM", "HLM", "H-M"),
-    ("WAGE_AMOUNT_COMPONENTS", "COMPENSATION_BENEFITS", "HMM", "HMM"),
-    ("BONUS_BENEFITS", "COMPENSATION_BENEFITS", "MMM", "HML"),
-    ("PAYMENT_TIMING_METHOD", "COMPENSATION_BENEFITS", "HMM", "H-M"),
-    ("WORKING_HOURS_OVERTIME", "WORKING_TIME", "HMM", "HLL"),
-    ("REST_AND_LEAVE", "LEAVE", "HMM", "HLL"),
-    ("SOCIAL_INSURANCE", "INSURANCE_SAFETY", "H-M", "H-M"),
-    ("OSH_OBLIGATION", "INSURANCE_SAFETY", "H-M", "H-M"),
-    ("UNILATERAL_CHANGE", "EMPLOYER_RIGHTS_OBLIGATIONS", "HMM", "MLL"),
-    ("PENALTY_DEDUCTION_DAMAGES", "EMPLOYEE_OBLIGATIONS_DISCIPLINE", "HMM", "HLM"),
-    ("DISCIPLINE_OBLIGATION", "EMPLOYEE_OBLIGATIONS_DISCIPLINE", "HMM", "HLM"),
-    ("POST_EMPLOYMENT_RESTRICTION", "EMPLOYEE_OBLIGATIONS_DISCIPLINE", "MMM", "MLM"),
-    ("DEPOSIT_DOCUMENT_HELD", "WORKING_CONDITIONS", "H-M", "H-M"),
-    ("DISCRIMINATION_PROTECTED_GROUPS", "WORKING_CONDITIONS", "H-M", "H-M"),
-    ("TRAINING_COMMITMENT", "TRAINING", "HMM", "HLM"),
-    ("TERMINATION_GROUNDS_NOTICE", "TERMINATION", "HMM", "HMM"),
-    ("TERMINATION_SETTLEMENT", "TERMINATION", "HMM", "HLM"),
-    ("WAIVER_RIGHTS_DISPUTE", "OTHER", "HMM", "H-L"),
-    ("PERSONAL_DATA_PRIVACY", "OTHER", "MMM", "H-M"),
-    ("CONTRACT_FORM_RULES", "OTHER", "MMM", "M-M"),
+_ROWS: tuple[tuple[str, str, str], ...] = (
+    ("CONTRACT_TERM_TYPE", "MLM", "HLM"),
+    ("PROBATION", "HLM", "H-M"),
+    ("WAGE_AMOUNT_COMPONENTS", "HMM", "HMM"),
+    ("BONUS_BENEFITS", "MMM", "HML"),
+    ("PAYMENT_TIMING_METHOD", "HMM", "H-M"),
+    ("WORKING_HOURS_OVERTIME", "HMM", "HLL"),
+    ("REST_AND_LEAVE", "HMM", "HLL"),
+    ("SOCIAL_INSURANCE", "H-M", "H-M"),
+    ("OSH_OBLIGATION", "H-M", "H-M"),
+    ("UNILATERAL_CHANGE", "HMM", "MLL"),
+    ("PENALTY_DEDUCTION_DAMAGES", "HMM", "HLM"),
+    ("DISCIPLINE_OBLIGATION", "HMM", "HLM"),
+    ("POST_EMPLOYMENT_RESTRICTION", "MMM", "MLM"),
+    ("DEPOSIT_DOCUMENT_HELD", "H-M", "H-M"),
+    ("DISCRIMINATION_PROTECTED_GROUPS", "H-M", "H-M"),
+    ("TRAINING_COMMITMENT", "HMM", "HLM"),
+    ("TERMINATION_GROUNDS_NOTICE", "HMM", "HMM"),
+    ("TERMINATION_SETTLEMENT", "HMM", "HLM"),
+    ("WAIVER_RIGHTS_DISPUTE", "HMM", "H-L"),
+    ("PERSONAL_DATA_PRIVACY", "MMM", "H-M"),
+    ("CONTRACT_FORM_RULES", "MMM", "M-M"),
 )
 
 _BASIS_ORDER: tuple[str, ...] = (
@@ -77,7 +74,7 @@ _SEVERITY_RANK: Mapping[Severity, int] = MappingProxyType(
 
 def _expand() -> dict[str, dict[str, dict[str, Severity | None]]]:
     table: dict[str, dict[str, dict[str, Severity | None]]] = {}
-    for label, _clause, employee, employer in _ROWS:
+    for label, employee, employer in _ROWS:
         per_role = {Role.EMPLOYEE.value: employee, Role.EMPLOYER.value: employer}
         table[label] = {
             role: {basis: _SEVERITY_CODE[code] for basis, code in zip(_BASIS_ORDER, codes)}
@@ -91,12 +88,6 @@ _SEVERITY_TABLE = _expand()
 # Có thứ tự (thứ tự trong doc). Schema risk_output_v2.json phải khớp đúng thứ tự này.
 RISK_LABELS: tuple[str, ...] = tuple(row[0] for row in _ROWS)
 RISK_LABEL_SET: frozenset[str] = frozenset(RISK_LABELS)
-
-# Gợi ý clause label thường chứa rủi ro này (tham khảo, không ràng buộc).
-TYPICAL_CLAUSE_LABEL: Mapping[str, str] = MappingProxyType({row[0]: row[1] for row in _ROWS})
-
-if not set(TYPICAL_CLAUSE_LABEL.values()) <= CLAUSE_LABEL_SET:  # fail sớm khi import
-    raise RuntimeError("risk taxonomy tham chiếu clause label không tồn tại")
 
 
 def severity_for(label: str, basis: str, role: str) -> Severity | None:

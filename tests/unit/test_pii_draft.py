@@ -1,18 +1,12 @@
-"""Spike C-09: PII masking draft. INV-02, không mask từ vai trò, không mask câu thường."""
+"""Spike C-09: PII masking draft. INV-01, không mask từ vai trò, không mask câu thường."""
 
 import unicodedata
 from pathlib import Path
 
 import pytest
-from privacy.pii_DRAFT import (
-    PiiSpan,
-    PiiType,
-    adjust_boundary,
-    boundary_guard,
-    detect,
-    mask,
-    mask_value,
-)
+from app.privacy.detector import detect
+from app.privacy.masker import adjust_boundary, boundary_guard, mask, mask_value
+from app.privacy.pii_types import PiiSpan, PiiType
 
 ROOT = Path(__file__).resolve().parents[2]
 RAW = ROOT / "ai_pipeline" / "data" / "data" / "processed" / "raw_text"

@@ -1,0 +1,14 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_003",
+  "description": "Biểu mẫu trống, không có PII",
+  "canonical_text": "Họ và tên: ……………………………\nNgày sinh: ……/……/……\nSố CMND/CCCD: ………………\nĐịa chỉ: ..........................................\nĐiện thoại: ……………\nNgười lao động ký tên",
+  "pii_spans": [],
+  "preserve_spans": [
+    {
+      "start": 134,
+      "end": 148,
+      "text": "Người lao động"
+    }
+  ]
+}

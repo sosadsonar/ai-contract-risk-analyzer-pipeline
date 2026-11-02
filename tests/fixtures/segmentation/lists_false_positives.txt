@@ -1,0 +1,7 @@
+Điều 4. Thưởng
+Công ty thưởng theo kết quả kinh doanh, ví dụ mức thưởng tối đa là
+2.000.000 đồng cho mỗi quý nếu đạt chỉ tiêu.
+a) một mục lẻ không đủ tin cậy nên không thành clause riêng.
+Điều 5. Bảo mật
+- Không tiết lộ thông tin nội bộ của Công ty cho bên thứ ba trong thời gian làm việc.
+- Không sử dụng thông tin nội bộ cho mục đích cá nhân dưới bất kỳ hình thức nào.

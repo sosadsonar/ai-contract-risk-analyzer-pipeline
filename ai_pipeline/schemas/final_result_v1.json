@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "final_result_v1",
+  "title": "final_result_v1",
+  "description": "Kết quả API sản phẩm: clauses chứa toàn bộ partition của canonical_text; risks chỉ chứa clause có rủi ro. Enum đối chiếu với app.clause.taxonomy, app.risk.taxonomy và app.core.enums (DEC-20).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "offset_unit", "session_id", "role", "status", "analysis_date", "canonical_text", "clauses", "risks", "citations", "disclaimer", "data_notice", "version_pins"],
+  "properties": {
+    "schema_version": {"const": "final_result_v1"},
+    "offset_unit": {"const": "unicode_code_point"},
+    "session_id": {"type": "string", "format": "uuid"},
+    "role": {"enum": ["EMPLOYEE", "EMPLOYER"]},
+    "status": {"const": "COMPLETED"},
+    "analysis_date": {"type": "string", "format": "date"},
+    "canonical_text": {"type": "string", "minLength": 1},
+    "clauses": {
+      "type": "array", "minItems": 1,
+      "items": {"$ref": "#/$defs/clause"}
+    },
+    "risks": {
+      "type": "array",
+      "description": "Chỉ các clause có rủi ro; không thêm placeholder cho clause không có rủi ro.",
+      "items": {"$ref": "#/$defs/risk"}
+    },
+    "citations": {
+      "type": "array", "uniqueItems": true,
+      "items": {"$ref": "#/$defs/citation"}
+    },
+    "disclaimer": {"type": "string", "minLength": 1},
+    "data_notice": {"type": "string", "minLength": 1},
+    "version_pins": {"$ref": "#/$defs/version_pins"}
+  },
+  "$defs": {
+    "clause_label": {
+      "enum": ["JOB_INFO", "CONTRACT_TERM", "COMPENSATION_BENEFITS", "WORKING_TIME", "LEAVE", "INSURANCE_SAFETY", "WORKING_CONDITIONS", "TRAINING", "EMPLOYEE_OBLIGATIONS_DISCIPLINE", "EMPLOYER_RIGHTS_OBLIGATIONS", "TERMINATION", "OTHER"]
+    },
+    "risk_label": {
+      "enum": ["CONTRACT_TERM_TYPE", "PROBATION", "WAGE_AMOUNT_COMPONENTS", "BONUS_BENEFITS", "PAYMENT_TIMING_METHOD", "WORKING_HOURS_OVERTIME", "REST_AND_LEAVE", "SOCIAL_INSURANCE", "OSH_OBLIGATION", "UNILATERAL_CHANGE", "PENALTY_DEDUCTION_DAMAGES", "DISCIPLINE_OBLIGATION", "POST_EMPLOYMENT_RESTRICTION", "DEPOSIT_DOCUMENT_HELD", "DISCRIMINATION_PROTECTED_GROUPS", "TRAINING_COMMITMENT", "TERMINATION_GROUNDS_NOTICE", "TERMINATION_SETTLEMENT", "WAIVER_RIGHTS_DISPUTE", "PERSONAL_DATA_PRIVACY", "CONTRACT_FORM_RULES"]
+    },
+    "clause": {
+      "type": "object", "additionalProperties": false,
+      "required": ["clause_id", "original_text", "start_char", "end_char", "clause_labels"],
+      "properties": {
+        "clause_id": {"type": "string", "pattern": "^cl_[0-9]{4}$"},
+        "original_text": {"type": "string", "minLength": 1},
+        "start_char": {"type": "integer", "minimum": 0},
+        "end_char": {"type": "integer", "minimum": 1},
+        "clause_labels": {
+          "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/clause_label"}
+        }
+      }
+    },
+    "risk_basis": {
+      "type": "object", "additionalProperties": false,
+      "required": ["label", "basis_type"],
+      "properties": {
+        "label": {"$ref": "#/$defs/risk_label"},
+        "basis_type": {"enum": ["LEGAL_VIOLATION", "UNFAVORABLE", "AMBIGUOUS"]}
+      }
+    },
+    "risk": {
+      "type": "object", "additionalProperties": false,
+      "required": ["clause_id", "risk_labels", "risk_basis", "severity", "explanation", "evidence_status", "citation_ids"],
+      "properties": {
+        "clause_id": {"type": "string", "pattern": "^cl_[0-9]{4}$"},
+        "risk_labels": {
+          "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/risk_label"}
+        },
+        "risk_basis": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"$ref": "#/$defs/risk_basis"}},
+        "severity": {"oneOf": [{"enum": ["HIGH", "MEDIUM", "LOW"]}, {"type": "null"}]},
+        "explanation": {"type": "string", "minLength": 10},
+        "evidence_status": {"enum": ["SUPPORTED", "INSUFFICIENT_EVIDENCE"]},
+        "citation_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      },
+      "allOf": [
+        {"if": {"properties": {"evidence_status": {"const": "SUPPORTED"}}}, "then": {"properties": {"citation_ids": {"minItems": 1}, "severity": {"enum": ["HIGH", "MEDIUM", "LOW"]}}}},
+        {"if": {"properties": {"evidence_status": {"const": "INSUFFICIENT_EVIDENCE"}}}, "then": {"properties": {"citation_ids": {"maxItems": 0}, "severity": {"type": "null"}}}}
+      ]
+    },
+    "citation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["citation_id", "document_name", "article", "content"],
+      "properties": {
+        "citation_id": {"type": "string", "minLength": 1},
+        "document_name": {"type": "string", "minLength": 1},
+        "article": {"type": "string", "minLength": 1},
+        "content": {"type": "string", "minLength": 1}
+      }
+    },
+    "version_pins": {
+      "type": "object", "additionalProperties": false,
+      "required": ["extraction_version", "clause_taxonomy_version", "risk_taxonomy_version", "severity_rubric_version", "corpus_version", "data_graph_version", "clause_prompt_version", "risk_prompt_version", "model_id", "temperature", "app_commit"],
+      "properties": {
+        "extraction_version": {"type": "string", "minLength": 1},
+        "clause_taxonomy_version": {"type": "string", "minLength": 1},
+        "risk_taxonomy_version": {"type": "string", "minLength": 1},
+        "severity_rubric_version": {"type": "string", "minLength": 1},
+        "corpus_version": {"type": "string", "minLength": 1},
+        "data_graph_version": {"type": "string", "minLength": 1},
+        "clause_prompt_version": {"type": "string", "minLength": 1},
+        "risk_prompt_version": {"type": "string", "minLength": 1},
+        "model_id": {"type": "string", "minLength": 1},
+        "temperature": {"type": "number", "minimum": 0},
+        "app_commit": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "x-cross-field-rules": [
+    "clauses là partition liên tục theo thứ tự của canonical_text: start_char đầu = 0, start_char mỗi clause = end_char clause trước, end_char cuối = len(canonical_text), original_text = canonical_text[start_char:end_char] theo Unicode code point.",
+    "Mỗi clause_id duy nhất; mỗi risk.clause_id tham chiếu một clause và xuất hiện tối đa một lần.",
+    "Mỗi risk.risk_basis tương ứng one-to-one với risk_labels; (label, basis_type, role) phải hợp lệ trong risk taxonomy và severity là mức cao nhất tra từ bảng taxonomy cho SUPPORTED.",
+    "Mỗi citation_id của risk phải tham chiếu một citation trong citations; citation_id duy nhất."
+  ]
+}

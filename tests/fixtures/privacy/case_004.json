@@ -1,0 +1,39 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_004",
+  "description": "Tên 1, 2, 3, 5 ký tự (ngắn hơn tag <NAME>) và một tên dài hơn tag",
+  "canonical_text": "Họ và tên: A\nHọ và tên: An\nHọ và tên: Huy\nHọ và tên: Hoàng\nHọ và tên: Nguyễn Thị Bích Ngọc",
+  "pii_spans": [
+    {
+      "type": "PERSON_NAME",
+      "start": 11,
+      "end": 12,
+      "text": "A"
+    },
+    {
+      "type": "PERSON_NAME",
+      "start": 24,
+      "end": 26,
+      "text": "An"
+    },
+    {
+      "type": "PERSON_NAME",
+      "start": 38,
+      "end": 41,
+      "text": "Huy"
+    },
+    {
+      "type": "PERSON_NAME",
+      "start": 53,
+      "end": 58,
+      "text": "Hoàng"
+    },
+    {
+      "type": "PERSON_NAME",
+      "start": 70,
+      "end": 90,
+      "text": "Nguyễn Thị Bích Ngọc"
+    }
+  ],
+  "preserve_spans": []
+}

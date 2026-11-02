@@ -1,27 +1,36 @@
-"""X-01: risk taxonomy trong code (app.risk.taxonomy) khớp doc RISK_TAXONOMY_v0.1.md (DEC-20)."""
+"""X-01: risk taxonomy trong code (app.risk.taxonomy) khớp doc risk_taxonomy*.md (DEC-20)."""
 
 import re
 from pathlib import Path
 
 import pytest
-from app.clause.taxonomy import CLAUSE_LABEL_SET
 from app.core.enums import BasisType, Role, Severity
 from app.risk import taxonomy as tx
 
-DOC = Path(__file__).resolve().parents[2] / "docs" / "RISK_TAXONOMY_v0.1.md"
+
+def _find_taxonomy_doc() -> Path:
+    """File duy nhất trong docs/ mà tên (viết thường) bắt đầu bằng 'risk_taxonomy' và đuôi .md.
+    Assert đúng 1 file; 0 hoặc nhiều hơn 1 thì fail với danh sách tìm thấy."""
+    root = Path(__file__).resolve().parents[2] / "docs"
+    found = sorted(p for p in root.glob("*.md") if p.name.lower().startswith("risk_taxonomy"))
+    assert len(found) == 1, f"cần đúng 1 file risk_taxonomy*.md trong docs/, thấy: {found}"
+    return found[0]
+
+
+DOC = _find_taxonomy_doc()
 _SEV = {"H": Severity.HIGH, "M": Severity.MEDIUM, "L": Severity.LOW, "-": None}
 _BASES = [b.value for b in (BasisType.LEGAL_VIOLATION, BasisType.UNFAVORABLE, BasisType.AMBIGUOUS)]
 
 
 def _doc_rows():
-    """Đọc bảng trong doc: [(label, clause_label, [3 mã NLĐ], [3 mã NSDLĐ])]."""
+    """Đọc bảng trong doc: [(label, [3 mã NLĐ], [3 mã NSDLĐ])]. Bỏ qua cột clause label tham khảo."""
     rows = []
     for line in DOC.read_text(encoding="utf-8").splitlines():
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
         if line.startswith("|") and len(cells) == 6 and re.fullmatch(r"[A-Z_]+", cells[0]):
             emp = [x.strip() for x in cells[3].split("/")]
             er = [x.strip() for x in cells[4].split("/")]
-            rows.append((cells[0], cells[1], emp, er))
+            rows.append((cells[0], emp, er))
     return rows
 
 
@@ -32,20 +41,15 @@ def test_21_unique_labels_in_doc_order():
 
 
 def test_doc_table_matches_code_for_every_label_basis_role():
-    for label, clause_label, emp, er in _doc_rows():
+    for label, emp, er in _doc_rows():
         for role, codes in ((Role.EMPLOYEE.value, emp), (Role.EMPLOYER.value, er)):
             assert len(codes) == 3, (label, role, codes)
             for basis, code in zip(_BASES, codes):
                 assert tx.severity_for(label, basis, role) == _SEV[code], (label, basis, role)
-        assert tx.TYPICAL_CLAUSE_LABEL[label] == clause_label
-
-
-def test_typical_clause_labels_are_real_clause_labels():
-    assert set(tx.TYPICAL_CLAUSE_LABEL.values()) <= CLAUSE_LABEL_SET
 
 
 def test_versions():
-    assert tx.RISK_TAXONOMY_VERSION == "risk_taxonomy_v02"
+    assert tx.RISK_TAXONOMY_VERSION == "risk_taxonomy_v01"
     assert tx.SEVERITY_RUBRIC_VERSION == "severity_v01"
 
 
@@ -96,3 +100,9 @@ def test_lv_is_never_below_uf_or_am_within_a_role():
             if rank[lv] < max(rank[uf], rank[am]):
                 bad.append((label, role))
     assert bad == []
+
+
+def test_taxonomy_module_does_not_carry_the_reference_clause_label_column():
+    """Cột "Clause label tham khảo" chỉ để đọc trong doc, không có trong code."""
+    assert not hasattr(tx, "TYPICAL_CLAUSE_LABEL")
+    assert all(len(row) == 3 for row in tx._ROWS)

@@ -45,6 +45,8 @@ class ContextAuditTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.data_root = ROOT / 'ai_pipeline/data'
+        if not (cls.data_root / 'data/processed/clauses_v06.csv').is_file():
+            raise unittest.SkipTest('Private data submodule is unavailable')
         with (cls.data_root / 'data/processed/clauses_v06.csv').open(encoding='utf-8-sig', newline='') as f:
             cls.context = next(r for r in csv.DictReader(f) if r['offset_quality'] == 'CONTEXT')
         cls.raw = (cls.data_root / 'data/processed/raw_text' / (cls.context['contract_id'] + '.txt')).read_text(encoding='utf-8')
