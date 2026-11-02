@@ -41,4 +41,4 @@ def test_demo_cannot_expose_mock_even_with_valid_config():
                              "import sys; sys.path.insert(0, 'backend'); from app.main import app"],
                             env=env, text=True, capture_output=True)
     assert result.returncode != 0
-    assert "không thể chạy sample" in result.stderr
+    assert "sample trong demo/eval" in result.stderr
