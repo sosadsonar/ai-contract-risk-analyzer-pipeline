@@ -14,7 +14,7 @@ const STAGE_NAMES: Record<Stage, string> = {
     CLAUSE_CLASSIFICATION: "Phân loại điều khoản (AI)",
     LEGAL_RETRIEVAL: "Đối chiếu kho văn bản pháp luật",
     RISK_ANALYSIS: "Phân tích rủi ro theo vai trò (AI)",
-    CITATION_VALIDATION: "Kiểm증 trích dẫn điều luật",
+    CITATION_VALIDATION: "Kiểm tra trích dẫn điều luật",
     ASSEMBLY: "Tổng hợp báo cáo kết quả",
     EXPORT: "Chuẩn bị xuất báo cáo",
 };
@@ -41,7 +41,18 @@ export default function Progress({ sessionId, role, onCompleted, onReset }: Prop
         setBusy(true);
         setActionError(null);
         try {
-            const nextStatus = await retry(sessionId);
+            const raw = await retry(sessionId);
+            // Backend da tra du StatusResponse cho retry. Van giu mac dinh an toan
+            // de restartPolling khong nhan undefined neu backend thay doi sau nay.
+            const nextStatus: import("../api/types").StatusResponse = {
+                session_id: raw.session_id ?? sessionId,
+                status: raw.status ?? "PROCESSING",
+                stage: raw.stage ?? null,
+                manual_retry_count: raw.manual_retry_count ?? 0,
+                progress: raw.progress ?? null,
+                error_code: raw.error_code ?? null,
+                updated_at: raw.updated_at ?? new Date().toISOString(),
+            };
             restartPolling(nextStatus);
         } catch (err) {
             setActionError(messageFor(err instanceof ApiError ? err.code : null));
