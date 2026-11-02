@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
 
 """
 LƯU Ý THUẬT TOÁN:
@@ -19,9 +19,11 @@ def compute_char_iou(span_a: Tuple[int, int], span_b: Tuple[int, int]) -> float:
     union = end_union - start_union
     return intersection / union if union > 0 else 0.0
 
-def evaluate_clause_segmentation(gold_spans: List[Tuple[int, int]], pred_spans: List[Tuple[int, int]], iou_threshold: float = 0.80) -> Dict[str, float]:
-    if not pred_spans and not gold_spans: return {"f1": 1.0, "tp": 0, "fp": 0, "fn": 0}
-    if not pred_spans or not gold_spans: return {"f1": 0.0, "tp": 0, "fp": len(pred_spans), "fn": len(gold_spans)}
+def evaluate_clause_segmentation(gold_spans: List[Tuple[int, int]], pred_spans: List[Tuple[int, int]], iou_threshold: float = 0.80) -> Dict[str, float]:  # noqa: E501
+    if not pred_spans and not gold_spans:
+        return {"f1": 1.0, "tp": 0, "fp": 0, "fn": 0}
+    if not pred_spans or not gold_spans:
+        return {"f1": 0.0, "tp": 0, "fp": len(pred_spans), "fn": len(gold_spans)}
 
     pair_candidates = []
     for g_idx, gold in enumerate(gold_spans):
@@ -45,4 +47,4 @@ def evaluate_clause_segmentation(gold_spans: List[Tuple[int, int]], pred_spans: 
     recall = tp / len(gold_spans) if gold_spans else 0.0
     f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
 
-    return {"precision": round(precision, 4), "recall": round(recall, 4), "f1": round(f1, 4), "tp": tp, "fp": fp, "fn": fn}
+    return {"precision": round(precision, 4), "recall": round(recall, 4), "f1": round(f1, 4), "tp": tp, "fp": fp, "fn": fn}  # noqa: E501

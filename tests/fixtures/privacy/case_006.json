@@ -1,0 +1,63 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_006",
+  "description": "Phần thông tin các bên dạng thực tế: IN HOA, hộ chiếu, STK có anchor, ngày sinh dạng chữ",
+  "canonical_text": "BÊN B (Người lao động)\nHọ và tên: TRẦN THỊ MINH CHÂU\nSinh ngày 05 tháng 03 năm 1995\nHộ chiếu số: C1234567\nCMND số 012345678\nĐịa chỉ cư trú: số 9 ngõ 21 đường Trần Cung, phường Cổ Nhuế 1, quận Bắc Từ Liêm, Hà Nội\nSố tài khoản: 1903 4567 8901 2345 tại Ngân hàng Kỹ thương\nĐại diện: Ông Lê Quốc Huy, Tổng giám đốc\nCông ty TNHH Thương mại và Dịch vụ Hoàng Long có trụ sở tại Hải Phòng.",
+  "pii_spans": [
+    {
+      "type": "PERSON_NAME",
+      "start": 34,
+      "end": 52,
+      "text": "TRẦN THỊ MINH CHÂU"
+    },
+    {
+      "type": "DATE_OF_BIRTH",
+      "start": 63,
+      "end": 83,
+      "text": "05 tháng 03 năm 1995"
+    },
+    {
+      "type": "NATIONAL_ID_OR_PASSPORT",
+      "start": 97,
+      "end": 105,
+      "text": "C1234567"
+    },
+    {
+      "type": "NATIONAL_ID_OR_PASSPORT",
+      "start": 114,
+      "end": 123,
+      "text": "012345678"
+    },
+    {
+      "type": "RESIDENTIAL_ADDRESS",
+      "start": 140,
+      "end": 211,
+      "text": "số 9 ngõ 21 đường Trần Cung, phường Cổ Nhuế 1, quận Bắc Từ Liêm, Hà Nội"
+    },
+    {
+      "type": "BANK_ACCOUNT",
+      "start": 226,
+      "end": 245,
+      "text": "1903 4567 8901 2345"
+    },
+    {
+      "type": "PERSON_NAME",
+      "start": 284,
+      "end": 295,
+      "text": "Lê Quốc Huy"
+    },
+    {
+      "type": "LEGAL_ENTITY",
+      "start": 324,
+      "end": 356,
+      "text": "Thương mại và Dịch vụ Hoàng Long"
+    }
+  ],
+  "preserve_spans": [
+    {
+      "start": 297,
+      "end": 310,
+      "text": "Tổng giám đốc"
+    }
+  ]
+}

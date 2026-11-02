@@ -6,16 +6,16 @@ Dữ liệu nằm ở **repo riêng** (`data`, do Người 2 quản lý) và đ�
 ```
 ai-contract-risk-analyzer-pipeline/     <- repo này (code)
 ├── ai_pipeline/
-│   ├── services/       clause_extraction_service.py (LEGACY, bị thay ở C-01), llm_clients.py,
-│   │                   mock_clause_service.py (mock theo clause_output_v3)
-│   ├── utils/          (trống; `text_processing.py`/`document_router` đã bị xóa ở C-02)
+│   ├── services/       mock_clause_service.py (mock theo clause_output_v3); legacy `clause_extraction_service`,
+│   │                   `llm_clients` (key trong query string) và `utils/` (document_router) ĐÃ XÓA
 │   ├── eval/           eval_segmentation.py, fixtures/ (dữ liệu tổng hợp để smoke-test)
 │   ├── schemas/        clause_output_v3.json (C-04, xong); risk_output_v1.json do Người 3 thêm
-│   ├── test_pipeline.py, test_llm_pipeline.py
+│   ├── eval/            eval_segmentation.py, eval_pii.py (số đo PII, BRD §7.3)
+│   ├── test_pipeline.py
 │   └── data/           <- SUBMODULE = repo `data` (chỉ đọc từ repo này)
 ├── .github/workflows/ci.yml   CI: pytest (py3.10/3.12), smoke, ruff, test cần submodule (xem §3.1)
 ├── backend/app/
-│   ├── domain/errors.py     ValidationReject (N4 bổ sung các lỗi còn lại vào cùng file)
+│   ├── domain/errors.py     ValidationReject, Ai*, PipelineInternalError, LegalCorpusConflict (MỘT file)
 │   ├── core/enums.py        Role, SessionStatus, Stage, Severity, EvidenceStatus, BasisType, *EdgeType (MỘT nguồn, DEC-20)
 │   └── clause/              taxonomy.py (12 nhãn + validate_labels, MỘT nguồn, đóng băng MS-1),
 │                            structure_parser.py (C-02, 5 pattern heading), segmenter.py (C-01 a, `segment()`)
@@ -118,30 +118,31 @@ pytest tests/unit/test_segmenter.py tests/unit/test_structure_parser.py   # segm
 ruff check backend/app/clause tests/unit   # lint (xem §3.1 cho danh sách đường dẫn bị chặn cứng)
 ```
 
-**Script legacy** (sẽ chuyển sang pytest ở C-17/C-19 phần 2). Các script `sys.path` tự thêm `backend/` nên chạy được từ `ai_pipeline/`:
+**Smoke script** (không cần API key; tự thêm `backend/` vào `sys.path`):
 
 ```bash
-cd ai_pipeline
-
-# Không cần API key: chạy router với kết quả LLM giả lập, kiểm nhãn bằng validate_labels
-python test_pipeline.py
-
-# Cần API key hoặc Ollama: gọi LLM thật (service legacy, chỉ dùng với dữ liệu đã de-identify)
-python test_llm_pipeline.py
+cd ai_pipeline && python test_pipeline.py
 ```
 
-Đổi provider tạm thời cho một lần chạy:
+**Test gọi model thật** (mặc định `pytest` bỏ qua; chỉ văn bản tổng hợp, `tests/llm/_synthetic.py`):
 
 ```bash
-# macOS/Linux
-LLM_PROVIDER=qwen_ollama python test_llm_pipeline.py
+# Gemini (tốn quota): cần GEMINI_API_KEY, tùy chọn GEMINI_MODEL_ID
+pytest -m llm tests/llm -s
+
+# Model cục bộ qua Ollama (chỉ APP_ENV=dev): cần Ollama đang chạy và model đã `ollama pull`
+OLLAMA_MODEL=qwen2.5:7b-instruct pytest -m llm_local tests/llm/test_llm_local.py -s
 # Windows PowerShell
-$env:LLM_PROVIDER="qwen_ollama"; python test_llm_pipeline.py
+$env:OLLAMA_MODEL="qwen2.5:7b-instruct"; pytest -m llm_local tests/llm/test_llm_local.py -s
 ```
+
+Luồng `DevLocalClient` còn có test OFFLINE (transport giả) trong `tests/unit/test_dev_local_client.py`, chạy mặc định.
+
+**Đo PII** (BRD §7.3): `python ai_pipeline/eval/eval_pii.py --out docs/PII_MEASUREMENT_<ngày>.md`.
 
 | Lỗi thường gặp | Nguyên nhân / cách xử lý |
 |---|---|
-| `ModuleNotFoundError: app` / `services` | Script legacy chạy ngoài `ai_pipeline/` → `cd ai_pipeline`; với pytest chạy từ thư mục gốc |
+| `ModuleNotFoundError: app` | Chạy `test_pipeline.py` ngoài `ai_pipeline/` → `cd ai_pipeline`; với pytest chạy từ thư mục gốc |
 | `Thiếu GEMINI_API_KEY` | Chưa tạo `.env` ở thư mục gốc hoặc chưa điền key |
 | `ai_pipeline/data/` rỗng | Chưa kéo submodule → `git submodule update --init --recursive` |
 | Nhãn không thuộc 12 nhãn | Đang dùng nhãn cũ (8 nhãn v1). Xem `docs/CLAUSE_TAXONOMY.md` |

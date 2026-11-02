@@ -4,9 +4,9 @@
 #   test  — pytest trên Python 3.10 (cận dưới pyproject) và 3.12 (bản chạy thật, AI_CONTEXT §8) +
 #           smoke script không cần API key. KHÔNG kéo submodule, KHÔNG cần secret, KHÔNG gọi LLM.
 #   data  — kéo submodule `ai_pipeline/data` rồi chạy test cần dữ liệu thật (tests/test_data_lead_review.py,
-#           tests/integration). Nếu không kéo được submodule (repo data private, runner không có quyền)
-#           chỉ cảnh báo, không đỏ CI — đặt secret SUBMODULE_TOKEN (PAT chỉ đọc repo data) để bật.
-#   lint  — ruff. Phần "sạch" bị chặn cứng; toàn repo chạy ở chế độ cảnh báo vì còn lỗi cũ.
+#           tests/integration). Không kéo được submodule ⇒ ĐỎ trên push/PR cùng repo (chỉ PR từ fork được bỏ qua);
+#           đặt secret SUBMODULE_TOKEN (PAT chỉ đọc repo data) để chạy.
+#   lint  — ruff toàn repo, chặn cứng (trừ 2 file dữ liệu của N2).
 #
 # Job `test`/`data` KHÔNG gọi LLM hay Postgres (backend/tests/test_postgres_quota.py).
 # Test gọi LLM thật nằm ở job `llm-live` riêng: chỉ chạy tay (Actions → CI → Run workflow) và chỉ khi
@@ -99,7 +99,13 @@ jobs:
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::warning title=Bỏ qua test dữ liệu::Không kéo được submodule ai_pipeline/data (repo private? đặt secret SUBMODULE_TOKEN)."
+            # Push/PR cùng repo CÓ quyền secret: thiếu dữ liệu là lỗi thật (nếu không, test dữ liệu thật không
+            # bao giờ chạy mà CI vẫn xanh). Chỉ PR từ fork (không có secret) mới được bỏ qua kèm cảnh báo.
+            if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event.pull_request.head.repo.full_name }}" = "${{ github.repository }}" ]; then
+              echo "::error title=Thiếu dữ liệu::Không kéo được submodule ai_pipeline/data hoặc commit ghim chưa được push lên repo data. Đặt secret SUBMODULE_TOKEN (PAT chỉ đọc) và push commit ghim."
+              exit 1
+            fi
+            echo "::warning title=Bỏ qua test dữ liệu (PR từ fork)::Không kéo được submodule ai_pipeline/data."
           fi
 
       - uses: actions/setup-python@v5
@@ -131,10 +137,13 @@ jobs:
       - name: Cài ruff
         run: pip install "ruff>=0.1.0"
 
-      # Các đường dẫn đã sạch lint — CHẶN CỨNG. Khi sửa xong lint một file/thư mục khác, thêm vào đây.
-      - name: ruff check (đường dẫn sạch — bắt buộc)
+      # Toàn repo CHẶN CỨNG. Ngoại lệ có chủ: 2 file kiểm dữ liệu của N2 (còn lỗi E501/E702) — dọn xong thì xóa
+      # dòng --exclude.
+      - name: ruff check (toàn repo — bắt buộc)
         run: |
-          ruff check \
+          ruff check . \
+            --exclude scripts/audit_data_lead.py \
+            --exclude tests/test_data_lead_review.py \
             backend/app/clause \
             backend/app/legal \
             backend/app/domain \

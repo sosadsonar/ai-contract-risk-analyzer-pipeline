@@ -15,7 +15,7 @@ cp .env.example .env        # rồi điền GEMINI_API_KEY (hoặc dùng Qwen lo
 
 cd ai_pipeline
 python test_pipeline.py          # không cần API key
-python test_llm_pipeline.py      # gọi LLM thật
+# test gọi LLM thật / Ollama: xem CONTRIBUTING.md §3 (pytest -m llm | llm_local)
 ```
 
 Chạy kiểm thử tự động: `pytest` từ thư mục gốc (CI chạy cùng lệnh trên mỗi push/PR — `.github/workflows/ci.yml`).

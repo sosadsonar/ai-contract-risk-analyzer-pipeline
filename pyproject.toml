@@ -82,13 +82,18 @@ ignore = []
 [tool.ruff.lint.per-file-ignores]
 # Chuỗi hợp đồng mẫu dài trong smoke script legacy (sẽ chuyển pytest ở C-17).
 "ai_pipeline/test_pipeline.py" = ["E501"]
+# Văn bản prompt/định nghĩa nhãn tiếng Việt và dữ liệu tổng hợp: ngắt dòng làm đổi nội dung/pin.
+"backend/app/ai/prompts/*.py" = ["E501"]
+"ai_pipeline/eval/fixtures/build_synthetic.py" = ["E501"]
+"tests/llm/_synthetic.py" = ["E501"]
 
 # Cấu hình Pytest
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q -m \"not llm\""
+addopts = "-ra -q -m \"not llm and not llm_local\""
 markers = [
     "llm: gọi LLM thật qua API (cần GEMINI_API_KEY; chạy bằng `pytest -m llm`)",
+    "llm_local: gọi model cục bộ qua Ollama (cần OLLAMA_MODEL + Ollama đang chạy; chạy bằng `pytest -m llm_local`)",
 ]
 # "." để import ai_pipeline.*; "backend" để import app.* (cùng cách backend chạy: app.main)
 pythonpath = [".", "backend"]

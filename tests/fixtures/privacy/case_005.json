@@ -1,0 +1,67 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_005",
+  "description": "MST 10 số trùng dạng số di động (TT 0312345678, 0801234567) và SĐT thật cùng đầu số",
+  "canonical_text": "Bên A: Công ty Cổ phần Bình Minh\nMã số thuế: 0312345678-001\nMST 0801234567\nĐiện thoại: 0312345678\nLiên hệ phòng nhân sự: 0912.345.678 hoặc +84 912 345 679\nEmail: nhansu@binhminh.example.vn\nNgười sử dụng lao động và Người lao động cùng ký tại Đà Nẵng.",
+  "pii_spans": [
+    {
+      "type": "LEGAL_ENTITY",
+      "start": 23,
+      "end": 32,
+      "text": "Bình Minh"
+    },
+    {
+      "type": "LEGAL_ENTITY",
+      "start": 45,
+      "end": 59,
+      "text": "0312345678-001"
+    },
+    {
+      "type": "LEGAL_ENTITY",
+      "start": 64,
+      "end": 74,
+      "text": "0801234567"
+    },
+    {
+      "type": "PHONE",
+      "start": 87,
+      "end": 97,
+      "text": "0312345678"
+    },
+    {
+      "type": "PHONE",
+      "start": 121,
+      "end": 133,
+      "text": "0912.345.678"
+    },
+    {
+      "type": "PHONE",
+      "start": 139,
+      "end": 154,
+      "text": "+84 912 345 679"
+    },
+    {
+      "type": "EMAIL",
+      "start": 162,
+      "end": 188,
+      "text": "nhansu@binhminh.example.vn"
+    }
+  ],
+  "preserve_spans": [
+    {
+      "start": 189,
+      "end": 211,
+      "text": "Người sử dụng lao động"
+    },
+    {
+      "start": 215,
+      "end": 229,
+      "text": "Người lao động"
+    },
+    {
+      "start": 242,
+      "end": 249,
+      "text": "Đà Nẵng"
+    }
+  ]
+}

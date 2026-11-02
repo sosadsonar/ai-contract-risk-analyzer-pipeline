@@ -1,0 +1,67 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_008",
+  "description": "Giới hạn đã biết của detector regex: tên không anchor, địa chỉ không có dấu ':' (cần đo OI-12); SĐT bàn 02x đã hỗ trợ",
+  "canonical_text": "Họ và tên: Phạm Văn Đức\nNgười liên hệ khi có sự cố là Lê Văn Cường tại phòng hành chính.\nĐiện thoại bàn: 024 3825 1234 hoặc (028) 3822 1111.\nNgười lao động cư trú tại số 5 ngõ 7 phố Huế, quận Hai Bà Trưng, Hà Nội.\nEmail: duc.pham@example.com. Người lao động có quyền nghỉ phép.",
+  "pii_spans": [
+    {
+      "type": "PERSON_NAME",
+      "start": 11,
+      "end": 23,
+      "text": "Phạm Văn Đức"
+    },
+    {
+      "type": "PERSON_NAME",
+      "start": 54,
+      "end": 66,
+      "text": "Lê Văn Cường"
+    },
+    {
+      "type": "PHONE",
+      "start": 105,
+      "end": 118,
+      "text": "024 3825 1234"
+    },
+    {
+      "type": "PHONE",
+      "start": 124,
+      "end": 139,
+      "text": "(028) 3822 1111"
+    },
+    {
+      "type": "RESIDENTIAL_ADDRESS",
+      "start": 167,
+      "end": 212,
+      "text": "số 5 ngõ 7 phố Huế, quận Hai Bà Trưng, Hà Nội"
+    },
+    {
+      "type": "EMAIL",
+      "start": 221,
+      "end": 241,
+      "text": "duc.pham@example.com"
+    }
+  ],
+  "preserve_spans": [
+    {
+      "start": 243,
+      "end": 257,
+      "text": "Người lao động"
+    }
+  ],
+  "known_misses": [
+    {
+      "type": "PERSON_NAME",
+      "start": 54,
+      "end": 66,
+      "text": "Lê Văn Cường",
+      "reason": "tên không có anchor"
+    },
+    {
+      "type": "RESIDENTIAL_ADDRESS",
+      "start": 167,
+      "end": 212,
+      "text": "số 5 ngõ 7 phố Huế, quận Hai Bà Trưng, Hà Nội",
+      "reason": "địa chỉ không có anchor ':'"
+    }
+  ]
+}

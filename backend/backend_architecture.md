@@ -8,7 +8,7 @@
 - Nội dung phiên ở RAM với TTL 60 phút. SQLite chỉ chứa metadata quota/rate/RunLog/tombstone, không lưu nội dung hợp đồng.
 - `session/local_validation.py` đã ghép PDF extraction → scope → mask toàn văn → segment trong worker thread; trả artifact chỉ cho caller cục bộ hoặc ném `ValidationReject`, không ghi/publish kết quả. Chưa có bộ D1 xác nhận để chạy cổng T3.
 - API/orchestrator chưa gọi runner này: upload chưa giữ nội dung để extract, luồng `APP_ENV=dev` vẫn dùng fixture, demo/eval chưa được phép khởi động. Clause Graph và các stage PROCESSING thật chờ N1/N2/N3; không coi fixture dev là phân tích PDF thật.
-- `integrations/clause_ai.py` và `integrations/risk_ai.py` là adapter cũ đang rỗng; N1/N3 sẽ triển khai luồng thật ở `ai/clause_adapter.py` và `ai/risk_adapter.py`. `explanation_ai.py` đã xóa: không có adapter hoặc provider call thứ ba.
+- Hai stub rỗng `integrations/clause_ai.py` và `integrations/risk_ai.py` đã xóa; luồng thật ở `ai/clause_adapter.py` và `ai/risk_adapter.py`. `explanation_ai.py` đã xóa: không có adapter hoặc provider call thứ ba.
 
 ## Luồng đích
 

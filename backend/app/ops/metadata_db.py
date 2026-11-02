@@ -24,6 +24,10 @@ class MetadataDB:
                     output_tokens INTEGER, estimated_cost REAL, error_code TEXT,
                     graph_enabled INTEGER, graph_added_candidates INTEGER, created_at TEXT);
                 CREATE TABLE IF NOT EXISTS daily_usage(day TEXT PRIMARY KEY, calls INTEGER NOT NULL);
+                CREATE TABLE IF NOT EXISTS daily_usage_detail(
+                    day TEXT PRIMARY KEY, input_tokens INTEGER NOT NULL DEFAULT 0,
+                    output_tokens INTEGER NOT NULL DEFAULT 0, estimated_cost REAL NOT NULL DEFAULT 0,
+                    errors INTEGER NOT NULL DEFAULT 0);
                 CREATE TABLE IF NOT EXISTS rate_event(ip_hash TEXT NOT NULL, occurred_at TEXT NOT NULL);
                 CREATE INDEX IF NOT EXISTS rate_event_window ON rate_event(ip_hash, occurred_at);
                 CREATE TABLE IF NOT EXISTS expired_tombstone(
@@ -42,6 +46,31 @@ class MetadataDB:
         with self.lock, self.connection:
             self.connection.execute("INSERT INTO daily_usage(day,calls) VALUES (?,1) "
                                     "ON CONFLICT(day) DO UPDATE SET calls=calls+1", (day,))
+
+    def try_reserve(self, day: str, quota: int | None) -> bool:
+        """Tăng bộ đếm NGUYÊN TỬ nếu còn quota (quota None = chỉ đếm). False = hết quota, không tăng."""
+        with self.lock, self.connection:
+            self.connection.execute("INSERT OR IGNORE INTO daily_usage(day,calls) VALUES (?,0)", (day,))
+            cur = self.connection.execute(
+                "UPDATE daily_usage SET calls=calls+1 WHERE day=? AND (? IS NULL OR calls<?)", (day, quota, quota))
+            return cur.rowcount == 1
+
+    def add_usage(self, day: str, input_tokens: int, output_tokens: int, cost: float, error: bool) -> None:
+        with self.lock, self.connection:
+            self.connection.execute(
+                "INSERT INTO daily_usage_detail(day,input_tokens,output_tokens,estimated_cost,errors) "
+                "VALUES (?,?,?,?,?) ON CONFLICT(day) DO UPDATE SET input_tokens=input_tokens+excluded.input_tokens, "
+                "output_tokens=output_tokens+excluded.output_tokens, estimated_cost=estimated_cost+excluded.estimated_cost, "  # noqa: E501
+                "errors=errors+excluded.errors", (day, input_tokens, output_tokens, cost, int(error)))
+
+    def usage(self, day: str) -> dict:
+        with self.lock:
+            calls = self.connection.execute("SELECT calls FROM daily_usage WHERE day=?", (day,)).fetchone()
+            d = self.connection.execute(
+                "SELECT input_tokens,output_tokens,estimated_cost,errors FROM daily_usage_detail WHERE day=?", (day,)
+            ).fetchone() or (0, 0, 0.0, 0)
+            return {"calls": calls[0] if calls else 0, "input_tokens": d[0], "output_tokens": d[1],
+                    "estimated_cost": d[2], "errors": d[3]}
 
     def rate_check(self, key: str, now: datetime, limit: int, window_seconds: int) -> bool:
         cutoff = iso(now - timedelta(seconds=window_seconds))

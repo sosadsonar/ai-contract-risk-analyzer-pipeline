@@ -11,7 +11,6 @@ os.environ.setdefault("APP_ENV", "dev")
 
 from app.main import app  # noqa: E402
 
-
 URL = "/api/v1/sessions"
 PDF = b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF\n"
 

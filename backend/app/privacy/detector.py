@@ -1,10 +1,10 @@
 """Phát hiện PII trên canonical_text: regex có anchor (high precision) rồi heuristic, và
-resolve overlap (TDD §10.2). Bản đầu của C-09 (a), chưa nối vào pipeline.
+resolve overlap (TDD §10.2). Bản đầu của C-09 (a); C-09 (b) sửa MST bị gán PHONE.
 
 Giới hạn đã biết (cần đo trên D1, SRS OI-12):
 - Tên người chỉ bắt được khi có anchor (Họ và tên:, Ông/Bà, Đại diện:, Người lao động:).
   Tên đứng một mình trong câu không bị bắt.
-- Số điện thoại bàn có mã vùng 02x chưa hỗ trợ; chỉ di động 10 số (hoặc +84).
+- Số điện thoại: di động 10 số, bàn 02x (11 số kể cả 0), hoặc +84; số quốc tế khác chưa hỗ trợ.
 - Tên pháp nhân dừng ở dấu , ; : ( ) hoặc từ nối (có, do, được, là...), nên "Co., Ltd" sau dấu
   phẩy còn sót.
 - Địa chỉ cần anchor có dấu ':' và có từ hành chính/đường phố trong giá trị.
@@ -54,6 +54,13 @@ _ORG_FORM = (
 # Phần "high precision" quét trước. is_high_precision=True khi resolve overlap.
 _PATTERNS_HIGH: list[tuple[PiiType, re.Pattern[str]]] = [
     (
+        # Mã số thuế (định danh pháp nhân) có anchor. Phải đứng TRƯỚC PHONE: MST 10 số như
+        # 0312345678 trùng dạng số di động; cả hai cùng high-precision nên khi hai span trùng
+        # nhau _resolve_overlaps giữ ứng viên đứng trước trong danh sách này.
+        PiiType.LEGAL_ENTITY,
+        re.compile(r"(?i:mst|mã[ \t]+số[ \t]+thuế)[ \t]*[:：]?[ \t]*(?P<v>\d{10}(?:-\d{3})?)(?!\d)"),
+    ),
+    (
         PiiType.EMAIL,
         re.compile(
             r"(?<![\w.%+-])(?P<v>[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+"
@@ -61,10 +68,14 @@ _PATTERNS_HIGH: list[tuple[PiiType, re.Pattern[str]]] = [
         ),
     ),
     (
-        # 10 số di động VN hoặc +84; chấp nhận dấu cách, dấu chấm, gạch nối giữa các số
-        # (0912 345 678, 0912.345.678, 091-234-5678, +84 912 345 678).
+        # Di động VN 10 số (đầu 03/05/07/08/09) hoặc +84; bàn có mã vùng 02x (024, 028, 0203...) là
+        # 0 + 10 số. Chấp nhận dấu cách, chấm, gạch nối giữa các số (0912 345 678, 091-234-5678,
+        # +84 912 345 678, 024 3825 1234, 024.38251234). MST/CCCD không khớp vì khác số chữ số.
         PiiType.PHONE,
-        re.compile(r"(?<![\d.])(?P<v>(?:\+?84|0)[ .-]?[35789](?:[ .-]?\d){8})(?!\d)"),
+        re.compile(
+            r"(?<![\d.])(?P<v>(?:\+?84|0)[ .-]?(?:[35789](?:[ .-]?\d){8}|2\d(?:[ .-]?\d){8})"
+            r"|\(0?2\d\)[ .-]?\d(?:[ .-]?\d){7})(?!\d)"  # (024) 3825 1234
+        ),
     ),
     (
         # CCCD 12 số, không cần anchor (đầu 0 + mã tỉnh 001..096 + 1 số thế kỷ/giới 0..3).
@@ -146,10 +157,6 @@ _PATTERNS_HEURISTIC: list[tuple[PiiType, re.Pattern[str]]] = [
             + rf"(?=[ \t]*(?:[,;:()\r\n.]|$)|[ \t]+{_ORG_STOP}\b)"
         ),
     ),
-    (  # Mã số thuế (định danh pháp nhân).
-        PiiType.LEGAL_ENTITY,
-        re.compile(r"(?i:mst|mã[ \t]+số[ \t]+thuế)[ \t]*[:：]?[ \t]*(?P<v>\d{10}(?:-\d{3})?)(?!\d)"),
-    ),
 ]
 
 # Địa chỉ chỉ nhận khi giá trị có dấu hiệu địa chỉ (chặn "nơi ở: do công ty bố trí").
@@ -159,10 +166,23 @@ _ADDRESS_HINT = re.compile(
 )
 
 # Cắt đuôi tên khi regex lỡ ăn sang nhãn trường kế tiếp ("... Văn An Chức vụ").
-_NAME_STOP_TOKENS = frozenset(
-    {"chức", "sinh", "địa", "số", "điện", "email", "quốc", "cmnd", "cccd", "mst", "ngày",
-     "năm", "vụ"}
-)
+# Nhiều từ nhãn cũng là tên người thật (Quốc, Năm, Điện, Sinh, Số...), nên chỉ cắt khi từ đó là phần
+# đầu của một nhãn: giá trị là tập từ theo sau được phép (None = luôn cắt, vì không là tên người).
+_NAME_STOP_FOLLOWERS: dict[str, frozenset[str] | None] = {
+    "chức": frozenset({"vụ", "danh"}),
+    "quốc": frozenset({"tịch"}),
+    "sinh": frozenset({"ngày", "năm"}),
+    "ngày": frozenset({"sinh", "tháng", "cấp"}),
+    "năm": frozenset({"sinh"}),
+    "số": frozenset({"cmnd", "cccd", "điện", "hộ", "căn", "chứng", "tài", "tk", "định"}),
+    "điện": frozenset({"thoại"}),
+    "địa": frozenset({"chỉ"}),
+    "email": None,
+    "cmnd": None,
+    "cccd": None,
+    "mst": None,
+}
+_NEXT_WORD = re.compile(r"[ \t]+([^\W\d_]+)")
 
 # Preserve-list (TDD §10.2): giá trị đúng bằng các cụm này không bị mask.
 PRESERVE_LIST: frozenset[str] = frozenset(
@@ -189,11 +209,31 @@ def _is_preserved(value: str) -> bool:
     return value.strip().lower() in PRESERVE_LIST
 
 
-def _trim_name(value: str) -> str:
+_LABEL_COLON_OR_DIGIT = re.compile(r"[ \t]*(?:[:：]|\d)")
+
+
+def _trim_name(value: str, following: str = "") -> str:
+    """Cắt từ `value` tại từ đầu của nhãn trường kế tiếp. `following` = văn bản ngay sau `value`."""
     tokens = value.split()
     for i, tok in enumerate(tokens):
-        if i >= 1 and tok.lower() in _NAME_STOP_TOKENS:
+        key = tok.lower()
+        if i < 1 or key not in _NAME_STOP_FOLLOWERS:
+            continue
+        followers = _NAME_STOP_FOLLOWERS[key]
+        if followers is None:
             return " ".join(tokens[:i])
+        if i + 1 < len(tokens):
+            nxt, rest = tokens[i + 1].lower(), None
+        else:
+            m = _NEXT_WORD.match(following)
+            nxt, rest = (m.group(1).lower(), following[m.end() :]) if m else ("", "")
+        if nxt not in followers:
+            continue
+        # "Năm" vừa là tên (Nguyễn Văn Năm) vừa mở đầu nhãn "Năm sinh:": chỉ coi là nhãn khi sau
+        # "sinh" có dấu ':' hoặc chữ số; "Năm sinh ngày ..." thì "Năm" là tên.
+        if key == "năm" and rest is not None and not _LABEL_COLON_OR_DIGIT.match(rest):
+            continue
+        return " ".join(tokens[:i])
     return value
 
 
@@ -225,7 +265,7 @@ def detect(canonical_text: str) -> list[PiiSpan]:
                 start, end = m.span("v")
                 value = canonical_text[start:end]
                 if pii_type is PiiType.PERSON_NAME:
-                    value = _trim_name(value)
+                    value = _trim_name(value, canonical_text[end : end + 40])
                 value = value.rstrip()  # địa chỉ cuối dòng có thể còn khoảng trắng
                 if not value or _is_preserved(value):
                     continue

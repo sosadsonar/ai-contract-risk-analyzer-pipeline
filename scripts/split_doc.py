@@ -127,14 +127,14 @@ def clean_lines(lines: list[str], keep_images: bool, keep_escapes: bool) -> list
     # gộp dòng trống liên tiếp, bỏ dòng trống đầu/cuối
     res: list[str] = []
     blank = 0
-    for l in out:
-        if l.strip() == "":
+    for line in out:
+        if line.strip() == "":
             blank += 1
             if blank > 1:
                 continue
         else:
             blank = 0
-        res.append(l)
+        res.append(line)
     while res and not res[0].strip():
         res.pop(0)
     while res and not res[-1].strip():
