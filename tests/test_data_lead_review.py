@@ -1,5 +1,5 @@
-import importlib.util
 import csv
+import importlib.util
 import unittest
 from pathlib import Path
 

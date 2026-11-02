@@ -1,0 +1,74 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_007",
+  "description": "Điều khoản thường: chỉ có các trường cần giữ (lương, phụ cấp, thời hạn, thời giờ, chức danh, tỉnh, vai trò), không PII",
+  "canonical_text": "Điều 3. Người lao động đảm nhận chức danh Chuyên viên kinh doanh tại Bắc Ninh.\nThời hạn hợp đồng: 24 tháng, kể từ ngày 01/12/2026. Thời gian thử việc 60 ngày.\nMức lương cơ bản 9.500.000 đồng/tháng, phụ cấp ăn trưa 730.000 đồng/tháng.\nThời giờ làm việc 08 giờ/ngày, 48 giờ/tuần; nghỉ hằng tuần 01 ngày.\nNgười sử dụng lao động có quyền điều chuyển người lao động sang vị trí khác theo nhu cầu sản xuất.\nĐịa điểm làm việc: Hải Phòng. Nơi ở: do công ty bố trí.",
+  "pii_spans": [],
+  "preserve_spans": [
+    {
+      "start": 8,
+      "end": 22,
+      "text": "Người lao động"
+    },
+    {
+      "start": 42,
+      "end": 64,
+      "text": "Chuyên viên kinh doanh"
+    },
+    {
+      "start": 69,
+      "end": 77,
+      "text": "Bắc Ninh"
+    },
+    {
+      "start": 98,
+      "end": 106,
+      "text": "24 tháng"
+    },
+    {
+      "start": 150,
+      "end": 157,
+      "text": "60 ngày"
+    },
+    {
+      "start": 176,
+      "end": 196,
+      "text": "9.500.000 đồng/tháng"
+    },
+    {
+      "start": 214,
+      "end": 232,
+      "text": "730.000 đồng/tháng"
+    },
+    {
+      "start": 252,
+      "end": 263,
+      "text": "08 giờ/ngày"
+    },
+    {
+      "start": 265,
+      "end": 276,
+      "text": "48 giờ/tuần"
+    },
+    {
+      "start": 293,
+      "end": 300,
+      "text": "01 ngày"
+    },
+    {
+      "start": 302,
+      "end": 324,
+      "text": "Người sử dụng lao động"
+    },
+    {
+      "start": 346,
+      "end": 360,
+      "text": "người lao động"
+    },
+    {
+      "start": 420,
+      "end": 429,
+      "text": "Hải Phòng"
+    }
+  ]
+}

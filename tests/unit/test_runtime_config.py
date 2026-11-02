@@ -5,7 +5,6 @@ import subprocess
 import sys
 
 import pytest
-
 from app.core.config import Settings, load_settings, validate_for_env
 
 

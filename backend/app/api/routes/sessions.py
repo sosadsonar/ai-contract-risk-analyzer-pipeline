@@ -164,7 +164,7 @@ def export(request: Request, session_id: str, format: str = "docx"):
     report.add_paragraph(result["data_notice"])
     buffer = io.BytesIO()
     report.save(buffer)
-    return Response(buffer.getvalue(), media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    return Response(buffer.getvalue(), media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # noqa: E501
                     headers={"Content-Disposition": 'attachment; filename="report.docx"'})
 
 

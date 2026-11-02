@@ -28,7 +28,7 @@ def _pdf(path, lines_by_page):
 
 
 def _long_line(label):
-    return f"{label}: Employer and employee agree on working hours, salary and contract term for the next twelve months."
+    return f"{label}: Employer and employee agree on working hours, salary and contract term for the next twelve months."  # noqa: E501
 
 
 def test_canonicalization_preserves_structural_newlines_nfc_and_code_points():

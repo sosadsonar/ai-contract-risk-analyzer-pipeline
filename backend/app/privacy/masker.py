@@ -13,7 +13,7 @@ from __future__ import annotations
 from app.privacy.detector import detect
 from app.privacy.pii_types import TYPE_SHORT_CODE, TYPE_TAG, MaskResult, PiiSpan, PiiType
 
-PII_MASKING_VERSION = "pii_draft_0.2"
+PII_MASKING_VERSION = "pii_draft_0.3"
 
 
 # ==============================================================================

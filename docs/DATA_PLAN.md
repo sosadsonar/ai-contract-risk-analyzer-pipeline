@@ -17,7 +17,7 @@ Quy tắc cứng: **không chỉnh hệ thống dựa trên T1/T2**; tuning ch�
 
 | Mục | Giá trị kiểm được |
 |---|---|
-| Data repo | submodule `ai_pipeline/data`, ghim commit `a086606d8ffe1e4bce90845c40513d94cb8800dc` (Data PR #8); không dùng `submodule update --remote`, không sửa file data từ repo pipeline |
+| Data repo | submodule `ai_pipeline/data`, ghim commit `6b35387`; không dùng `submodule update --remote`, không sửa file data từ repo pipeline |
 | Dataset | `clauses_v06.csv`, 234 clause, 5 hợp đồng đã annotate, 4 template family |
 | Chất lượng offset | 225 `EXACT` + 9 `CONTEXT` (audit: `data_lead_span_audit.json`) |
 | Annotation lịch sử | 183 annotation giữ nguyên nội dung/nhãn khi đối chiếu v04 → v06 |
@@ -33,7 +33,7 @@ Quy tắc cứng: **không chỉnh hệ thống dựa trên T1/T2**; tuning ch�
 
 | Mục | Giá trị trong data nhận |
 |---|---|
-| Release | `v06-rc1`, `CANDIDATE_REVIEW_REQUIRED`; manifest ghi `source_data_commit 5ce5796`, `base_main_commit 3fadcfe`. **Chưa đối chiếu được với commit ghim `a086606`** (file zip không có lịch sử git) |
+| Release | `v06-rc1`, `CANDIDATE_REVIEW_REQUIRED`; manifest ghi `source_data_commit 5ce5796`, `base_main_commit 3fadcfe`. **Đã đối chiếu (01/11, bằng git trong submodule):** `5ce5796` là tổ tiên của `a086606` và `6b35387`; 30/30 hash manifest khớp tại cả hai commit; `clauses_v06.csv`, 6 raw_text, 6 raw contract, taxonomy v03 và guideline giống hệt byte với `5ce5796`; các tệp còn lại (metadata, split, báo cáo W5, manifest) được thêm/sửa SAU `5ce5796` trong chính các PR release nên không có ở commit đó. Kết luận: pin không phá manifest |
 | Hợp đồng | 6 raw: HDLD001–005 đã annotate (39/40/61/43/51 clause); **HDLD006** giữ raw để kiểm duplicate (gần trùng HDLD005, chưa annotate); **HDLD007** chờ quyền phân phối + annotate |
 | Split provisional | train HDLD003+005 (112) · dev HDLD001+002 (79, scorable 49) · test HDLD004 (43, scorable 34); span EXACT scorable 110/48/28. Dev thiếu `TERMINATION`, test thiếu `WORKING_TIME` (đã xác nhận bằng số) |
 | Hard test | `hard_test_v06_rc1.jsonl`, 20 ca (14 EXACT + 6 CONTEXT), chờ adjudicate độc lập; nhãn pháp lý = null |
