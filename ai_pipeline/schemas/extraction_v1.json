@@ -4,7 +4,7 @@
   "title": "Extraction stage artifact (RAM only)",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "filename", "role", "extraction_version", "canonical_text", "page_count", "char_count"],
+  "required": ["schema_version", "filename", "role", "extraction_version", "canonical_text", "char_count"],
   "properties": {
     "schema_version": {"const": "extraction_v1"},
     "filename": {"type": "string", "minLength": 1},
@@ -13,5 +13,9 @@
     "canonical_text": {"type": "string", "minLength": 1},
     "page_count": {"type": "integer", "minimum": 1},
     "char_count": {"type": "integer", "minimum": 1}
-  }
+  },
+  "allOf": [
+    {"if": {"properties": {"extraction_version": {"const": "extract_pdf_v1"}}},
+     "then": {"required": ["page_count"]}}
+  ]
 }

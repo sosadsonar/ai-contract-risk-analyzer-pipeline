@@ -1,10 +1,11 @@
-"""Real PDF → canonical → scope → mask → segment, without dev fixture results."""
+"""Real PDF/DOCX → canonical → scope → mask → segment, without dev fixture results."""
 
 import pymupdf
 import pytest
 from app.core.config import Settings
 from app.domain.errors import ValidationReject
 from app.session.local_validation import validate_local
+from docx import Document
 
 
 def _pdf(path, text):
@@ -74,3 +75,29 @@ async def test_real_pdf_clause_limit_rejects_at_segment_stage(tmp_path):
     with pytest.raises(ValidationReject) as rejected:
         await validate_local(path, path.name, Settings(_env_file=None, MAX_CLAUSES=1))
     assert rejected.value.code == "TOO_MANY_CLAUSES"
+
+
+@pytest.mark.asyncio
+async def test_docx_validation_masks_pii_and_preserves_canonical_clause_offsets(tmp_path):
+    path = tmp_path / "labor.docx"
+    doc = Document()
+    doc.add_paragraph("HỢP ĐỒNG LAO ĐỘNG")
+    doc.add_paragraph("Người lao động và người sử dụng lao động thỏa thuận công việc và tiền lương.")
+    doc.add_paragraph("Điều 1. Công việc")
+    doc.add_paragraph("Người lao động thực hiện công việc theo hợp đồng; điện thoại: 0912345678.")
+    doc.add_paragraph("Điều 2. Tiền lương")
+    doc.add_paragraph("Người sử dụng lao động trả lương hàng tháng theo thỏa thuận trong hợp đồng.")
+    doc.save(path)
+
+    output = await validate_local(path, path.name, Settings(_env_file=None))
+    canonical = output.extraction.canonical_text
+    masked = output.masking.masked_text
+    assert output.scope.accept and output.extraction.page_count is None
+    assert len(masked) == len(canonical)
+    assert "0912345678" in canonical and "0912345678" not in masked
+    assert [c.structure.number for c in output.segmentation.clauses if c.structure.number] == ["1", "2"]
+    assert all(c.original_text == canonical[c.start_char:c.end_char] for c in output.segmentation.clauses)
+    assert all(not (span.start < boundary < span.end)
+               for c in output.segmentation.clauses
+               for boundary in (c.start_char, c.end_char)
+               for span in output.masking.pii_spans)

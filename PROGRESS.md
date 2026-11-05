@@ -176,7 +176,7 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [x] **Báo cáo số đo PII đầu tiên** (01/11): `docs/PII_MEASUREMENT_2026-11-01.md`, sinh bởi `ai_pipeline/eval/eval_pii.py`. D1 là biểu mẫu trống nên chỉ đo được trên fixture tổng hợp; OI-12 **chưa chốt**, chờ gold privacy D1 (N2) hoặc hợp đồng thật
   - [x] Thiết kế prompt `risk_v1` + khung `risk_adapter` với provider mock (01/11): `ai/prompts/risk_v1.py`, `ai/risk_adapter.py`; test `test_risk_prompt`, `test_risk_adapter`, `contract/test_risk_adapter_output`
 - **N4**
-  - [ ] C-08 (b): DOCX extractor (numbering, tracked changes accepted-state, textbox); phạm vi numbering (OI-11)
+  - [x] C-08 (b) (chưa commit; phần 1/4): DOCX parser theo thứ tự paragraph/table, numbering decimal/chữ cái/Roman/bullet và override nhiều cấp, accepted-state của tracked changes, textbox sát anchor; bỏ header/footer/comment/footnote. Sniff `.docx` + ZIP signature, cap 10 MB / 100.000 code point canonical, `extraction_v1` không có `page_count` cho DOCX; nối `validate_local` và test fixture DOCX tổng hợp. **Chưa nối HTTP**, chưa thử DOCX D1/thực tế; OI-11 vẫn chờ nhóm chốt phạm vi numbering.
   - [ ] C-16 (a): `RunLogWriter`, `DailyQuota.before_call/after_call` (tăng nguyên tử **trước** call), `EvalCostLedger` khung
   - [ ] X-05 (a): bộ đo benchmark D1 (p50/p90 từng stage)
   - [ ] **Họp chốt cấu hình mở:** SRS OI-03, 05, 09–12
