@@ -27,3 +27,11 @@ costs separately from the product database; `summary()` reports call/token/cost
 totals, including unfinished attempts. Neither ledger accepts contract text.
 The dev fixture runner does not emit fake stage logs; production stage logging
 waits for the real orchestrator. No demo quota number is chosen yet.
+
+For provisional D1 *local-only* timing, from `backend/` run
+`python -m app.ops.benchmark_d1 --data-root ../ai_pipeline/data --repeats 5`.
+This checks the four input hashes in release v06-rc1 and prints metadata-only
+per-stage p50/p90, clause counts, and planned calls; it never calls a provider.
+HDLD001–003 use canonicalized Word text snapshots, not `.doc` upload extraction;
+HDLD004 runs the actual DOCX extractor. Read `docs/D1_LOCAL_BENCHMARK_W4.md`
+for measured results and missing stages before sizing quota or making NFR claims.
