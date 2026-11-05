@@ -8,6 +8,7 @@
 - Nội dung phiên ở RAM với TTL 60 phút. SQLite chỉ chứa metadata quota/rate/RunLog/tombstone, không lưu nội dung hợp đồng.
 - `session/local_validation.py` ghép PDF/DOCX extraction → scope → mask toàn văn → segment trong worker thread; artifact chỉ cho caller cục bộ hoặc ném `ValidationReject`, không ghi/publish kết quả. DOCX hỗ trợ document order, accepted-state revisions, textbox gần anchor và các kiểu numbering phổ biến; OI-11 và kiểm chứng trên D1 còn mở.
 - API/orchestrator chưa gọi runner này: upload chưa giữ nội dung để extract, luồng `APP_ENV=dev` vẫn dùng fixture, demo/eval chưa được phép khởi động. Clause Graph và các stage PROCESSING thật chờ N1/N2/N3; không coi fixture dev là phân tích PDF/DOCX thật.
+- `ops/runlog.py` ghi stage metrics đã kiểm kiểu vào SQLite; `ops/quota.py` ghi actual calls trước provider và chỉ áp reserve khi nhận phiên mới. Eval dùng CSV ledger tách khỏi SQLite sản phẩm. Provider tính chi phí kể cả response sai schema/hủy. Dev fixture không tạo stage log giả; orchestrator thật chưa nối RunLog/CallLedger và quota số cụ thể chờ benchmark D1.
 - Hai stub rỗng `integrations/clause_ai.py` và `integrations/risk_ai.py` đã xóa; luồng thật ở `ai/clause_adapter.py` và `ai/risk_adapter.py`. `explanation_ai.py` đã xóa: không có adapter hoặc provider call thứ ba.
 
 ## Luồng đích

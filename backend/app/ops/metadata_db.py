@@ -1,6 +1,6 @@
 """SQLite stores operational counters and expiry markers, never contract content."""
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from threading import RLock
 from uuid import UUID
@@ -47,13 +47,6 @@ class MetadataDB:
             self.connection.execute("INSERT INTO daily_usage(day,calls) VALUES (?,1) "
                                     "ON CONFLICT(day) DO UPDATE SET calls=calls+1", (day,))
 
-    def try_reserve(self, day: str, quota: int | None) -> bool:
-        """Tăng bộ đếm NGUYÊN TỬ nếu còn quota (quota None = chỉ đếm). False = hết quota, không tăng."""
-        with self.lock, self.connection:
-            self.connection.execute("INSERT OR IGNORE INTO daily_usage(day,calls) VALUES (?,0)", (day,))
-            cur = self.connection.execute(
-                "UPDATE daily_usage SET calls=calls+1 WHERE day=? AND (? IS NULL OR calls<?)", (day, quota, quota))
-            return cur.rowcount == 1
 
     def add_usage(self, day: str, input_tokens: int, output_tokens: int, cost: float, error: bool) -> None:
         with self.lock, self.connection:
@@ -62,6 +55,21 @@ class MetadataDB:
                 "VALUES (?,?,?,?,?) ON CONFLICT(day) DO UPDATE SET input_tokens=input_tokens+excluded.input_tokens, "
                 "output_tokens=output_tokens+excluded.output_tokens, estimated_cost=estimated_cost+excluded.estimated_cost, "  # noqa: E501
                 "errors=errors+excluded.errors", (day, input_tokens, output_tokens, cost, int(error)))
+
+    def insert_run_log(self, session_id: str, stage: str, started_at: str, duration_ms: int,
+                       calls: int, input_tokens: int, output_tokens: int, estimated_cost: float,
+                       error_code: str | None, graph_enabled: bool | None,
+                       graph_added_candidates: int | None) -> None:
+        """Persist only bounded operational fields provided by RunLogWriter."""
+        with self.lock, self.connection:
+            self.connection.execute(
+                "INSERT INTO run_log(session_id,stage,started_at,duration_ms,calls,input_tokens,"
+                "output_tokens,estimated_cost,error_code,graph_enabled,graph_added_candidates,created_at) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                (session_id, stage, started_at, duration_ms, calls, input_tokens, output_tokens,
+                 estimated_cost, error_code, int(graph_enabled) if graph_enabled is not None else None,
+                 graph_added_candidates, iso(datetime.now(timezone.utc))),
+            )
 
     def usage(self, day: str) -> dict:
         with self.lock:
