@@ -1,5 +1,7 @@
 """Consumer-visible dev sample lifecycle and retention."""
+import asyncio
 import io
+import threading
 import time
 from datetime import timedelta
 from uuid import UUID, uuid4
@@ -37,12 +39,23 @@ def completed(client, sid):
     pytest.fail("Sample transition did not complete")
 
 
-def test_result_export_delete_and_tombstone(client):
-    sid = create(client)
-    path = f"{BASE}/{sid}"
-    assert client.get(path + "/status").json()["updated_at"].endswith("Z")
-    assert client.get(path + "/result").json()["error"]["code"] == "SESSION_NOT_READY"
-    assert client.post(path + "/retry").json()["error"]["code"] == "INVALID_SESSION_STATE"
+def test_result_export_delete_and_tombstone(client, monkeypatch):
+    release = threading.Event()
+    original_run = app.state.orchestrator.run
+
+    async def gated_run(session, error_code=None):
+        await asyncio.to_thread(release.wait, 10)
+        await original_run(session, error_code)
+
+    monkeypatch.setattr(app.state.orchestrator, "run", gated_run)
+    try:
+        sid = create(client)
+        path = f"{BASE}/{sid}"
+        assert client.get(path + "/status").json()["updated_at"].endswith("Z")
+        assert client.get(path + "/result").json()["error"]["code"] == "SESSION_NOT_READY"
+        assert client.post(path + "/retry").json()["error"]["code"] == "INVALID_SESSION_STATE"
+    finally:
+        release.set()
     completed(client, sid)
     result = client.get(path + "/result").json()
     assert result["session_id"] == sid
