@@ -1,16 +1,27 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: Kiểm soát tài liệu | 3029 ký tự | trước: 00_preamble.md | sau: 02_1-muc-dich-pham-vi-va-invariant-ky-thuat.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: Kiểm soát tài liệu | 4312 ký tự | trước: 00_technical-design-document.md | sau: 02_1-muc-dich-pham-vi-va-invariant-ky-thuat.md -->
 
 # Kiểm soát tài liệu
 
 | Mục | Giá trị |
 |---|---|
 | Tên tài liệu | Technical Design Document - AI Labor Contract Risk Analyzer |
-| Phiên bản | 0.2 - Draft |
-| Ngày | 12/10/2026 |
-| Nguồn yêu cầu | BRD 0.5 (draft), SRS 1.3, SDD 0.1 |
+| Phiên bản | 0.3 - Draft |
+| Ngày | 03/11/2026 |
+| Nguồn yêu cầu | BRD 0.6 (draft), SRS 1.5, SDD 0.2 |
 | Phạm vi | API contract, JSON Schema, module/class, thuật toán local, graph, legal retrieval, LLM adapter, cấu hình, test và evaluation artifacts |
 | Không thay đổi | Business scope, pipeline invariant, state semantics, privacy boundary, closed-corpus rule, chỉ số nghiệm thu trong BRD |
 | Trạng thái | Draft kỹ thuật; các giá trị cấu hình ghi “tune trên D1” được phép đổi mà không đổi API/schema semantics |
+
+## Thay đổi chính trong 0.3 (audit 03/11/2026)
+
+* Cơ sở BRD 0.6, SRS 1.5, SDD 0.2. Đóng O-10 (`related_clause_ids` đã có ở SRS 1.4 và FR-32), cập nhật O-01, O-08, O-11; thêm O-13, O-14.
+* 7.3: resume chỉ ở giai đoạn AI, so khớp version pin thay vì SHA-256 chuỗi hash upstream; giai đoạn VALIDATING chạy lại từ EXTRACTION.
+* 10: thêm loại PII (mã số thuế, địa chỉ trụ sở, ngày và nơi cấp giấy tờ, chữ ký); boundary rơi vào placeholder thì bỏ match.
+* 14.2: đơn vị nút LegalProvision là Khoản, cha là Điều; Điểm nằm trong nội dung Khoản.
+* 5.4, 15.5, A.2: thêm trường tùy chọn `related_clause_ids` (risk) và `clause` (citation), không đổi version schema; tổ hợp (nhãn, loại căn cứ, vai trò) sai thì retry có phản hồi, vẫn sai thì bản ghi "cần xem xét".
+* 17.2, 17.6: quota lưu bền; thang xử lý hiệu năng.
+* 18.4: thêm M2b, M9, M10, căn chỉnh gold, tập P1.
+* C.2: quy tắc prompt (định nghĩa UF/AM theo vai trò, LV nghi ngờ gắn INSUFFICIENT, cận chắc chắn, mâu thuẫn, cách nhắc luật).
 
 ## Thay đổi chính trong 0.2
 

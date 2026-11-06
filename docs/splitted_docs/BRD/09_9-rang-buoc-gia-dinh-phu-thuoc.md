@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_0_5.md | mục: BRD: AI Labor Contract Risk Analyzer > 9. Ràng buộc, giả định, phụ thuộc | 3609 ký tự | trước: 08_8-do-luong-chat-luong-va-nghiem-thu.md | sau: 10_10-rui-ro-du-an.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 9. Ràng buộc, giả định, phụ thuộc | 3732 ký tự | trước: 08_8-do-luong-chat-luong-va-nghiem-thu.md | sau: 10_10-rui-ro-du-an.md -->
 
 ## 9. Ràng buộc, giả định, phụ thuộc
 
@@ -33,7 +33,7 @@
 
 | Mốc | Ngày | Nội dung |
 |---|---|---|
-| MS-1 | 25/10/2026 (hết tuần 2) | Đóng băng clause taxonomy, risk taxonomy, severity rubric, annotation guideline (SRS DEC-10). Risk taxonomy có người phụ trách và bản đầu (OI-01). Chốt danh mục kho luật tầng 1 (OI-02). |
+| MS-1 | 25/10/2026 (hết tuần 2) | Đóng băng clause taxonomy, risk taxonomy, severity rubric, annotation guideline (SRS DEC-10). Risk taxonomy có người phụ trách và bản đầu (OI-01). Chốt danh mục kho luật tầng 1 (OI-02). Ghi nhận: risk taxonomy chưa freeze tại 25/10/2026; ngày freeze chốt sau khi rà bảng severity và hoàn tất review tài liệu. |
 | MS-2 | 08/11/2026 (hết tuần 4) | Chốt các cấu hình còn mở (SRS OI-03 đến OI-05, OI-09 đến OI-12). Bản đầu kho luật tầng 1 và Data Graph cấu trúc. Pipeline đến Clause Classification chạy trên D1. Che dữ liệu cá nhân có số đo đầu trên D1. |
 | MS-3 | 06/12/2026 (hết tuần 8) | Demo full luồng cho cả hai vai trò. Khóa phiên bản hệ thống và ghi commit hash (SRS EV-07). |
 | MS-4 | 13/12/2026 (hết tuần 9) | Chạy xong T1, T2, M1 đến M8, hiệu chuẩn judge (M6). |

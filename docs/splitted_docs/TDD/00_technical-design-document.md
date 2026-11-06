@@ -1,6 +1,6 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: Preamble | 268 ký tự | trước: - | sau: 01_kiem-soat-tai-lieu.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: TECHNICAL DESIGN DOCUMENT | 266 ký tự | trước: - | sau: 01_kiem-soat-tai-lieu.md -->
 
-**TECHNICAL DESIGN DOCUMENT**
+# TECHNICAL DESIGN DOCUMENT
 
 **AI Labor Contract Risk Analyzer**
 

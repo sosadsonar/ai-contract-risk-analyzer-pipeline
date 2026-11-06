@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 9. LLM Integration Design | 967 ký tự | trước: 09_8-session-state-machine-va-dieu-phoi.md | sau: 11_10-legal-corpus-va-citation-validation.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 9. LLM Integration Design | 1030 ký tự | trước: 09_8-session-state-machine-va-dieu-phoi.md | sau: 11_10-legal-corpus-va-citation-validation.md -->
 
 # 9. LLM Integration Design
 
@@ -7,7 +7,7 @@
 | Adapter | Input | Output | Quy tắc |
 |---|---|---|---|
 | Clause Classification | Batch (clause_id, masked clause) | clause_id + 1..3 clause_labels | Không quote/span/score tự khai. |
-| Risk Analysis | Target clause + labels + role + legal candidates + optional related clause context | risk_labels, severity, explanation, citation_ids, evidence_status | Chỉ chọn citation trong candidates; severity null nếu thiếu evidence. |
+| Risk Analysis | Target clause + labels + role + legal candidates + optional related clause context | risk_labels, basis_type, explanation, citation_ids, evidence_status, related_clause_ids (tùy chọn) | Chỉ chọn citation trong candidates; severity do backend tra bảng taxonomy, null nếu thiếu evidence. |
 
 ## 9.2 LLM Client cross-cutting
 

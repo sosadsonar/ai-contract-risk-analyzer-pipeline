@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 6. Trạng thái xử lý và mã lỗi | 4064 ký tự | trước: 07_5-quy-tac-legal-retrieval-va-citation.md | sau: 09_7-yeu-cau-phi-chuc-nang-cho-demo.md -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 6. Trạng thái xử lý và mã lỗi | 4055 ký tự | trước: 08_5-quy-tac-legal-retrieval-va-citation.md | sau: 10_7-yeu-cau-phi-chuc-nang-cho-demo.md -->
 
 ## 6. Trạng thái xử lý và mã lỗi
 
@@ -15,6 +15,7 @@ UPLOADED -> VALIDATING -> REJECTED                  (input/file/out-of-scope; cu
 FAILED --manual retry--> VALIDATING   nếu failed stage thuộc local validating stages
 FAILED --manual retry--> PROCESSING   nếu failed stage thuộc processing stages
 COMPLETED | FAILED | REJECTED -> EXPIRED
+VALIDATING | PROCESSING --End Session--> EXPIRED   (hủy tác vụ đang chạy, giải phóng processing slot)
 
 | State | Ý nghĩa |
 |---|---|
@@ -39,7 +40,6 @@ COMPLETED | FAILED | REJECTED -> EXPIRED
 | NOT_LABOR_CONTRACT | Ngoài phạm vi HĐLĐ | REJECTED | Không |
 | TOO_MANY_CLAUSES | Quá 150 clause | REJECTED | Không |
 | ROLE_REQUIRED | Upload không kèm vai trò | Từ chối request, không tạo phiên | Có, gửi lại kèm vai trò |
-| SESSION_NOT_ACCEPTING_UPLOAD | Phiên đã nhận file hoặc đã kết thúc | Từ chối request | Không, mở phiên mới |
 | SYSTEM_BUSY | Đang có phiên xử lý khác | Từ chối request, không tạo phiên | Có, sau |
 | QUOTA_EXCEEDED | Vượt trần call LLM trong ngày | Từ chối request, không tạo phiên | Có, sau |
 | RATE_LIMITED | Vượt giới hạn tần suất theo IP | Từ chối request | Có, sau |

@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 11. Truy vết BRD và SRS | 2853 ký tự | trước: 12_10-quy-tac-nghiep-vu-bat-buoc.md | sau: 14_12-tieu-chi-nghiem-thu-he-thong.md -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 11. Truy vết BRD và SRS | 2982 ký tự | trước: 13_10-quy-tac-nghiep-vu-bat-buoc.md | sau: 15_12-tieu-chi-nghiem-thu-he-thong.md -->
 
 ## 11. Truy vết BRD và SRS
 
@@ -49,4 +49,5 @@ Mỗi yêu cầu SRS có nguồn gốc nghiệp vụ trong BRD, hoặc phải gh
 | NFR-DATA-04 | BR-13 | Dữ liệu hợp đồng không tồn tại ngoài phiên |
 | NFR-SEC-06 | BRD 7.5 | Nhà cung cấp LLM và cấu hình model |
 | NFR-MAINT-03 | BR-14, BR-17 | Dữ liệu graph cập nhật không sửa mã |
-| EV-01 đến EV-10 | BRD 7.6, 8; BR-17, BR-18 | Hỗ trợ đánh giá, fair graph A/B, Clause Graph trace và cost isolation |
+| EV-01 đến EV-11 | BRD 7.6, 8; BR-17, BR-18 | Hỗ trợ đánh giá, fair graph A/B, Clause Graph trace và cost isolation |
+| FR-32, FR-33 | BRD BR-18 (3.2, 8.3 M10) | Báo mâu thuẫn qua related_clause_ids và context chung JOB_INFO, CONTRACT_TERM_TYPE |

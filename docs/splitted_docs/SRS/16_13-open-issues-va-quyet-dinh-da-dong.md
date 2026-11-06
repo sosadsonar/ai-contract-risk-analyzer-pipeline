@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 13. Open Issues và quyết định đã đóng | 2441 ký tự | trước: 14_12-tieu-chi-nghiem-thu-he-thong.md | sau: 16_phu-luc-c-thay-doi-can-lam-o-codebase-hien-tai-ghi.md -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 13. Open Issues và quyết định đã đóng | 2441 ký tự | trước: 15_12-tieu-chi-nghiem-thu-he-thong.md | sau: 17_phu-luc-c-thay-doi-can-lam-o-codebase-hien-tai-ghi.md -->
 
 ## 13. Open Issues và quyết định đã đóng
 

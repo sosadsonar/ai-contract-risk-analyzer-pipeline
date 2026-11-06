@@ -1,13 +1,11 @@
-
-
-**SYSTEM DESIGN DOCUMENT**
+# **SYSTEM DESIGN DOCUMENT**
 
 **AI Labor Contract Risk Analyzer**
 
-SDD phiên bản 0.1 (Draft)
+SDD phiên bản 0.2 (Draft)
 
-Cơ sở: BRD 0.5 \+ SRS 1.3  
-Ngày: 12/10/2026
+Cơ sở: BRD 0.6 \+ SRS 1.5  
+Ngày: 03/11/2026
 
 | Tài liệu này thiết kế kiến trúc hệ thống ở mức SDD. Các endpoint cụ thể, JSON Schema, class/function, thư viện và cấu hình số chi tiết được khóa ở TDD/API Contract. |
 | :---- |
@@ -17,8 +15,9 @@ Ngày: 12/10/2026
 | Mục | Giá trị |
 | :---- | :---- |
 | Tên tài liệu | System Design Document \- AI Labor Contract Risk Analyzer |
-| Phiên bản | 0.1 \- Draft |
-| Nguồn yêu cầu | BRD 0.5 (draft) và SRS 1.3 |
+| Phiên bản | 0.2 \- Draft |
+| Nguồn yêu cầu | BRD 0.6 (draft) và SRS 1.5 |
+| Thay đổi so với 0.1 | Đồng bộ với SRS 1.5: Risk adapter trả basis\_type (severity do backend tra bảng taxonomy), related\_clause\_ids, hạ evidence\_status, thêm component Context Resolver, Cleanup Scheduler, Taxonomy Validator, Severity Resolver, Advice Linter; quota lưu bền; E2E đếm mọi phiên; M1-M10, EV-11, tập D3 và P1; sơ đồ cần vẽ lại theo bộ sơ đồ master ở ARCHITECTURE.md |
 | Phạm vi | Thiết kế tổng thể, component, data flow, graph, security, deployment và mapping yêu cầu |
 | Không thuộc SDD | HTTP endpoint cụ thể, JSON Schema chi tiết, class/function, package/thư viện cụ thể, prompt chi tiết |
 
@@ -42,11 +41,11 @@ SDD chuyển các yêu cầu nghiệp vụ và yêu cầu phần mềm thành m�
 | :---- | :---- | :---- |
 | SDD-01 | Backend dùng kiến trúc Modular Monolith với một Analysis Orchestrator trung tâm. | Phù hợp giới hạn 5 người, 8 tuần, một phiên xử lý. |
 | SDD-02 | Session store mặc định ở bộ nhớ tiến trình; file upload chỉ dùng temp storage nếu parser yêu cầu và bị xóa theo session. | Tuân NFR-DATA-04; codebase hiện tại cần bỏ lưu contract trong PostgreSQL. |
-| SDD-03 | Retrieval nền \= bảng ánh xạ clause/risk label sang provision \+ lexical search; embedding chưa thuộc baseline. | Theo giá trị tạm OI-07; embedding chỉ cân nhắc nếu M8 trên D2 không đạt. |
+| SDD-03 | Retrieval nền \= bảng ánh xạ nhãn clause sang provision (label map) \+ lexical search; embedding chưa thuộc baseline. | Theo giá trị tạm OI-07; embedding chỉ cân nhắc nếu M8 trên D2 không đạt. |
 | SDD-04 | Data Graph được load thành adjacency index trong backend; không dùng graph database cho demo. | Giảm phạm vi; graph là dữ liệu corpus, không cần hạ tầng riêng. |
 | SDD-05 | Data Graph mở rộng tối đa 1 hop từ seed candidate; seed được ưu tiên trước neighbor; trọng số chi tiết để TDD chốt. | Theo giá trị tạm OI-09; kiểm soát chi phí/độ trễ. |
 | SDD-06 | Clause Graph được dùng làm Context Resolver cho Risk stage: lấy các clause liên quan trực tiếp để cung cấp masked context, không tạo thêm LLM call. | Hiện thực mục tiêu Validation & Reasoning mà không đổi pipeline hai LLM call. |
-| SDD-07 | Operational metadata (RunLog, quota/rate counters) có thể lưu bền vững nhưng tuyệt đối không chứa contract content. | NFR-DATA-04 chỉ cấm nội dung phiên; NFR-COST cần log chi phí. |
+| SDD-07 | Operational metadata (RunLog, quota/rate counters) phải lưu bền vững (bộ đếm quota ngày không được reset khi khởi động lại) nhưng tuyệt đối không chứa contract content. | NFR-DATA-04 chỉ cấm nội dung phiên; NFR-COST cần log chi phí. |
 
 # **2\. System Context**
 
@@ -84,17 +83,21 @@ Backend được thiết kế thành các module độc lập theo trách nhiệ
 | PII Masker | Che PII trên toàn canonical text bằng placeholder cùng độ dài. | Không lưu mapping ngược. |
 | Clause Segmenter | Tách clause bằng rule structural \+ paragraph fallback, backend tính span. | LLM segmentation chỉ là optional/cut item. |
 | Clause Graph Builder | Dựng NEXT/PARENT\_OF/REFERS\_TO chỉ bằng clause\_id. | Ephemeral, không chứa text. |
+| Context Resolver | Chọn related clause cho từng target (REFERS\_TO, PARENT\_OF, NEXT trước và sau) cộng clause JOB\_INFO, CONTRACT\_TERM\_TYPE làm context chung; backend lấy masked text tương ứng. | Không gọi LLM; ghi ContextResolutionTrace (EV-09). |
 | Clause Classification Adapter | Batch masked clauses tới LLM, validate structured output. | LLM call \#1. |
 | Legal Corpus Manager | Load/validate corpus, version/effective dates, index và LegalEdge. | Fail fast khi corpus conflict. |
 | Baseline Retriever | Label mapping \+ lexical search tạo seed candidates. | Hoạt động độc lập Data Graph. |
 | Data Graph Service | Mở rộng/rank candidates tối đa 1 hop. | Có thể tắt; không sinh citation mới. |
-| Risk Analysis Adapter | Risk labels, severity, explanation, citation selection từ candidates. | LLM call \#2. |
+| Risk Analysis Adapter | Risk labels, basis\_type, explanation, citation selection và related\_clause\_ids từ candidates; không trả severity. | LLM call \#2. |
 | Citation Validator | Existence/version/candidate validation; log citation ngoài candidate. | Backend authoritative. |
+| Taxonomy Validator và Severity Resolver | Kiểm (nhãn, basis\_type, vai trò) theo risk taxonomy; tổ hợp sai thì retry có phản hồi một lần, vẫn sai thì phát bản ghi "cần xem xét"; severity do backend tra bảng, LLM không trả. | Bảng taxonomy trong mã là nguồn duy nhất. |
+| Advice Linter | Lọc lời khuyên pháp lý khỏi phần giải thích (FR-17). | Backend authoritative. |
 | Result Assembler | Join theo clause\_id với original\_text/span, dựng final response. | Không dùng masked text làm quote. |
 | Report Exporter | Xuất DOCX/PDF theo khả năng đã chốt. | Không lưu report sau session. |
 | LLM Client | Timeout 30s, auto-retry 1, model id bắt buộc, token/cost logging. | Gemini Flash paid tier demo/eval. |
 | RunLog / Quota / Rate Limit | Metadata stage/call/token/cost/error; daily quota; rate limit theo IP. | Không log content/PII. |
-| Evaluation Harness | Chạy pipeline như thư viện, không đi qua API/session; M1-M8/EV-08. | Dữ liệu dev/test de-identify. |
+| Cleanup Scheduler | Xóa phiên hết hạn (60 phút không hoạt động) và dữ liệu tạm; giữ bản ghi EXPIRED chỉ gồm session\_id và status. | Không đọc nội dung phiên. |
+| Evaluation Harness | Chạy pipeline như thư viện, không đi qua API/session; M1-M10/EV-08, EV-11. | Dữ liệu dev/test de-identify. |
 
 # **4\. Pipeline xử lý end-to-end**
 
@@ -116,8 +119,8 @@ Pipeline giữ đúng các quy tắc của SRS: PII masking trước segmentatio
 8. State chuyển PROCESSING; Clause Classification xử lý theo lô qua Gemini.  
 9. Baseline Retriever tạo seed legal candidates; Data Graph mở rộng tối đa 1 hop và lọc hiệu lực.  
 10. Clause Graph Context Resolver chọn related\_clause\_ids; backend lấy masked text tương ứng làm context cho Risk stage.  
-11. Risk LLM trả risk labels, severity/explanation/citation\_ids/evidence\_status theo clause\_id.  
-12. Citation Validator loại citation không hợp lệ; Result Assembler ghép quote/span chuẩn.  
+11. Risk LLM trả risk labels, basis\_type, explanation, citation\_ids, evidence\_status và related\_clause\_ids theo clause\_id; severity không do LLM trả.  
+12. Citation Validator loại citation không hợp lệ và hạ evidence\_status xuống INSUFFICIENT\_EVIDENCE khi không còn citation hợp lệ; Taxonomy Validator kiểm (nhãn, basis\_type, vai trò) và Severity Resolver tra bảng taxonomy; Result Assembler ghép quote/span chuẩn.  
 13. Nếu toàn bộ stage thành công, state \= COMPLETED; frontend lấy result/highlight/export.
 
 ## **4.2 Retry và lỗi**
@@ -176,7 +179,7 @@ Clause Graph là đồ thị tạm thời của một session, dựng ngay sau s
 
 SDD chốt Clause Graph là một Context Resolver, không phải nguồn dữ liệu phân tích độc lập và không tạo thêm LLM stage.
 
-* Đối với mỗi target clause, Context Resolver lấy các clause liên quan trực tiếp qua REFERS\_TO và PARENT\_OF; NEXT có thể dùng làm ngữ cảnh lân cận khi cần.  
+* Đối với mỗi target clause, Context Resolver lấy các clause liên quan trực tiếp qua REFERS\_TO, PARENT\_OF và NEXT (clause liền trước và liền sau), trong giới hạn số clause và số ký tự của context; thêm clause JOB\_INFO và CONTRACT\_TERM\_TYPE làm context chung (FR-33).  
 * Backend lấy masked text của các related\_clause\_ids từ cùng session và truyền dưới dạng context bổ sung cho Risk LLM.  
 * Risk LLM vẫn phải trả kết quả cho target clause\_id; related clauses chỉ hỗ trợ phát hiện điều kiện, mâu thuẫn hoặc phụ thuộc.  
 * Clause Graph không được thay đổi segmentation, original\_text, span hoặc quote.  
@@ -191,7 +194,7 @@ SDD chốt Clause Graph là một Context Resolver, không phải nguồn dữ l
 | :---- | :---- | :---- | :---- |
 | Session content | File gốc, canonical\_text, masked\_text, clauses, RiskResult, Clause Graph | Memory / temp storage | Xóa khi End Session hoặc 60 phút inactivity; mất khi restart. |
 | Legal knowledge | LegalProvision, LegalEdge, taxonomy artifacts | Versioned corpus artifacts / index | Persistent, cập nhật ngoài source code. |
-| Operational metadata | RunLog, token/cost, quota counter, error metadata | Metadata-only store/log | Có thể persistent; không chứa contract content/PII. |
+| Operational metadata | RunLog, token/cost, quota counter, error metadata | Metadata-only store/log | Phải persistent (quota ngày giữ qua khởi động lại); không chứa contract content/PII. |
 | Evaluation data | D1/D2/T1/T2 đã de-identify, gold, metrics output | Evaluation workspace | Ngoài session runtime; theo BRD 8\. |
 
 ## **7.2 Session aggregate**
@@ -248,7 +251,7 @@ Analysis Orchestrator là component duy nhất được phép chuyển state. C�
 | Adapter | Input | Output | Quy tắc |
 | :---- | :---- | :---- | :---- |
 | Clause Classification | Batch (clause\_id, masked clause) | clause\_id \+ 1..3 clause\_labels | Không quote/span/score tự khai. |
-| Risk Analysis | Target clause \+ labels \+ role \+ legal candidates \+ optional related clause context | risk\_labels, severity, explanation, citation\_ids, evidence\_status | Chỉ chọn citation trong candidates; severity null nếu thiếu evidence. |
+| Risk Analysis | Target clause \+ labels \+ role \+ legal candidates \+ optional related clause context | risk\_labels, basis\_type, explanation, citation\_ids, evidence\_status, related\_clause\_ids (tùy chọn) | Chỉ chọn citation trong candidates; severity do backend tra bảng taxonomy, null nếu thiếu evidence. |
 
 ## **9.2 LLM Client cross-cutting**
 
@@ -267,6 +270,7 @@ Analysis Orchestrator là component duy nhất được phép chuyển state. C�
 * Citation Validator kiểm tra: candidate membership \-\> existence \-\> version/effectivity \-\> structured metadata.  
 * Relevance là quality property được đánh giá bằng M3b; runtime không tự tuyên bố relevance chỉ vì citation tồn tại.  
 * Nếu không đủ căn cứ: giữ RiskResult với INSUFFICIENT\_EVIDENCE, citation\_ids rỗng và severity null.
+* Citation Validator hạ evidence\_status xuống INSUFFICIENT\_EVIDENCE khi LLM khai SUPPORTED mà không còn citation hợp lệ sau khi lọc; quy tắc áp dụng cho cả ba loại căn cứ.  
 
 # **11\. Security và Privacy Architecture**
 
@@ -284,7 +288,7 @@ Analysis Orchestrator là component duy nhất được phép chuyển state. C�
 
 # **12\. Reliability, Performance và Cost**
 
-* E2E target: 90% successful runs với PDF \<=15 trang hoặc DOCX \<=50.000 canonical characters hoàn thành \<=120s.  
+* E2E target: 90% các lượt được test (tính cả lượt lỗi) với PDF \<=15 trang hoặc DOCX \<=50.000 canonical characters hoàn thành \<=120s.  
 * UI phải chuyển trạng thái VALIDATING/PROCESSING trong \<=2s sau khi backend nhận upload.  
 * Không expose partial final report khi FAILED.  
 * Batching giảm số LLM calls; Data Graph/Clause Graph chạy local, không tăng số LLM calls.  
@@ -302,21 +306,22 @@ SDD không khóa nhà cung cấp hosting. Deployment chỉ yêu cầu một web 
 
 ## **13.1 Startup sequence**
 
-14. Load configuration: model id, API key reference, timeout, quota/rate settings, graph enable flag.  
-15. Load clause/risk taxonomy \+ version metadata.  
-16. Load legal corpus; validate version overlap và citation IDs.  
-17. Build baseline retrieval index.  
-18. Build Data Graph adjacency index; nếu corpus/graph conflict thì startup/reload fail fast.  
-19. Khởi tạo in-memory Session Store, processing lock, RunLog/quota services.  
-20. Chỉ sau khi các bước trên thành công mới nhận upload.
+1. Load configuration: model id, API key reference, timeout, quota/rate settings, graph enable flag.  
+2. Load clause/risk taxonomy \+ version metadata.  
+3. Load legal corpus; validate version overlap và citation IDs.  
+4. Build baseline retrieval index.  
+5. Build Data Graph adjacency index; nếu corpus/graph conflict thì startup/reload fail fast.  
+6. Khởi tạo in-memory Session Store, processing lock, RunLog/quota services.  
+7. Chỉ sau khi các bước trên thành công mới nhận upload.
 
 # **14\. Evaluation Architecture**
 
 Evaluation Harness dùng cùng các module pipeline nhưng chạy như thư viện ngoại tuyến, không qua API/session runtime.
 
-* Input: D1/D2/T1/T2 đã de-identify thủ công.  
-* Output: JSON artifacts và metrics M1-M8; không bị session cleanup xóa.  
+* Input: D1/D2/D3/T1/T2 đã de-identify thủ công, và tập P1 (PII giả sinh bằng script).  
+* Output: JSON artifacts và metrics M1-M10; không bị session cleanup xóa.  
 * M8 phải chạy hai cấu hình: Data Graph enabled và disabled.  
+* M10 chạy trên tập D3 ở hai cấu hình Clause Graph bật và tắt (EV-11).  
 * Judge Claude là tool offline riêng; chỉ chạy sau calibration M6 và không nằm trong product API.  
 * Mọi output evaluation chứa version pins và commit hash theo EV-04/EV-07.
 
@@ -328,10 +333,10 @@ Evaluation Harness dùng cùng các module pipeline nhưng chạy như thư vi�
 | FR-07..10 | Document Processing, PII Masker, Clause Segmenter |
 | FR-11, FR-28..29 | Clause Classification Adapter, LLM Client, Orchestrator |
 | FR-12, FR-15..16, FR-24, FR-30 | Legal Corpus Manager, Baseline Retriever, Data Graph Service, Citation Validator |
-| FR-13..18 | Risk Analysis Adapter, Clause Graph Context Resolver, Citation Validator |
+| FR-13..18 | Risk Analysis Adapter, Clause Graph Context Resolver, Citation Validator, Taxonomy Validator, Severity Resolver, Advice Linter |
 | FR-19..20, FR-22, FR-25 | Result Assembler, Web Frontend, Report Exporter |
 | FR-21, FR-23 | Orchestrator, Session Store, Cleanup Scheduler |
-| FR-31 | Clause Graph Builder \+ Context Resolver |
+| FR-31, FR-32, FR-33 | Clause Graph Builder \+ Context Resolver, Risk Analysis Adapter |
 | NFR-SEC / DATA / REL / COST | Cross-cutting: Session Store, LLM Client, RunLog, Config, Deployment |
 | EV-01..08 | Evaluation Harness \+ shared pipeline modules |
 

@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 1. Giới thiệu | 3902 ký tự | trước: 01_kiem-soat-tai-lieu.md | sau: 03_2-mo-ta-tong-quan-va-quyet-dinh-thiet-ke.md -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 1. Giới thiệu | 4001 ký tự | trước: 01_kiem-soat-tai-lieu.md | sau: 03_2-mo-ta-tong-quan-va-quyet-dinh-thiet-ke.md -->
 
 ## 1. Giới thiệu
 

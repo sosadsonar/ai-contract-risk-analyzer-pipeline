@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 11. Security và Privacy Architecture | 786 ký tự | trước: 11_10-legal-corpus-va-citation-validation.md | sau: 13_12-reliability-performance-va-cost.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 11. Security và Privacy Architecture | 786 ký tự | trước: 11_10-legal-corpus-va-citation-validation.md | sau: 13_12-reliability-performance-va-cost.md -->
 
 # 11. Security và Privacy Architecture
 

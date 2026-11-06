@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 14. Legal Corpus, Baseline Retrieval và Data Graph | 3893 ký tự | trước: 14_13-clause-classification-llm.md | sau: 16_15-risk-analysis-citation-validation-va-assembly.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 14. Legal Corpus, Baseline Retrieval và Data Graph | 4365 ký tự | trước: 14_13-clause-classification-llm.md | sau: 16_15-risk-analysis-citation-validation-va-assembly.md -->
 
 # 14. Legal Corpus, Baseline Retrieval và Data Graph
 
@@ -34,6 +34,8 @@ data/legal_corpus/
 ```
 
 `citation_id` deterministic. Nếu cùng provision có nhiều version theo thời gian, effectivity record chọn bản hiệu lực; overlap -> LEGAL_CORPUS_CONFLICT.
+
+Đơn vị nút (quyết định 03/11/2026): mỗi dòng `provisions.jsonl` là một Khoản (`clause` khác null) và cha của nó là nút Điều (`clause` null, `content` chỉ chứa tiêu đề, không làm seed BM25). Điều không chia khoản là nút có nội dung. Điểm nằm trong `content` của Khoản, không thành nút riêng; Khoản quá dài thì N2 được tách riêng các điểm thành nút. Hậu tố `citation_id` cho Khoản do N2 chốt (ví dụ `BLLD2019:art98.cl1`). Ví dụ ở trên là một nút cấp Điều không chia khoản.
 
 ## 14.3 LegalEdge và origin
 

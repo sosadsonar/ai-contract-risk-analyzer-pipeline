@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 16. Các điểm để TDD chốt | 787 ký tự | trước: 16_15-traceability-srs-component.md | sau: 18_17-rui-ro-kien-truc-va-bien-phap.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 16. Các điểm để TDD chốt | 787 ký tự | trước: 16_15-traceability-srs-component.md | sau: 18_17-rui-ro-kien-truc-va-bien-phap.md -->
 
 # 16. Các điểm để TDD chốt
 

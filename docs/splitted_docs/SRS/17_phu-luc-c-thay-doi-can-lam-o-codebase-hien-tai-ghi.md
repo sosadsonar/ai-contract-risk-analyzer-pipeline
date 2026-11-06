@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > Phụ lục C: Thay đổi cần làm ở codebase hiện tại (ghi nhận, chưa thực hiện) | 6718 ký tự | trước: 15_13-open-issues-va-quyet-dinh-da-dong.md | sau: - -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > Phụ lục C: Thay đổi cần làm ở codebase hiện tại (ghi nhận, chưa thực hiện) | 6758 ký tự | trước: 16_13-open-issues-va-quyet-dinh-da-dong.md | sau: - -->
 
 ## Phụ lục C: Thay đổi cần làm ở codebase hiện tại (ghi nhận, chưa thực hiện)
 

@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_0_5.md | mục: BRD: AI Labor Contract Risk Analyzer > 10. Rủi ro dự án | 2140 ký tự | trước: 09_9-rang-buoc-gia-dinh-phu-thuoc.md | sau: 11_phu-luc-a-noi-dung-hien-thi-de-xuat.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 10. Rủi ro dự án | 2140 ký tự | trước: 09_9-rang-buoc-gia-dinh-phu-thuoc.md | sau: 11_phu-luc-a-noi-dung-hien-thi-de-xuat.md -->
 
 ## 10. Rủi ro dự án
 

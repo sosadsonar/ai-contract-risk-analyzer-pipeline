@@ -1,8 +1,18 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_0_5.md | mục: BRD: AI Labor Contract Risk Analyzer | 2257 ký tự | trước: - | sau: 01_1-tong-quan.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer | 3271 ký tự | trước: - | sau: 01_1-tong-quan.md -->
 
 # BRD: AI Labor Contract Risk Analyzer
 
-*Phiên bản 0.5 (dự thảo, chờ duyệt) | 12/10/2026*
+*Phiên bản 0.6 (dự thảo, chờ duyệt) | 03/11/2026*
+
+Thay đổi chính trong 0.6 so với 0.5 (audit tài liệu ngày 03/11/2026):
+
+- 3.2: định nghĩa ba loại căn cứ theo vai trò (UNFAVORABLE có dấu hiệu N1 đến N3 và E1 đến E3), LEGAL_VIOLATION tách khỏi UNFAVORABLE, AMBIGUOUS gồm thiếu số liệu và mâu thuẫn giữa hai điều khoản; mọi loại căn cứ đều được kỳ vọng có citation (BR-07, BR-08, BR-15); bỏ tham chiếu sai tới 8.2.
+- 3.3: viết lại thành sáu điều khoản mẫu theo risk taxonomy (sửa ca 4, thêm ca 6).
+- 2.1, 4.1, 7.1: dùng canonical text; 4.1 bỏ tên model.
+- 5: BR-07, BR-08, BR-15 và BR-18 (Clause Graph phát hiện mâu thuẫn qua related_clause_ids; suy diễn điều kiện chưa có tiêu chí nghiệm thu).
+- 7.2, 7.3: danh sách che và giữ cập nhật; bỏ "địa bàn làm việc cấp tỉnh"; vùng lương tối thiểu kiểm theo cận dưới vùng IV (OI-19).
+- 8.2, 8.3, 8.6: D1 theo clauses_v06, thêm D3 và P1; thêm M2b, M9, M10 và quy tắc quy đổi gold sang đầu ra pipeline; nghiệm thu M1 đến M10 và BR-01 đến BR-18; sáu ca mẫu.
+- 9.4, 11: ghi nhận MS-1 trễ; cập nhật OI-01 và OI-18; thêm OI-19.
 
 Thay đổi chính trong 0.5 so với 0.4:
 

@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_0_5.md | mục: BRD: AI Labor Contract Risk Analyzer > Phụ lục A: Nội dung hiển thị đề xuất | 438 ký tự | trước: 10_10-rui-ro-du-an.md | sau: 12_phu-luc-b-thuat-ngu.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > Phụ lục A: Nội dung hiển thị đề xuất | 438 ký tự | trước: 10_10-rui-ro-du-an.md | sau: 12_phu-luc-b-thuat-ngu.md -->
 
 ## Phụ lục A: Nội dung hiển thị đề xuất
 

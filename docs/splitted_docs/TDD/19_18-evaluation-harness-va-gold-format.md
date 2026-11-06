@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 18. Evaluation Harness và gold format | 4048 ký tự | trước: 18_17-logging-quota-rate-limit-retention-va-security.md | sau: 20_19-test-strategy.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 18. Evaluation Harness và gold format | 4647 ký tự | trước: 18_17-logging-quota-rate-limit-retention-va-security.md | sau: 20_19-test-strategy.md -->
 
 # 18. Evaluation Harness và gold format
 
@@ -59,7 +59,11 @@ Khi nạp gold clause từ dataset của data repo (bản v06 trở đi): mỗi 
 | M6 | metrics/judge_calibration.py | Judge-human agreement + kappa. |
 | M7 | metrics/clause_classification.py | Macro-F1 per clause label. |
 | M8 | metrics/retrieval.py | Recall@5 graph on/off, **cùng final_k**. |
-| BRD 7.3 privacy | metrics/privacy.py | PII recall theo nhóm + preserve rate. |
+| M2b | metrics/basis_type.py | Độ chính xác basis_type trên bộ ba (clause, role, label) đã khớp ở M2; báo kèm khoảng tin cậy. |
+| M9 | metrics/explanation_quality.py | Judge hoặc người chấm 3 mức trên cùng 40 mẫu của M3b; ngưỡng tạm 80% Đúng. |
+| M10 | metrics/contradiction.py | Recall và tỷ lệ báo nhầm trên D3, Graph tắt và mở; phát hiện khi related_clause_ids của một điều chứa điều còn lại. |
+| Căn chỉnh gold | metrics/alignment.py | Ghép clause dự đoán với gold theo span (IoU ≥ 0.5), thừa hưởng nhãn, gold nằm trong tập dự đoán (BRD 8.3). |
+| BRD 7.3 privacy | metrics/privacy.py | PII recall theo nhóm + preserve rate, đo trên tập P1 (BRD 8.2). |
 | Annotation agreement | metrics/annotation_agreement.py | Cohen kappa trên >=20% item gán đôi theo BRD 8.2. |
 | BL-1 | metrics/baseline_comparison.py | Citation error rate system vs baseline nếu chưa cut. |
 

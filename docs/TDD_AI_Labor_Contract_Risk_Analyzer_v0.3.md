@@ -1,4 +1,4 @@
-**TECHNICAL DESIGN DOCUMENT**
+# **TECHNICAL DESIGN DOCUMENT**
 
 **AI Labor Contract Risk Analyzer**
 
@@ -15,13 +15,23 @@ Ngày: 12/10/2026
 | Mục | Giá trị |
 | :---- | :---- |
 | Tên tài liệu | Technical Design Document \- AI Labor Contract Risk Analyzer |
-| Phiên bản | 0.2 \- Draft |
-| Ngày | 12/10/2026 |
-| Nguồn yêu cầu | BRD 0.5 (draft), SRS 1.3, SDD 0.1 |
+| Phiên bản | 0.3 \- Draft |
+| Ngày | 03/11/2026 |
+| Nguồn yêu cầu | BRD 0.6 (draft), SRS 1.5, SDD 0.2 |
 | Phạm vi | API contract, JSON Schema, module/class, thuật toán local, graph, legal retrieval, LLM adapter, cấu hình, test và evaluation artifacts |
 | Không thay đổi | Business scope, pipeline invariant, state semantics, privacy boundary, closed-corpus rule, chỉ số nghiệm thu trong BRD |
 | Trạng thái | Draft kỹ thuật; các giá trị cấu hình ghi “tune trên D1” được phép đổi mà không đổi API/schema semantics |
 
+## **Thay đổi chính trong 0.3 (audit 03/11/2026)**
+
+* Cơ sở BRD 0.6, SRS 1.5, SDD 0.2. Đóng O-10 (`related_clause_ids` đã có ở SRS 1.4 và FR-32), cập nhật O-01, O-08, O-11; thêm O-13, O-14.
+* 7.3: resume chỉ ở giai đoạn AI, so khớp version pin thay vì SHA-256 chuỗi hash upstream; giai đoạn VALIDATING chạy lại từ EXTRACTION.
+* 10: thêm loại PII (mã số thuế, địa chỉ trụ sở, ngày và nơi cấp giấy tờ, chữ ký); boundary rơi vào placeholder thì bỏ match.
+* 14.2: đơn vị nút LegalProvision là Khoản, cha là Điều; Điểm nằm trong nội dung Khoản.
+* 5.4, 15.5, A.2: thêm trường tùy chọn `related_clause_ids` (risk) và `clause` (citation), không đổi version schema; tổ hợp (nhãn, loại căn cứ, vai trò) sai thì retry có phản hồi, vẫn sai thì bản ghi "cần xem xét".
+* 17.2, 17.6: quota lưu bền; thang xử lý hiệu năng.
+* 18.4: thêm M2b, M9, M10, căn chỉnh gold, tập P1.
+* C.2: quy tắc prompt (định nghĩa UF/AM theo vai trò, LV nghi ngờ gắn INSUFFICIENT, cận chắc chắn, mâu thuẫn, cách nhắc luật).
 ## **Thay đổi chính trong 0.2**
 
 Bản 0.2 rà soát lại TDD 0.1 theo BRD 0.5, SRS 1.3, SDD 0.1 và review kỹ thuật. Các thay đổi chính: thống nhất upload bất đồng bộ và trạng thái REJECTED; bổ sung basis type ở final view nhưng giữ `risk_labels` của SRS; sửa retry/processing lock; làm M8 graph on/off công bằng; khóa partition clause không chồng lấn; tăng kiểm tra PDF font cũ; sửa Clause Graph REFERS_TO; tối ưu payload/token; bổ sung frontend contract, fixture format, privacy/BL-1/annotation metrics; và khóa deployment một worker cho session store in-memory.
@@ -375,11 +385,12 @@ Chỉ COMPLETED trả 200. Các state khác dùng API-state code ở §5.8.
      "risk_labels":["PROBATION"],
      "risk_basis":[{"label":"PROBATION","basis_type":"LEGAL_VIOLATION"}],
      "severity":"HIGH","explanation":"...","evidence_status":"SUPPORTED",
-     "citation_ids":["BLLD2019:art26"]}
+     "citation_ids":["BLLD2019:art26"],
+      "related_clause_ids":["cl_0007"]}
   ],
   "citations": [
     {"citation_id":"BLLD2019:art26","document_name":"Bộ luật Lao động 2019",
-     "article":"26","content":"..."}
+     "article":"26","clause":"1","content":"..."}
   ],
   "disclaimer": "...",
   "data_notice": "...",
@@ -387,7 +398,7 @@ Chỉ COMPLETED trả 200. Các state khác dùng API-state code ở §5.8.
 }
 ```
 
-`risk_basis` do backend dựng từ `basis_type` của LLM và `risk_labels` sau khi validate (label, basis_type, vai trò) theo risk taxonomy; `severity` do backend tra bảng.
+`risk_basis` do backend dựng từ `basis_type` của LLM và `risk_labels` sau khi validate (label, basis_type, vai trò) theo risk taxonomy; `severity` do backend tra bảng. `related_clause_ids` (tùy chọn, FR-32) là tập con của context đã cấp; `clause` trong citation (tùy chọn) là số khoản khi nút là Khoản; thẻ citation hiển thị nguyên văn Khoản.
 
 ## **5.5 POST /api/v1/sessions/{session_id}/retry**
 
@@ -614,22 +625,9 @@ COMPLETED | FAILED | REJECTED -> EXPIRED
 | Local runtime | PipelineInternalError | FAILED / INTERNAL_ERROR |
 | Corpus startup/reload | LegalCorpusConflict | Fail fast / LEGAL_CORPUS_CONFLICT |
 
-## **7.3 Stage resume fingerprint**
+## **7.3 Stage resume (chỉ giai đoạn AI)**
 
-Mỗi StageArtifact in-memory lưu status, output và fingerprint. Fingerprint dùng canonical JSON + SHA-256; content hash không ghi vào persistent RunLog.
-
-```text
-fingerprint(stage) = SHA256(
-  stage_name
-  + upstream_artifact_hashes
-  + role
-  + analysis_date
-  + relevant extraction/taxonomy/corpus/prompt/model versions
-  + stage-specific config version
-)
-```
-
-Manual retry tìm `failed_stage` và chỉ reuse artifact có fingerprint còn hợp lệ. Nếu stage resume bị cắt, chạy lại pipeline từ đầu nhưng giữ giới hạn 2 manual retries.
+Mỗi StageArtifact in-memory lưu status và output của stage AI. Artifact dùng lại được khi bộ version pin (§6.4) lưu trong phiên khớp bộ hiện tại; phiên nằm trong RAM của một process nên file, vai trò và analysis\_date không đổi trong phiên, vì vậy không dùng SHA-256 chuỗi hash upstream. Retry giai đoạn VALIDATING luôn chạy lại từ EXTRACTION, không resume. Manual retry của giai đoạn PROCESSING chạy lại từ stage AI lỗi. Nếu stage resume bị cắt (cut item 2), chạy lại giai đoạn PROCESSING từ đầu, vẫn giữ giới hạn 2 manual retries.
 
 ## **7.4 Processing lease, concurrency và cancellation**
 
@@ -735,7 +733,11 @@ Decision default: ACCEPT nếu có strong title + ít nhất một employment si
 | PHONE | P | \<PHONE\> | Số điện thoại |
 | EMAIL | E | \<EMAIL\> | Email |
 | BANK\_ACCOUNT | B | \<BANK\> | Số tài khoản |
-| LEGAL\_ENTITY | O | \<ORG\> | Tên pháp nhân |
+| LEGAL\_ENTITY | O | \<ORG\> | Tên pháp nhân (che nguyên cụm) |
+| TAX\_ID | T | \<TAX\> | Mã số thuế |
+| ID\_ISSUE | S | \<ISSUE\> | Ngày và nơi cấp giấy tờ |
+| BUSINESS\_ADDRESS | A | \<BADDR\> | Địa chỉ trụ sở |
+| SIGNATURE | G | \<SIGN\> | Chữ ký (tên ở khối ký cuối hợp đồng) |
 
 ```python
 def mask_value(text, pii_type):
@@ -752,15 +754,15 @@ Ví dụ: `nguyenvana@gmail.com` -> `<EMAIL>____________` với đúng cùng s�
 
 ## **10.2 Detection order**
 
-* Regex/high-precision trước: email, phone, national ID/passport, bank account, date-of-birth với anchor, địa chỉ với anchor.  
+* Regex/high-precision trước: email, phone, national ID/passport, bank account, date-of-birth với anchor, địa chỉ với anchor; mã số thuế (10 hoặc 13 chữ số, anchor "MST" hoặc "Mã số thuế"), ngày và nơi cấp giấy tờ, địa chỉ trụ sở và chữ ký cũng thuộc nhóm che.  
 * Heuristic entity sau: họ tên và tên pháp nhân dựa trên anchor như "Ông/Bà", "Người lao động", "Đại diện", "Công ty", "MST"; chỉ mask span value, không mask từ vai trò.  
-* Preserve-list: lương/phụ cấp, thời hạn/ngày hiệu lực không phải DOB, giờ làm, chức danh, tỉnh/thành phố cấp tỉnh, từ NLĐ/NSDLĐ.  
+* Preserve-list: lương/phụ cấp, thời hạn/ngày hiệu lực không phải DOB, giờ làm, chức danh của NLĐ, chức vụ của người đại diện NSDLĐ, tên tỉnh/thành phố khi đứng riêng, từ NLĐ/NSDLĐ.  
 * Overlap resolution: sort theo start, sau đó ưu tiên span dài hơn và type high-confidence; không cho overlap sau resolve.  
 * Không sử dụng cloud NER/LLM. NER local chỉ được thêm nếu privacy metric trên D1 không đạt, theo SRS OI-12.
 
 ## **10.3 Boundary safety**
 
-Masker trả pii\_spans\[{type,start,end}\]. Segmenter phải gọi boundary\_guard(pos): false nếu start \< pos \< end của bất kỳ pii\_span. Nếu regex heading tạo boundary trong placeholder thì boundary dời ra đầu/end placeholder gần nhất hoặc bỏ match.
+Masker trả pii\_spans\[{type,start,end}\]. Segmenter phải gọi boundary\_guard(pos): false nếu start \< pos \< end của bất kỳ pii\_span. Nếu regex heading tạo boundary trong placeholder thì bỏ match, không dời boundary (khớp quyết định ngày 25/10/2026 trong SKELETON).
 
 # **11\. Clause Segmentation**
 
@@ -953,6 +955,7 @@ data/legal_corpus/
 
 `citation_id` deterministic. Nếu cùng provision có nhiều version theo thời gian, effectivity record chọn bản hiệu lực; overlap -> LEGAL_CORPUS_CONFLICT.
 
+Đơn vị nút (quyết định 03/11/2026): mỗi dòng `provisions.jsonl` là một Khoản (`clause` khác null) và cha của nó là nút Điều (`clause` null, `content` chỉ chứa tiêu đề, không làm seed BM25). Điều không chia khoản là nút có nội dung. Điểm nằm trong `content` của Khoản, không thành nút riêng; Khoản quá dài thì N2 được tách riêng các điểm thành nút. Hậu tố `citation_id` cho Khoản do N2 chốt (ví dụ `BLLD2019:art98.cl1`). Ví dụ ở trên là một nút cấp Điều không chia khoản.
 ## **14.3 LegalEdge và origin**
 
 Runtime LegalEdge chỉ dùng enum SRS `AUTO|MANUAL`:
@@ -1129,11 +1132,11 @@ Runtime không tự chấm relevance semantic; M3b là evaluation property.
 
 * Join RiskResult -> Clause bằng clause_id.
 * Quote/start/end chỉ từ canonical Clause.
-* Dựng `risk_basis` từ `basis_type` + risk_labels; nhãn ngoài taxonomy là internal error trước publish; tổ hợp (label, basis_type, vai trò) ở ô '-' thì gỡ nhãn (hết nhãn thì bỏ clause). Severity tra bảng taxonomy.
+* Dựng `risk_basis` từ `basis_type` + risk_labels; nhãn ngoài taxonomy là internal error trước publish; tổ hợp (label, basis_type, vai trò) ở ô '-' thì retry một lần cho clause đó kèm phản hồi (loại căn cứ nào được phép cho nhãn và vai trò); vẫn sai thì phát bản ghi "nghi ngờ, cần xem xét" với severity null, không nhãn, không bỏ clause, và ghi `need_review` để đo ở dev/eval. Severity tra bảng taxonomy.
 * Citation objects từ validated IDs.
 * No-risk -> COMPLETED + exact no-risk message + disclaimer, không khẳng định an toàn.
 * Final publish atomically; FAILED không expose partial.
-* `ContextResolutionTrace` chỉ dev/eval; không đưa vào product response nếu SRS chưa cập nhật.
+* `ContextResolutionTrace` chỉ dev/eval. `related_clause_ids` đi vào product response theo SRS 1.5 (FR-32).
 
 # **16\. Export report**
 
@@ -1181,7 +1184,7 @@ Không raw filename nếu có PII; persistent log chỉ extension/size. Không p
 
 ## **17.2 Daily quota và admission reservation**
 
-Mỗi actual provider request, kể cả retry, tăng daily counter atomically trước call. Phiên đang chạy không bị dừng khi counter vượt do retry; upload mới sau đó bị chặn, đúng BR-16.
+Mỗi actual provider request, kể cả retry, tăng daily counter atomically trước call. Phiên đang chạy không bị dừng khi counter vượt do retry; upload mới sau đó bị chặn, đúng BR-16. Bộ đếm quota phải lưu bền (SQLite metadata, không chứa nội dung) để khởi động lại không reset trần ngày.
 
 TDD 0.2 bỏ “reserve 4 calls”. Trước demo, D1 phải đo `planned_calls = ceil(n_clause/CLAUSE_BATCH_SIZE) + ceil(n_clause/RISK_BATCH_SIZE)` cho từng contract. `SESSION_CALL_RESERVE` được cấu hình bằng p95 planned calls (hoặc conservative value nhóm chốt). Admission cho session mới chỉ pass khi:
 
@@ -1213,6 +1216,8 @@ Sliding window: tối đa 5 Create requests/10 phút/IP mặc định. Persisten
 NFR-PERF-01 chỉ áp dụng PDF <=15 trang hoặc DOCX <=50.000 chars; **không cam kết 120s cho input max 150 clause**. Trước MS-2 chạy D1 benchmark và ghi p50/p90 cho: local preprocessing, LLM #1, retrieval/graphs, LLM #2, assembly. Batch size/parallelism chỉ được khóa sau số đo này.
 
 Timeout 30s + one retry có thể làm một call gần 60s; vì vậy benchmark phải có cả case provider latency injection. Nếu p90 >120s, ưu tiên giảm payload token, tăng batch hợp lý hoặc giảm context trước khi thay invariant.
+
+Thang xử lý, kích hoạt khi p90 trên hợp đồng 15 trang của D1 vượt 100 giây: (1) tăng song song từ 2 lên 4 (kiểm giới hạn rate của tier); (2) giảm context hoặc candidate, rồi tăng batch rủi ro từ 6 lên 8, mỗi bước chạy lại M2 trên D1 và chỉ nhận nếu F1 không giảm quá 2 điểm; (3) hạ trần clause từ 150 xuống 100 hoặc xin chủ BRD nới ngưỡng thời gian cho hợp đồng dài. Không cắt Risk stage trên clause.
 
 ## **17.7 Security checklist**
 
@@ -1286,7 +1291,11 @@ Khi nạp gold clause từ dataset của data repo (bản v06 trở đi): mỗi 
 | M6 | metrics/judge_calibration.py | Judge-human agreement + kappa. |
 | M7 | metrics/clause_classification.py | Macro-F1 per clause label. |
 | M8 | metrics/retrieval.py | Recall@5 graph on/off, **cùng final_k**. |
-| BRD 7.3 privacy | metrics/privacy.py | PII recall theo nhóm + preserve rate. |
+| M2b | metrics/basis_type.py | Độ chính xác basis_type trên bộ ba (clause, role, label) đã khớp ở M2; báo kèm khoảng tin cậy. |
+| M9 | metrics/explanation_quality.py | Judge hoặc người chấm 3 mức trên cùng 40 mẫu của M3b; ngưỡng tạm 80% Đúng. |
+| M10 | metrics/contradiction.py | Recall và tỷ lệ báo nhầm trên D3, Graph tắt và mở; phát hiện khi related_clause_ids của một điều chứa điều còn lại. |
+| Căn chỉnh gold | metrics/alignment.py | Ghép clause dự đoán với gold theo span (IoU ≥ 0.5), thừa hưởng nhãn, gold nằm trong tập dự đoán (BRD 8.3). |
+| BRD 7.3 privacy | metrics/privacy.py | PII recall theo nhóm + preserve rate, đo trên tập P1 (BRD 8.2). |
 | Annotation agreement | metrics/annotation_agreement.py | Cohen kappa trên >=20% item gán đôi theo BRD 8.2. |
 | BL-1 | metrics/baseline_comparison.py | Citation error rate system vs baseline nếu chưa cut. |
 
@@ -1411,7 +1420,7 @@ Nguyên tắc migration: không tiếp tục phát triển trên schema cũ có 
 
 | ID | Mục | Xử lý | Ảnh hưởng |
 | :---- | :---- | :---- | :---- |
-| O-01 | Risk taxonomy v01 chưa có trong nguồn | TDD dùng placeholder; phải đóng băng MS-1. | Block prompt/eval final. |
+| O-01 | Risk taxonomy v0.1 đã có nhưng chưa freeze (còn rà severity, đổi tên nhãn) | TDD dùng placeholder; phải đóng băng MS-1. | Block prompt/eval final. |
 | O-02 | DOCX numbering/textbox cases phụ thuộc D1/T1 | Chỉ support fixture chốt; ghi known limitation. | FR-08/OI-11. |
 | O-03 | PII local rules có thể chưa đạt recall tên/địa chỉ/pháp nhân | Đo D1 sớm; thêm local NER nếu cần. | OI-12. |
 | O-04 | Daily quota + session call reserve chưa có số cost thực | Đo D1, chốt trước demo/MS-2. TDD 0.2 cố ý không giữ số 120 tùy ý. | FR-27/NFR-COST. |
@@ -1420,9 +1429,11 @@ Nguyên tắc migration: không tiếp tục phát triển trên schema cũ có 
 | O-07 | PDF export có thể bị cắt | DOCX vẫn đầy đủ. | Cut item 4. |
 | O-08 | Stage resume có thể bị cắt | Retry từ đầu, max 2. | Cut item 2. |
 | O-09 | API-state codes của §5.8 chưa backport SRS 6.2 | Không đổi state semantics; đề xuất cập nhật SRS để trace. | Documentation consistency. |
-| O-10 | Nếu muốn `related_clause_ids` trong RiskResult product | Phải sửa SRS 4.1/4.3 trước; hiện chỉ ContextResolutionTrace dev/eval. | Clause Graph observability. |
+| O-10 | `related_clause_ids` trong RiskResult product | Đã có ở SRS 1.4 (DEC-24) và FR-32; TDD đưa vào risk_output_v2 và final_result_v1 dưới dạng trường tùy chọn. | Đóng. |
 | O-11 | SDD sơ đồ state chưa vẽ VALIDATING -> FAILED; Cleanup Scheduler/component và startup numbering có lỗi trình bày | Không sửa SDD trong TDD; cần cập nhật SDD ở revision kế tiếp. | Doc consistency. |
 | O-12 | Không có luật sư xác minh legal correctness toàn diện | Disclaimer, closed corpus, evaluation limitations. | BRD 8/10. |
+| O-13 | Mức hạt corpus là Khoản; hậu tố citation_id cho khoản | N2 chốt định dạng và ngưỡng tách điểm cho khoản quá dài | 14.2. |
+| O-14 | Khóa chữ ký hàm và schema | Dự kiến 05/11/2026, sau khi taxonomy freeze | SKELETON 13. |
 
 Các DEC-16..21 trong SRS vẫn có mục “đề xuất/chờ nhóm duyệt” ở một số dòng. Nếu nhóm đổi các quyết định đó, SDD/TDD phải được version lại; TDD 0.2 không tự coi chúng đã được phê duyệt.
 
@@ -1476,7 +1487,8 @@ Enum label phải sinh từ source-of-truth taxonomy hoặc có test đối chi�
           "items":{"type":"string","enum":"<generated from risk taxonomy source>"}},
         "citation_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
         "evidence_status":{"enum":["SUPPORTED","INSUFFICIENT_EVIDENCE"]},
-        "explanation":{"type":"string","minLength":10}
+        "explanation":{"type":"string","minLength":10},
+    "related_clause_ids":{"type":"array","uniqueItems":true,"items":{"type":"string","pattern":"^cl_[0-9]{4}$"}}
       }
     }}
   }
@@ -1539,7 +1551,11 @@ Demo profile phải chạy 1 worker. `APP_ENV=eval` bypass runtime quota/rate nh
 * Risk taxonomy đi kèm label + definition và định nghĩa ba `basis_type`; model chọn label và `basis_type`, backend kiểm theo taxonomy, dựng `risk_basis` và tra severity.
 * Chỉ clause hiện có; không missing-clause risk.
 * Citation chỉ candidate IDs. Không nhớ/viện dẫn luật ngoài candidate.
-* Thiếu căn cứ -> INSUFFICIENT_EVIDENCE, severity null, citations empty.
+* Thiếu căn cứ -> INSUFFICIENT_EVIDENCE, severity null, citations empty. Áp dụng cho cả ba basis_type; nghi LEGAL_VIOLATION mà không có candidate phù hợp thì vẫn chọn LEGAL_VIOLATION kèm INSUFFICIENT_EVIDENCE.
+* Định nghĩa UNFAVORABLE và AMBIGUOUS theo vai trò (BRD 3.2: N1 đến N3, E1 đến E3; AMBIGUOUS gồm thiếu số liệu hoặc điều kiện và mâu thuẫn giữa hai điều khoản), kèm 4 đến 6 ví dụ neo cho cả hai phía do người phụ trách dữ liệu xác minh. Phân tích như thể điều khoản có hiệu lực.
+* Quy tắc cận chắc chắn: chỉ kết luận LEGAL_VIOLATION khi giá trị vượt mức nới nhất của mọi trường hợp (ví dụ lương dưới mức vùng IV; thử việc quá 180 ngày). Khoảng giữa dựa vào clause JOB_INFO trong context (Điều 25 có bốn mức 180, 60, 30 và 6 ngày); thiếu thông tin thì AMBIGUOUS.
+* Khi hai clause trong context mâu thuẫn nhau: basis_type AMBIGUOUS, điền `related_clause_ids` (tập con của context) và nêu mâu thuẫn trong explanation.
+* Trong explanation: nhắc luật kèm tên văn bản ("Điều 97 Bộ luật Lao động 2019"), gọi điều khoản hợp đồng là "điều khoản số N của hợp đồng"; nhắc điểm của khoản bằng lời, không chép lại nội dung điểm.
 * related_clauses chỉ context cho điều kiện/phụ thuộc/mâu thuẫn; output vẫn target clause_id.
 * Explanation tiếng Việt, trung tính; không lời khuyên/hành động; không nhắc điều luật ngoài selected valid citations.
 * Provider structured output theo `risk_output_v2`, không quote/span/Markdown.

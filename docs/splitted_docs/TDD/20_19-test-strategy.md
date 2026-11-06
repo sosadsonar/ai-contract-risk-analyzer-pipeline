@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 19. Test strategy | 3254 ký tự | trước: 19_18-evaluation-harness-va-gold-format.md | sau: 21_20-traceability-va-ke-hoach-migration-codebase.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 19. Test strategy | 3263 ký tự | trước: 19_18-evaluation-harness-va-gold-format.md | sau: 21_20-traceability-va-ke-hoach-migration-codebase.md -->
 
 # 19. Test strategy
 

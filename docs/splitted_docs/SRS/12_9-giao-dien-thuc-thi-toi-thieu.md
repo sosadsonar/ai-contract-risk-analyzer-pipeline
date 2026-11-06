@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 9. Giao diện thực thi tối thiểu | 1471 ký tự | trước: 10_8-chat-luong-ai-va-danh-gia.md | sau: 12_10-quy-tac-nghiep-vu-bat-buoc.md -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 9. Giao diện thực thi tối thiểu | 1471 ký tự | trước: 11_8-chat-luong-ai-va-danh-gia.md | sau: 13_10-quy-tac-nghiep-vu-bat-buoc.md -->
 
 ## 9. Giao diện thực thi tối thiểu
 

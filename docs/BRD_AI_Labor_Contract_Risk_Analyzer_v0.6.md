@@ -1,6 +1,16 @@
 # **BRD: AI Labor Contract Risk Analyzer**
 
-*Phiên bản 0.5 (dự thảo, chờ duyệt) | 12/10/2026*
+*Phiên bản 0.6 (dự thảo, chờ duyệt) | 03/11/2026*
+
+Thay đổi chính trong 0.6 so với 0.5 (audit tài liệu ngày 03/11/2026):
+
+- 3.2: định nghĩa ba loại căn cứ theo vai trò (UNFAVORABLE có dấu hiệu N1 đến N3 và E1 đến E3), LEGAL\_VIOLATION tách khỏi UNFAVORABLE, AMBIGUOUS gồm thiếu số liệu và mâu thuẫn giữa hai điều khoản; mọi loại căn cứ đều được kỳ vọng có citation (BR-07, BR-08, BR-15); bỏ tham chiếu sai tới 8.2.  
+- 3.3: viết lại thành sáu điều khoản mẫu theo risk taxonomy (sửa ca 4, thêm ca 6).  
+- 2.1, 4.1, 7.1: dùng canonical text; 4.1 bỏ tên model.  
+- 5: BR-07, BR-08, BR-15 và BR-18 (Clause Graph phát hiện mâu thuẫn qua related\_clause\_ids; suy diễn điều kiện chưa có tiêu chí nghiệm thu).  
+- 7.2, 7.3: danh sách che và giữ cập nhật; bỏ "địa bàn làm việc cấp tỉnh"; vùng lương tối thiểu kiểm theo cận dưới vùng IV (OI-19).  
+- 8.2, 8.3, 8.6: D1 theo clauses\_v06, thêm D3 và P1; thêm M2b, M9, M10 và quy tắc quy đổi gold sang đầu ra pipeline; nghiệm thu M1 đến M10 và BR-01 đến BR-18; sáu ca mẫu.  
+- 9.4, 11: ghi nhận MS-1 trễ; cập nhật OI-01 và OI-18; thêm OI-19.
 
 Thay đổi chính trong 0.5 so với 0.4:
 
@@ -40,7 +50,7 @@ Sản phẩm là một web app: người dùng chọn vai trò, tải HĐLĐ lê
 * BO-2: mọi rủi ro nêu ra đều gắn với điều khoản gốc và điều luật có thật trong kho luật của hệ thống và liên quan đến rủi ro đó. Rủi ro không có căn cứ trong kho luật được gắn nhãn "chưa đủ căn cứ" (BR-15), không bị gán điều luật.  
 * BO-3: cùng một hợp đồng, kết quả (loại rủi ro, mức độ nghiêm trọng, giải thích) thay đổi theo vai trò đã chọn. Nghiệm thu bằng các ca mẫu ở mục 3.3 và 8.6  
 * BO-4: dữ liệu cá nhân trong hợp đồng được ẩn trước khi gửi cho LLM bên thứ ba, đạt ngưỡng theo loại ở 7.3.  
-* BO-5: có Data Graph (đồ thị kho luật, phục vụ Retrieval & Fact-finding: tìm kiếm thông tin, truy vấn tri thức, tức truy xuất căn cứ pháp lý) và Clause Graph (đồ thị điều khoản của hợp đồng đang phân tích, phục vụ Validation & Reasoning: kiểm tra mâu thuẫn, suy diễn điều kiện) theo yêu cầu của giảng viên. Nghiệm thu bằng BR-17, BR-18 và M8 báo có và không dùng Graph (8.3).  
+* BO-5: có Data Graph (đồ thị kho luật, phục vụ Retrieval & Fact-finding: tìm kiếm thông tin, truy vấn tri thức, tức truy xuất căn cứ pháp lý) và Clause Graph (đồ thị điều khoản của hợp đồng đang phân tích, phục vụ Validation & Reasoning: phát hiện mâu thuẫn giữa các điều khoản trong phạm vi quan hệ Graph) theo yêu cầu của giảng viên. Nghiệm thu bằng BR-17, BR-18, M8 báo có và không dùng Graph, và M10 (8.3).  
 
 ### **1.3 Chỉ số thành công**
 
@@ -74,9 +84,9 @@ Sản phẩm là một web app: người dùng chọn vai trò, tải HĐLĐ lê
 * Chọn vai trò (NLĐ hoặc NSDLĐ) cùng chỗ với nút Upload. Mỗi lần upload một hợp đồng.  
 * Phân loại từng điều khoản theo 12 nhãn đã được định nghĩa (clause [taxonomy](https://github.com/24021368-DucAnh/ai-contract-risk-analyzer/blob/main/docs/clause_taxonomy_v03.md?plain=1)).  
 * Đánh giá điều khoản có mức độ rủi ro như nào, rủi ro đó là gì (risk taxonomy).  
-* Báo cáo rủi ro gồm: điều khoản rủi ro, giải thích theo luật, điều luật liên quan, mức độ nghiêm trọng, highlight trên văn bản gốc. Cho phép xuất báo cáo  
+* Báo cáo rủi ro gồm: điều khoản rủi ro, giải thích theo luật, điều luật liên quan, mức độ nghiêm trọng, highlight trên canonical text (văn bản trích xuất). Cho phép xuất báo cáo  
 * Ẩn dữ liệu cá nhân.  
-* Data Graph (đồ thị kho luật, phục vụ Retrieval & Fact-finding, tức truy xuất căn cứ pháp lý) và Clause Graph (đồ thị điều khoản của hợp đồng trong phiên, phục vụ Validation & Reasoning: kiểm tra mâu thuẫn, suy diễn điều kiện), theo yêu cầu của giảng viên. Chi tiết thiết kế ở SDD và TDD (OI-14, OI-17).  
+* Data Graph (đồ thị kho luật, phục vụ Retrieval & Fact-finding, tức truy xuất căn cứ pháp lý) và Clause Graph (đồ thị điều khoản của hợp đồng trong phiên, phục vụ Validation & Reasoning: phát hiện mâu thuẫn giữa các điều khoản trong phạm vi quan hệ Graph), theo yêu cầu của giảng viên. Chi tiết thiết kế ở SDD và TDD (OI-14, OI-17).  
 * Disclaimer: kết quả chỉ mang tính tham khảo.
 
 ### **2.2 Ngoài phạm vi**
@@ -121,27 +131,32 @@ Hệ thống chỉ được trích dẫn văn bản có trong kho (yêu cầu BR
 
 ### **3.2 Định nghĩa rủi ro**
 
-Một điều khoản là rủi ro đối với một vai trò khi thuộc một trong ba loại:
+Một điều khoản là rủi ro đối với một vai trò khi thuộc một trong ba loại. Phân tích giả định điều khoản có hiệu lực (như thể hợp đồng đã được ký) để thấy tác hại của nó.
 
-- Trái luật (LEGAL\_VIOLATION): xung đột quy định cấm hoặc bắt buộc, hoặc vượt ngưỡng pháp luật rõ ràng có trong kho luật.  
-- Bất lợi hợp pháp (UNFAVORABLE): không trái luật nhưng gây bất lợi đáng kể cho vai trò đó.  
-- Mơ hồ (AMBIGUOUS): câu chữ không rõ, có khả năng dẫn đến tranh chấp.
+- Trái luật (LEGAL\_VIOLATION): xung đột quy định cấm hoặc bắt buộc, hoặc vượt ngưỡng pháp luật rõ ràng có trong kho luật. Điều khoản hạ quyền lợi của NLĐ xuống dưới mức pháp luật bảo vệ thuộc loại này, không thuộc UNFAVORABLE.  
+- Bất lợi hợp pháp (UNFAVORABLE): hợp pháp, không thấp hơn mức sàn của pháp luật, nhưng gây bất lợi đáng kể cho vai trò đó, theo một trong các dấu hiệu sau.  
+  - Với NLĐ: (N1) giá trị định lượng nằm đúng tại cận pháp luật bất lợi cho NLĐ (ví dụ 48 giờ mỗi tuần, thử việc ở mức tối đa, hợp đồng 36 tháng); (N2) NSDLĐ được quyền đơn phương hoặc quyền quyết định rộng mà không có điều kiện, giới hạn, thời hạn báo trước hay bù đắp (điều chuyển, đổi ca, đổi địa điểm); (N3) chuyển chi phí hoặc rủi ro sang NLĐ trong biên pháp luật cho phép nhưng phạm vi rộng (không cạnh tranh, bảo mật, hoàn trả chi phí đào tạo, bồi thường).  
+  - Với NSDLĐ: (E1) NSDLĐ mất hoặc bị hạn chế quyền mà pháp luật cho, hoặc mất bảo vệ về quy trình (ví dụ NLĐ chỉ phải báo trước rất ngắn); (E2) trách nhiệm không có mức trần hoặc một chiều đè lên NSDLĐ; (E3) cam kết tài chính hoặc phúc lợi cố định, dài hạn hoặc không kỳ hạn, không điều kiện, không gắn kết quả, không có cơ chế điều chỉnh (ví dụ không giảm lương trong 5 năm). Việc NSDLĐ chọn trả cao hơn mức tối thiểu trong thời hạn ngắn (ví dụ lương thử việc 100%) không phải rủi ro.  
+- Mơ hồ (AMBIGUOUS): thiếu số liệu hoặc điều kiện đáng lẽ phải có (ví dụ cam kết "tăng lương hằng năm" không nêu căn cứ, tiêu chí hay mức), hoặc hai điều khoản trong cùng hợp đồng nói khác nhau.
 
-Điều khoản có lợi hơn mức pháp luật yêu cầu cho một bên không phải rủi ro của bên đó. Cùng một điều khoản có thể không là rủi ro với bên này, hoặc là rủi ro với cả hai bên nhưng khác loại, khác mức độ và khác giải thích. Mức độ nghiêm trọng (HIGH, MEDIUM, LOW) theo rubric ở SRS 2.3. Danh sách nhãn rủi ro thuộc risk taxonomy (BRD 8.2).
+Điều khoản có lợi hơn mức pháp luật yêu cầu cho một bên không phải rủi ro của bên đó. Cùng một điều khoản có thể không là rủi ro với bên này, hoặc là rủi ro với cả hai bên nhưng khác loại, khác mức độ và khác giải thích. Mức độ nghiêm trọng (HIGH, MEDIUM, LOW) tra theo bảng trong risk taxonomy (nhãn, loại căn cứ, vai trò); rubric ở SRS 2.3 chỉ để đọc. Mọi loại căn cứ đều được kỳ vọng có điều luật liên quan; khi kho luật không đủ căn cứ thì áp dụng BR-15. Danh sách nhãn rủi ro và bảng mức độ nằm ở tài liệu risk taxonomy (docs/RISK\_TAXONOMY\_v0.1.md); định nghĩa chi tiết và ví dụ neo nằm ở annotation guideline.
 
 ### 
 
-### **3.3 Năm điều khoản mẫu theo vai trò**
+### **3.3 Sáu điều khoản mẫu theo vai trò**
 
 Bảng dưới minh họa cách hai vai trò cho kết quả khác nhau trên cùng một điều khoản. Đây là ca nghiệm thu BO-3 (§8.6). Kết quả kỳ vọng chỉ mang tính minh họa; người phụ trách dữ liệu phải xác minh lại với văn bản luật gốc trong kho trước khi đưa vào bộ test.
 
 | STT | Điều khoản mẫu | Căn cứ (Bộ luật Lao động 2019\) | Với NLĐ | Với NSDLĐ |
 | :---- | :---- | :---- | :---- | :---- |
-| 1 | "Mỗi lần đi làm muộn, NLĐ bị phạt 100.000 đồng, trừ trực tiếp vào lương tháng." | Điều 127: cấm phạt tiền, cắt lương thay việc xử lý kỷ luật | Trái luật, HIGH: lương bị trừ không có căn cứ | Trái luật, HIGH: vi phạm điều cấm, có nguy cơ bị xử phạt |
-| 2 | "Lương thử việc bằng 70% mức lương chính thức." | Điều 26: ít nhất 85% mức lương của công việc đó | Trái luật, HIGH: bị trả thấp hơn mức tối thiểu | Trái luật, HIGH: có nguy cơ bị xử phạt |
-| 3 | "NLĐ giao bản chính bằng tốt nghiệp để công ty giữ trong suốt thời gian làm việc." | Điều 17 khoản 1: cấm giữ bản chính giấy tờ tùy thân, văn bằng, chứng chỉ | Trái luật, HIGH: mất quyền kiểm soát giấy tờ, bị ràng buộc khi muốn nghỉ việc | Trái luật, HIGH: vi phạm điều cấm |
-| 4 | "Hợp đồng 24 tháng; NLĐ chỉ cần báo trước 3 ngày làm việc khi nghỉ việc." | Điều 35 khoản 1 điểm b: báo trước ít nhất 30 ngày với hợp đồng từ 12 đến 36 tháng | LOW: không bất lợi trực tiếp, nhưng điều khoản trái luật nên không đáng tin cậy làm căn cứ nghỉ sớm | Trái luật, HIGH: dễ phát sinh tranh chấp khi NLĐ nghỉ đột xuất |
+| 1 | "Mỗi lần đi làm muộn, NLĐ bị phạt 100.000 đồng, trừ trực tiếp vào lương tháng." | Điều 127: cấm phạt tiền, cắt lương thay việc xử lý kỷ luật | Trái luật (PENALTY\_DEDUCTION\_DAMAGES), HIGH: lương bị trừ không có căn cứ | Trái luật (PENALTY\_DEDUCTION\_DAMAGES), HIGH: vi phạm điều cấm, có nguy cơ bị xử phạt |
+| 2 | "Lương thử việc bằng 70% mức lương chính thức." | Điều 26: ít nhất 85% mức lương của công việc đó | Trái luật (PROBATION), HIGH: bị trả thấp hơn mức tối thiểu | Trái luật (PROBATION), HIGH: có nguy cơ bị xử phạt |
+| 3 | "NLĐ giao bản chính bằng tốt nghiệp để công ty giữ trong suốt thời gian làm việc." | Điều 17 khoản 1: cấm giữ bản chính giấy tờ tùy thân, văn bằng, chứng chỉ | Trái luật (DEPOSIT\_DOCUMENT\_HELD), HIGH: mất quyền kiểm soát giấy tờ, bị ràng buộc khi muốn nghỉ việc | Trái luật (DEPOSIT\_DOCUMENT\_HELD), HIGH: vi phạm điều cấm |
+| 4 | "Hợp đồng 24 tháng; NLĐ chỉ cần báo trước 3 ngày làm việc khi nghỉ việc." | Điều 35 khoản 1 điểm b: báo trước ít nhất 30 ngày với hợp đồng từ 12 đến 36 tháng | Không rủi ro: điều khoản có lợi hơn mức pháp luật yêu cầu cho NLĐ | Bất lợi hợp pháp (TERMINATION\_GROUNDS\_NOTICE), MEDIUM: NSDLĐ mất bảo vệ báo trước 30 ngày, khó chủ động nhân sự |
 | 5 | "Lương thử việc bằng 100% mức lương chính thức." | Điều 26: ít nhất 85% mức lương của công việc đó | Không rủi ro | Không rủi ro pháp lý: cao hơn mức tối thiểu hợp pháp |
+| 6 | "Thời giờ làm việc bình thường là 48 giờ mỗi tuần." | Điều 105: không quá 08 giờ mỗi ngày và 48 giờ mỗi tuần | Bất lợi hợp pháp (WORKING\_HOURS\_OVERTIME), MEDIUM: ở mức trần pháp luật cho phép | Không rủi ro |
+
+Ca 4 và ca 6: kết quả kỳ vọng cần được người phụ trách dữ liệu xác minh với Điều 35, Điều 49 và Điều 105 trước khi vào bộ test; không xác minh được thì loại khỏi nghiệm thu BO-3.
 
 *\* Nguồn đối chiếu: trang [Doanh nghiệp có được phạt tiền nhân viên không?](https://thuvienphapluat.vn/lao-dong-tien-luong/doanh-nghiep-co-duoc-phat-tien-nhan-vien-khong-63945.html) cho Điều 124 và Điều 127\. Điều 25 và 26 ([CareerLink](https://www.careerlink.vn/cam-nang-viec-lam/luat-lao-dong/luong-thu-viec-toi-thieu-bao-nhieu-phan-tram)), Điều 17 ([Thư Viện Pháp Luật](https://thuvienphapluat.vn/hoi-dap-phap-luat/dang-thu-viec-cong-ty-co-duoc-giu-cmnd-ban-goc-khong-357958.html)), Điều 35 ([LuatVietnam](https://luatvietnam.vn/tin-tuc-doanh-nghiep/co-phai-nguoi-lao-dong-duoc-don-phuong-cham-dut-hop-dong-khong-can-ly-do-2767-85777-legal.html)).*
 
@@ -153,9 +168,9 @@ Bảng dưới minh họa cách hai vai trò cho kết quả khác nhau trên c�
 2. Chọn vai trò (NLĐ hoặc NSDLĐ) ở cạnh nút Upload.  
 3. Upload một file hợp đồng.  
 4. Hệ thống kiểm tra định dạng, kích thước và việc file có text.  
-5. Hệ thống trích văn bản thô, ẩn dữ liệu cá nhân (PII Masking), thực hiện Clause Segmentation (tách điều khoản giữ nguyên tọa độ/offset văn bản gốc), phân loại loại điều khoản (Clause Classification qua Gemini Flash).  
+5. Hệ thống trích văn bản thô, ẩn dữ liệu cá nhân (PII Masking), thực hiện Clause Segmentation (tách điều khoản, giữ offset trên canonical text), phân loại loại điều khoản (Clause Classification).  
 6. Hệ thống phân tích rủi ro theo vai trò, đối chiếu với kho luật.  
-7. Hệ thống hiển thị báo cáo: danh sách điều khoản rủi ro, highlight trên văn bản gốc.  
+7. Hệ thống hiển thị báo cáo: danh sách điều khoản rủi ro, highlight trên canonical text (văn bản trích xuất).  
 8. Người dùng có thể chọn xuất kết quả ra file PDF/docx  
 9. Khi phiên kết thúc, dữ liệu bị xóa theo mục 7\.
 
@@ -188,18 +203,18 @@ Tất cả yêu cầu dưới đây là bắt buộc (Must). Dự án không có
 | BR-05b | Hệ thống lưu vị trí (character offset) của từng điều khoản trên văn bản trích xuất để highlight (BR-09). Vị trí do hệ thống tính, không do LLM tạo. |
 | BR-05c | Đầu ra của mỗi bước xử lý ở dạng cấu trúc chuẩn (Structured Output, JSON Schema) đặt trong thư mục schemas của pipeline (hiện là ai\_pipeline/schemas). Schema có version và khai báo các trường version (SRS FR-29). |
 | BR-06 | Mỗi rủi ro có giải thích vì sao đó là rủi ro, dựa trên luật và theo vai trò đã chọn. |
-| BR-07 | Mỗi rủi ro nêu điều luật liên quan (tên văn bản, điều, khoản). Chỉ trích dẫn văn bản có trong kho luật. |
-| BR-08 | Mỗi rủi ro có mức độ nghiêm trọng theo thang do đã định nghĩa (H/M/L). Mức độ có thể khác nhau giữa hai vai trò. Rủi ro chưa đủ căn cứ không được gán mức độ |
+| BR-07 | Mỗi rủi ro nêu điều luật liên quan (tên văn bản, điều, khoản). Chỉ trích dẫn văn bản có trong kho luật. Mọi loại căn cứ (trái luật, bất lợi hợp pháp, mơ hồ) đều được kỳ vọng có điều luật liên quan; không tìm được trong kho thì áp dụng BR-15. |
+| BR-08 | Mỗi rủi ro có mức độ nghiêm trọng theo thang do đã định nghĩa (H/M/L). Mức độ có thể khác nhau giữa hai vai trò. Mức độ do bảng trong risk taxonomy quyết định theo (nhãn, loại căn cứ, vai trò). Rủi ro chưa đủ căn cứ không được gán mức độ. |
 | BR-09 | Các rủi ro được highlight trên văn bản đã trích xuất từ file gốc của người dùng (canonical text), bấm vào để xem chi tiết. Giao diện ghi rõ đây là văn bản trích xuất, không phải file gốc |
 | BR-10 | Mọi màn hình kết quả hiển thị disclaimer: thông tin chỉ mang tính chất tham khảo, không phải tư vấn pháp lý. Hệ thống không kiểm tra rủi ro do thiếu điều khoản. |
 | BR-11 | Nội dung báo cáo chỉ phân tích và liệt kê rủi ro. Không đưa lời khuyên pháp lý, không gợi ý sửa điều khoản. |
 | BR-12 | Giao diện có dòng thông báo ngắn về việc xử lý dữ liệu cá nhân (nội dung đề xuất ở Phụ lục A). |
 | BR-13 | Dữ liệu hợp đồng và kết quả bị xóa khi phiên kết thúc (mục 7). |
 | BR-14 | Kho luật do Người phụ trách dữ liệu duy trì. Mỗi văn bản ghi phiên bản và ngày hiệu lực. Cập nhật kho luật  đòi hỏi sửa mã nguồn |
-| BR-15 | Khi kho luật không đủ căn cứ cho một nhận định, hệ thống không tự suy ra điều luật. Nhận định đó được gắn nhãn ‘chưa đủ căn cứ’, không gán mức . Phải nói rõ trong kết quả trả về. |
+| BR-15 | Khi kho luật không đủ căn cứ cho một nhận định, hệ thống không tự suy ra điều luật. Nhận định đó vẫn được hiển thị kèm cảnh báo ‘có thể có rủi ro, chưa đủ căn cứ trong kho luật, cần đọc kỹ’, không gán mức độ. Áp dụng cho cả ba loại căn cứ. Phải nói rõ trong kết quả trả về. |
 | BR-16 | Hệ thống giới hạn dung lượng file, số điều khoản mỗi hợp đồng và số lượt gọi LLM mỗi ngày để chi phí vận hành không vượt phần ngân sách vận hành (\$5, mục 6). Vượt trần thì từ chối phiên mới; phiên đang chạy vẫn hoàn tất. |
 | BR-17 | Hệ thống có Data Graph: biểu diễn văn bản, điều, khoản, điểm của kho luật và quan hệ giữa chúng (cấu trúc, dẫn chiếu, hướng dẫn thi hành), dùng để mở rộng và xếp hạng ứng viên căn cứ khi truy xuất. Truy xuất vẫn chỉ trả điều luật có trong kho và đang hiệu lực (BR-07), và hệ thống vẫn chạy đúng khi tắt phần mở rộng này. |
-| BR-18 | Hệ thống có Clause Graph: biểu diễn các điều khoản của hợp đồng đang phân tích và quan hệ giữa chúng. Tạo cục bộ, chỉ chứa mã định danh điều khoản và loại quan hệ, xóa cùng phiên (BR-13), không được làm đổi nội dung trích hay vị trí (BR-05a, BR-05b). Mục đích: kiểm tra mâu thuẫn và suy diễn điều kiện giữa các điều khoản (Validation & Reasoning); cách dùng chi tiết ở các bước sau do SDD và TDD xác định (OI-14). |
+| BR-18 | Hệ thống có Clause Graph: biểu diễn các điều khoản của hợp đồng đang phân tích và quan hệ giữa chúng. Tạo cục bộ, chỉ chứa mã định danh điều khoản và loại quan hệ, xóa cùng phiên (BR-13), không được làm đổi nội dung trích hay vị trí (BR-05a, BR-05b). Mục đích: phát hiện mâu thuẫn giữa các điều khoản trong phạm vi quan hệ Graph cung cấp (Validation & Reasoning). Mâu thuẫn được báo qua trường related\_clause\_ids của rủi ro (loại căn cứ AMBIGUOUS) và hiển thị ở thẻ kết quả; cách dùng chi tiết do SDD và TDD xác định (OI-14). Suy diễn điều kiện chưa có tiêu chí nghiệm thu. |
 
 ## **6\. Yêu cầu phi chức năng**
 
@@ -220,23 +235,23 @@ Tất cả yêu cầu dưới đây là bắt buộc (Must). Dự án không có
 
 ### **7.1 Luồng xử lý dữ liệu**
 
-Luồng xử lý dữ liệu: file được upload, hệ thống trích văn bản, ẩn dữ liệu cá nhân ngay trong hệ thống của nhóm, chỉ văn bản đã ẩn được gửi cho LLM bên thứ ba, kết quả trả về được ánh xạ lại vào vị trí trong văn bản gốc để highlight, và cuối cùng toàn bộ dữ liệu bị xóa.
+Luồng xử lý dữ liệu: file được upload, hệ thống trích văn bản, ẩn dữ liệu cá nhân ngay trong hệ thống của nhóm, chỉ văn bản đã ẩn được gửi cho LLM bên thứ ba, kết quả trả về được ánh xạ lại vào vị trí trong canonical text để highlight, và cuối cùng toàn bộ dữ liệu bị xóa.
 
 ### **7.2 Dữ liệu cần ẩn và cần giữ**
 
-**Cần ẩn:** họ tên, ngày sinh, số CCCD hoặc hộ chiếu, địa chỉ cư trú, số điện thoại, email, số tài khoản, tên pháp nhân.
+**Cần ẩn:** họ tên (kể cả người đại diện), ngày sinh, số CCCD hoặc hộ chiếu, mã số thuế, ngày và nơi cấp giấy tờ, địa chỉ cư trú (ẩn toàn bộ, kể cả tỉnh) và địa chỉ trụ sở, số điện thoại, email, số tài khoản, tên pháp nhân (ẩn nguyên cụm), chữ ký.
 
-**Cần giữ:** mức lương và phụ cấp, thời hạn hợp đồng, thời giờ làm việc, chức danh, địa bàn làm việc ở cấp tỉnh, v.v. Đây chính là dữ liệu cần để phát hiện rủi ro. Nếu ẩn hết mọi con số và địa danh thì phân tích sẽ mất độ chính xác.
+**Cần giữ:** mức lương và phụ cấp, thời hạn hợp đồng, thời giờ làm việc, chức danh của NLĐ, chức vụ của người đại diện NSDLĐ, tên tỉnh khi đứng riêng, từ chỉ vai trò (vị trí), v.v. Hệ thống không giữ địa chỉ nên vùng lương tối thiểu không suy ra từ địa danh; kiểm tra mức lương dùng cận dưới của vùng IV (OI-19). Đây chính là dữ liệu cần để phát hiện rủi ro. Nếu ẩn hết mọi con số và địa danh thì phân tích sẽ mất độ chính xác.
 
 ### **7.3 Ngưỡng ẩn dữ liệu cá nhân**
 
 | Nhóm dữ liệu | Chỉ số | Ngưỡng |
 | :---- | :---- | :---- |
-| Số CCCD hoặc hộ chiếu, số điện thoại, email, số tài khoản | Recall khi che | ≥ 99% |
-| Họ tên, ngày sinh, địa chỉ cư trú, tên pháp nhân | Recall khi che | ≥ 90% |
-| Trường cần giữ (lương, phụ cấp, thời hạn, thời giờ, chức danh, tỉnh, từ chỉ vai trò) | Tỷ lệ giữ nguyên | ≥ 95% |
+| Số CCCD hoặc hộ chiếu, mã số thuế, số điện thoại, email, số tài khoản | Recall khi che | ≥ 99% |
+| Họ tên (kể cả người đại diện), ngày sinh, ngày và nơi cấp giấy tờ, địa chỉ cư trú và trụ sở, tên pháp nhân, chữ ký | Recall khi che | ≥ 90% |
+| Trường cần giữ (lương, phụ cấp, thời hạn, thời giờ, chức danh, chức vụ đại diện NSDLĐ, tỉnh khi đứng riêng, từ chỉ vai trò) | Tỷ lệ giữ nguyên | ≥ 95% |
 
-Đo trên nội dung thực tế gửi cho LLM, bằng tập kiểm thử riêng có gold span (mục 10). Đây là mục tiêu cho demo, không phải cam kết với người dùng (Phụ lục A).
+Đo trên nội dung thực tế gửi cho LLM, bằng tập P1 có gold span (8.2); ngưỡng không phải 100% nên có rủi ro ở mục 10. Đây là mục tiêu cho demo, không phải cam kết với người dùng (Phụ lục A).
 
 ### **7.4 Lưu và xóa**
 
@@ -272,10 +287,12 @@ Ngoài phạm vi: không đo false positive riêng. Precision nằm trong F1 c�
 
 | Tập | Nội dung | Dùng cho |
 | :---- | :---- | :---- |
-| D1 | 4 hợp đồng dev hiện có (183 điều khoản) | Phát triển, tuning prompt, few-shot; không báo số nghiệm thu |
+| D1 | 4 hợp đồng dev hiện có (HDLD001 đến HDLD004, 183 điều khoản) cùng HDLD005 bổ sung (tổng 5 hợp đồng, 234 điều khoản theo clauses\_v06, trạng thái PROVISIONAL), chia theo nhóm mẫu giống nhau (similarity group) | Phát triển, tuning prompt, few-shot; đo bằng leave-one-group-out theo nhóm mẫu kèm khoảng tin cậy (ví dụ few-shot lấy từ nhóm khác, loại ví dụ gần trùng điều đang chấm); không báo số nghiệm thu |
 | D2 | D1 kèm lỗi chèn riêng cho dev, câu chữ và quy định không dùng chung với T2 (tốt nhất tách quy định) | Phát triển |
-| T1 | Tối thiểu 10 hợp đồng gốc, tách hoàn toàn khỏi dữ liệu dev, few-shot, prompt; đa dạng định dạng (PDF, DOCX), kiểu đánh số điều khoản, ngành và độ dài | M1, M2, M3a, M3b, M4, M6, M7, BL-1 |
+| D3 | Bản sao hợp đồng D1 cài tối thiểu 10 cặp điều khoản mâu thuẫn (cặp có cạnh trong Clause Graph) và 10 cặp đối chứng nhất quán | M10 |
+| T1 | Tối thiểu 10 hợp đồng gốc, tách hoàn toàn khỏi dữ liệu dev, few-shot, prompt; đa dạng định dạng (PDF, DOCX), kiểu đánh số điều khoản, ngành và độ dài | M1, M2, M2b, M3a, M3b, M4, M6, M7, M9, BL-1 |
 | T2 | Bản sao T1 đã chèn tối thiểu 30 lỗi (8.4) | M5, M8 |
+| P1 | PII giả sinh bằng script, chèn vào hợp đồng đã de-identify tại vị trí đã biết; tối thiểu 100 mẫu mỗi loại nhóm recall 99% và 50 mẫu mỗi loại nhóm 90%; có mẫu âm (số và ngày không phải PII); bộ sinh tách khỏi regex của masker; gồm lỗi trích PDF (xuống dòng, khoảng trắng giữa chữ số, NFD) | Chỉ số PII (7.3) |
 
 Quy tắc:
 
@@ -308,9 +325,14 @@ Một "output" là một bản ghi rủi ro gồm điều khoản, nhãn, giải
 | M6 | Judge và người trùng nhau | ≥ 80% và Cohen's kappa ≥ 0.6 | Kết quả mỗi output | Hai người chấm | T1 (mẫu 40 output) | Tỷ lệ judge trùng nhãn với người; đạt cả hai thì dùng judge cho phần còn lại |
 | M7 | Clause classification macro-F1 | ≥ 0.80 | Cặp (điều khoản, clause label) | LLM khác họ gán, người xác minh | T1 | Tự động; báo per-class; macro chỉ tính nhãn có ≥ 5 mẫu |
 | M8 | Retrieval recall@5 | ≥ 90% | Mỗi lỗi chèn | Điều luật gold của lỗi chèn | T2 | Tự động: điều luật gold nằm trong 5 candidate đầu. Chỉ số chẩn đoán. Báo thêm recall@5 khi tắt mở rộng qua Data Graph để thấy đóng góp của Graph (BR-17); không có ngưỡng riêng |
+| M2b | Độ chính xác loại căn cứ (basis\_type) | Báo cáo kèm khoảng tin cậy; ngưỡng đặt sau số đo dev (OI-09) | Bộ ba đã khớp ở M2 | LLM khác họ gán, người xác minh | T1 | Tự động. Severity không có chỉ số riêng vì do bảng taxonomy tra từ (nhãn, loại căn cứ, vai trò) |
+| M9 | Giải thích đúng | ≥ 80% (tạm, đặt lại theo OI-09) | Mỗi output | Người chấm; judge nếu M6 đạt | T1 (cùng mẫu 40 output của M3b) | Chấm Đúng, Đúng một phần hoặc Sai: giải thích đúng căn cứ và đúng vai trò |
+| M10 | Phát hiện mâu thuẫn trong hợp đồng | Báo cáo, không ngưỡng | Cặp điều khoản có cạnh trong Clause Graph | Cặp cài do nhóm tạo, kèm cặp đối chứng nhất quán | D3 | Tự động: phát hiện khi rủi ro của một trong hai điều có related\_clause\_ids chứa điều còn lại. Báo recall và tỷ lệ báo nhầm, so Graph tắt và mở |
 | BL-1 | So với LLM thông dụng | Tỷ lệ citation sai của hệ thống ≤ một nửa của baseline | Mỗi điều luật được trích | Người đối chiếu văn bản luật thật | T1 (cùng mẫu 40\) | "Sai" \= không tồn tại hoặc nội dung không khớp. Cùng hợp đồng đã che, cùng vai trò, cùng yêu cầu. Baseline: LLM thông dụng chọn ở OI-07, cấu hình cụ thể ghi trong báo cáo. |
 
 \* Ngưỡng M2, M7 và M3b được đặt lại sau số đo dev đầu tiên (OI-09). Mọi con số báo kèm khoảng tin cậy (bootstrap) và số mẫu mỗi nhãn.
+
+Quy đổi gold sang đầu ra pipeline (M2, M2b, M7): ghép một-một tham lam theo span với IoU ≥ 0.5 (riêng M1 giữ ngưỡng 0.80); clause dự đoán thừa hưởng nhãn của clause gold khớp; gold không khớp tính là sót, clause dự đoán không khớp tính là báo thừa; gold một nhãn tính trúng khi nằm trong tập 1 đến 3 nhãn dự đoán, đồng thời báo F1 theo từng nhãn.
 
 ### **8.4 Đánh giá false negative bằng lỗi chèn**
 
@@ -348,11 +370,11 @@ Judge dùng để chấm hai việc trên các bản ghi rủi ro của T1: gi�
 
 * Luồng chính chạy trọn vẹn cho cả hai vai trò trên toàn bộ T1: mỗi hợp đồng đạt trạng thái hoàn thành sau tối đa 2 lần thử lại thủ công mỗi phiên.
 
-* BO-3: năm ca mẫu ở §3.3 cho kết quả khác nhau giữa hai vai trò đúng như kỳ vọng đã được người phụ trách dữ liệu xác minh (đạt hoặc không đạt, không tính tỷ lệ).
+* BO-3: sáu ca mẫu ở §3.3 cho kết quả khác nhau giữa hai vai trò đúng như kỳ vọng đã được người phụ trách dữ liệu xác minh (đạt hoặc không đạt, không tính tỷ lệ).
 
-* Đạt các ngưỡng M1 đến M8 và ngưỡng ở §7.3, hoặc có giải trình nếu chưa đạt. BL-1 nếu chưa bị cắt theo §9.5.
+* Đạt các ngưỡng M1 đến M9 (M2b và M10 chỉ báo cáo) và ngưỡng ở §7.3, hoặc có giải trình nếu chưa đạt. BL-1 nếu chưa bị cắt theo §9.5.
 
-* Mọi yêu cầu BR-01 đến BR-16 được kiểm tra và có kết quả.
+* Mọi yêu cầu BR-01 đến BR-18 được kiểm tra và có kết quả.
 
 * Báo cáo đánh giá nêu rõ phương pháp, nguồn gold, cỡ tập và giới hạn của phép đo.
 
@@ -393,7 +415,7 @@ Judge dùng để chấm hai việc trên các bản ghi rủi ro của T1: gi�
 
 | Mốc | Ngày | Nội dung |
 | :---- | :---- | :---- |
-| MS-1 | 25/10/2026 (hết tuần 2) | Đóng băng clause taxonomy, risk taxonomy, severity rubric, annotation guideline (SRS DEC-10). Risk taxonomy có người phụ trách và bản đầu (OI-01). Chốt danh mục kho luật tầng 1 (OI-02). |
+| MS-1 | 25/10/2026 (hết tuần 2) | Đóng băng clause taxonomy, risk taxonomy, severity rubric, annotation guideline (SRS DEC-10). Risk taxonomy có người phụ trách và bản đầu (OI-01). Chốt danh mục kho luật tầng 1 (OI-02). Ghi nhận: risk taxonomy chưa freeze tại 25/10/2026; ngày freeze chốt sau khi rà bảng severity và hoàn tất review tài liệu. |
 | MS-2 | 08/11/2026 (hết tuần 4) | Chốt các cấu hình còn mở (SRS OI-03 đến OI-05, OI-09 đến OI-12). Bản đầu kho luật tầng 1 và Data Graph cấu trúc. Pipeline đến Clause Classification chạy trên D1. Che dữ liệu cá nhân có số đo đầu trên D1. |
 | MS-3 | 06/12/2026 (hết tuần 8) | Demo full luồng cho cả hai vai trò. Khóa phiên bản hệ thống và ghi commit hash (SRS EV-07). |
 | MS-4 | 13/12/2026 (hết tuần 9) | Chạy xong T1, T2, M1 đến M8, hiệu chuẩn judge (M6). |
@@ -463,13 +485,11 @@ Theo vai trò ghi trong tài liệu của repo; chốt ở OI-04.
 | Risk taxonomy | Tập nhãn mô tả loại rủi ro theo vai trò; tách biệt với clause taxonomy |
 | Gold | Nhãn chuẩn dùng để chấm: người sửa tay, LLM gán rồi người xác minh, hoặc lỗi chèn |
 | Lỗi chèn | Điều khoản vi phạm do nhóm tạo, chèn vào hợp đồng sạch để đo recall (8.4) |
-| D1, D2, T1, T2 | Các tập dữ liệu dev và test (8.2) |
+| D1, D2, D3, T1, T2, P1 | Các tập dữ liệu dev, test và PII (8.2) |
 | Output | Một bản ghi rủi ro gồm điều khoản, nhãn, giải thích và citation (8.3) |
 | LLM-as-a-judge | Dùng một LLM để chấm chất lượng đầu ra theo rubric; chỉ dùng sau khi hiệu chuẩn (M6) |
 | Data Graph | Đồ thị trên kho luật: nút là điều luật (đơn vị trích dẫn được), cạnh là quan hệ cấu trúc, dẫn chiếu, hướng dẫn thi hành. Phục vụ Retrieval & Fact-finding: mở rộng và xếp hạng ứng viên khi truy xuất (BR-17) |
-| Clause Graph | Đồ thị trên các điều khoản của một hợp đồng trong một phiên; chỉ chứa mã điều khoản và loại quan hệ; xóa cùng phiên. Phục vụ Validation & Reasoning: kiểm tra mâu thuẫn, suy diễn điều kiện (BR-18) |
-
-INSTRUCTION:
+| Clause Graph | Đồ thị trên các điều khoản của một hợp đồng trong một phiên; chỉ chứa mã điều khoản và loại quan hệ; xóa cùng phiên. Phục vụ Validation & Reasoning: phát hiện mâu thuẫn giữa các điều khoản trong phạm vi quan hệ Graph (BR-18) |
 
 ## **11\. Open Issues**
 
@@ -477,7 +497,7 @@ Mục chưa chốt. Mỗi mục có người chịu trách nhiệm, hạn và gi
 
 | ID | Vấn đề | Chịu trách nhiệm | Giá trị tạm dùng |
 | :---- | :---- | :---- | :---- |
-| OI-01 | Risk taxonomy chưa tồn tại (clause taxonomy 12 nhãn đã có) | Chưa phân công | Dựng bản đầu từ các quy định dùng cho lỗi chèn |
+| OI-01 | X | X | X |
 | OI-02 | Danh mục kho luật tầng 1 và các Điều dùng cho lỗi chèn | Người phụ trách dữ liệu | Bộ luật Lao động 2019 và nghị định hướng dẫn |
 | OI-03 | Xác nhận văn bản hiện hành về bảo vệ dữ liệu cá nhân (kể cả gửi ra nhà cung cấp ở nước ngoài) và chính sách lưu, sử dụng dữ liệu của Gemini Paid Tier | Chưa phân công | Thông báo không cam kết tuyệt đối (Phụ lục A) |
 | OI-04 | Phân công các mảng chưa có chủ (§9.6) | Cả nhóm | Chưa có |
@@ -490,11 +510,12 @@ Mục chưa chốt. Mỗi mục có người chịu trách nhiệm, hạn và gi
 | OI-11 | Chọn model Claude cụ thể làm judge và phần ngân sách | Cả nhóm | Một model Claude, chi phí trong \$15 |
 | OI-12 | Mô hình chi phí; trần số điều khoản; ngưỡng ký tự DOCX theo số đo trên D1 | Cả nhóm | 150 điều khoản; 100.000 ký tự |
 | OI-13 | Refine pipeline: xem SRS OI-01 | Cả nhóm | Pipeline ở SRS 2.2; mọi thay đổi giữ các invariant |
-| OI-14 | Đã chốt 12/10/2026: Data Graph phục vụ Retrieval & Fact-finding; Clause Graph phục vụ Validation & Reasoning (kiểm tra mâu thuẫn, suy diễn điều kiện). Còn mở: thiết kế cụ thể cách Clause Graph dùng cho kiểm tra mâu thuẫn và suy diễn điều kiện (xem OI-17) | Cả nhóm | Clause Graph có cạnh cấu trúc (SRS FR-31); chưa gắn tính năng người dùng cho đến khi SDD và TDD quyết định |
+| OI-14 | Đã chốt 12/10/2026: Data Graph phục vụ Retrieval & Fact-finding; Clause Graph phục vụ Validation & Reasoning (phát hiện mâu thuẫn giữa các điều khoản trong phạm vi quan hệ Graph). Còn mở: thiết kế cụ thể cách Clause Graph dùng cho kiểm tra mâu thuẫn và suy diễn điều kiện (xem OI-17) | Cả nhóm | Clause Graph có cạnh cấu trúc (SRS FR-31); chưa gắn tính năng người dùng cho đến khi SDD và TDD quyết định |
 | OI-15 | Đã chốt 12/10/2026: 10 tuần là 8 tuần xây dựng đến demo cộng 2 tuần đánh giá. Còn chờ xác nhận: các mốc MS-2, MS-4, MS-5 (9.4, cũng là OI-05) | Cả nhóm | Lịch ở 9.4 |
 | OI-16 | Chính sách đa nhãn: dữ liệu gold hiện một nhãn mỗi dòng, quy tắc 6 ở 8.2 cho phép nhiều nhãn (SRS OI-10) | Người phụ trách dữ liệu, Clause AI | Mỗi clause 1 đến 3 nhãn; hướng dẫn gán: ưu tiên một nhãn, thêm nhãn khi câu không tách được |
 | OI-17 | Thiết kế Graph ở mức SDD và TDD (loại nút và cạnh, nguồn cạnh, số bước mở rộng; SRS OI-08, OI-09) | Cả nhóm | Theo SRS FR-30, FR-31 |
-| OI-18 | Duyệt thay đổi BRD 0.5 và SRS 1.3, gồm các điều ở Phụ lục C | Chủ sở hữu BRD, SRS | Chờ duyệt |
+| OI-18 | Duyệt thay đổi BRD 0.6 và SRS 1.5, gồm các điều ở Phụ lục C | Chủ sở hữu BRD, SRS | Chờ duyệt |
+| OI-19 | Tra vùng lương tối thiểu chính xác (NĐ 293/2025 xác định theo xã, phường và địa bàn hoạt động của NSDLĐ) cần bảng địa bàn và địa chỉ không bị che; hiện chỉ kiểm theo cận dưới vùng IV (LEGAL\_VIOLATION) và khoảng giữa vùng IV và vùng I (AMBIGUOUS) | Người phụ trách dữ liệu | Cận dưới vùng IV; mở rộng nếu dư thời gian (đối chiếu danh mục địa bàn trên xaydungchinhsach.chinhphu.vn) |
 
 ## **Phụ lục C: Chỗ codebase hiện tại lệch BRD (ghi nhận, chưa sửa code)**
 

@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 15. Risk Analysis, citation validation và assembly | 3643 ký tự | trước: 15_14-legal-corpus-baseline-retrieval-va-data-graph.md | sau: 17_16-export-report.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 15. Risk Analysis, citation validation và assembly | 4346 ký tự | trước: 15_14-legal-corpus-baseline-retrieval-va-data-graph.md | sau: 17_16-export-report.md -->
 
 # 15. Risk Analysis, citation validation và assembly
 
@@ -91,8 +91,8 @@ Runtime không tự chấm relevance semantic; M3b là evaluation property.
 
 * Join RiskResult -> Clause bằng clause_id.
 * Quote/start/end chỉ từ canonical Clause.
-* Dựng `risk_basis` từ `basis_type` + risk_labels; nhãn ngoài taxonomy là internal error trước publish; tổ hợp (label, basis_type, vai trò) ở ô '-' thì gỡ nhãn (hết nhãn thì bỏ clause). Severity tra bảng taxonomy.
+* Dựng `risk_basis` từ `basis_type` + risk_labels; nhãn ngoài taxonomy là internal error trước publish; tổ hợp (label, basis_type, vai trò) ở ô '-' thì retry một lần cho clause đó kèm phản hồi (loại căn cứ nào được phép cho nhãn và vai trò); vẫn sai thì phát bản ghi "nghi ngờ, cần xem xét" với severity null, không nhãn, không bỏ clause, và ghi `need_review` để đo ở dev/eval. Severity tra bảng taxonomy.
 * Citation objects từ validated IDs.
 * No-risk -> COMPLETED + exact no-risk message + disclaimer, không khẳng định an toàn.
 * Final publish atomically; FAILED không expose partial.
-* `ContextResolutionTrace` chỉ dev/eval; không đưa vào product response nếu SRS chưa cập nhật.
+* `ContextResolutionTrace` chỉ dev/eval. `related_clause_ids` đi vào product response theo SRS 1.5 (FR-32).

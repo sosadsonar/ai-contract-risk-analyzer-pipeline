@@ -1,51 +1,51 @@
 {
   "docs": {
     "BRD": {
-      "source": "BRD_AI_Labor_Contract_Risk_Analyzer_0_5.md",
+      "source": "BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md",
       "split_level": 2,
-      "raw_chars": 40117,
-      "clean_chars": 39513,
+      "raw_chars": 46760,
+      "clean_chars": 46115,
       "chunks": [
         {
           "file": "00_brd-ai-labor-contract-risk-analyzer.md",
           "title": "BRD: AI Labor Contract Risk Analyzer",
           "path": "BRD: AI Labor Contract Risk Analyzer",
-          "chars": 2257,
+          "chars": 3271,
           "ids": []
         },
         {
           "file": "01_1-tong-quan.md",
           "title": "1. Tổng quan",
           "path": "BRD: AI Labor Contract Risk Analyzer > 1. Tổng quan",
-          "chars": 2798,
+          "chars": 2833,
           "ids": []
         },
         {
           "file": "02_2-pham-vi.md",
           "title": "2. Phạm vi",
           "path": "BRD: AI Labor Contract Risk Analyzer > 2. Phạm vi",
-          "chars": 2096,
+          "chars": 2149,
           "ids": []
         },
         {
           "file": "03_3-ben-lien-quan-va-dinh-nghia-rui-ro.md",
           "title": "3. Bên liên quan và định nghĩa rủi ro",
           "path": "BRD: AI Labor Contract Risk Analyzer > 3. Bên liên quan và định nghĩa rủi ro",
-          "chars": 3743,
+          "chars": 5901,
           "ids": []
         },
         {
           "file": "04_4-quy-trinh-nguoi-dung.md",
           "title": "4. Quy trình người dùng",
           "path": "BRD: AI Labor Contract Risk Analyzer > 4. Quy trình người dùng",
-          "chars": 1478,
+          "chars": 1480,
           "ids": []
         },
         {
           "file": "05_5-yeu-cau-nghiep-vu.md",
           "title": "5. Yêu cầu nghiệp vụ",
           "path": "BRD: AI Labor Contract Risk Analyzer > 5. Yêu cầu nghiệp vụ",
-          "chars": 3601,
+          "chars": 4076,
           "ids": [
             "BR-01",
             "BR-02",
@@ -80,19 +80,21 @@
           "file": "07_7-du-lieu-ca-nhan-va-bao-mat.md",
           "title": "7. Dữ liệu cá nhân và bảo mật",
           "path": "BRD: AI Labor Contract Risk Analyzer > 7. Dữ liệu cá nhân và bảo mật",
-          "chars": 2243,
+          "chars": 2717,
           "ids": []
         },
         {
           "file": "08_8-do-luong-chat-luong-va-nghiem-thu.md",
           "title": "8. Đo lường chất lượng và nghiệm thu",
           "path": "BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu",
-          "chars": 7943,
+          "chars": 9877,
           "ids": [
             "D1",
             "D2",
+            "D3",
             "T1",
             "T2",
+            "P1",
             "M1",
             "M2",
             "M3a",
@@ -102,6 +104,9 @@
             "M6",
             "M7",
             "M8",
+            "M2b",
+            "M9",
+            "M10",
             "BL-1"
           ]
         },
@@ -109,7 +114,7 @@
           "file": "09_9-rang-buoc-gia-dinh-phu-thuoc.md",
           "title": "9. Ràng buộc, giả định, phụ thuộc",
           "path": "BRD: AI Labor Contract Risk Analyzer > 9. Ràng buộc, giả định, phụ thuộc",
-          "chars": 3609,
+          "chars": 3732,
           "ids": [
             "A1",
             "A2",
@@ -144,14 +149,14 @@
           "file": "12_phu-luc-b-thuat-ngu.md",
           "title": "Phụ lục B: Thuật ngữ",
           "path": "BRD: AI Labor Contract Risk Analyzer > Phụ lục B: Thuật ngữ",
-          "chars": 1601,
+          "chars": 1629,
           "ids": []
         },
         {
           "file": "13_11-open-issues.md",
           "title": "11. Open Issues",
           "path": "BRD: AI Labor Contract Risk Analyzer > 11. Open Issues",
-          "chars": 2899,
+          "chars": 3205,
           "ids": [
             "OI-01",
             "OI-02",
@@ -170,7 +175,8 @@
             "OI-15",
             "OI-16",
             "OI-17",
-            "OI-18"
+            "OI-18",
+            "OI-19"
           ]
         },
         {
@@ -185,8 +191,8 @@
     "CLAUSE": {
       "source": "CLAUSE_TAXONOMY.md",
       "split_level": 2,
-      "raw_chars": 2744,
-      "clean_chars": 2735,
+      "raw_chars": 3191,
+      "clean_chars": 3182,
       "chunks": [
         {
           "file": "00_clause-taxonomy-contract-risk-analyzer-12-nhan.md",
@@ -199,21 +205,21 @@
           "file": "01_1-nguon-chan-ly.md",
           "title": "1. Nguồn chân lý",
           "path": "Clause Taxonomy — Contract Risk Analyzer (12 nhãn) > 1. Nguồn chân lý",
-          "chars": 791,
+          "chars": 857,
           "ids": []
         },
         {
           "file": "02_2-phien-ban.md",
           "title": "2. Phiên bản",
           "path": "Clause Taxonomy — Contract Risk Analyzer (12 nhãn) > 2. Phiên bản",
-          "chars": 613,
+          "chars": 744,
           "ids": []
         },
         {
           "file": "03_3-cau-hoi-con-mo-can-nhom-chot-truoc-ms-1.md",
           "title": "3. Câu hỏi còn mở (cần nhóm chốt trước MS-1)",
           "path": "Clause Taxonomy — Contract Risk Analyzer (12 nhãn) > 3. Câu hỏi còn mở (cần nhóm chốt trước MS-1)",
-          "chars": 586,
+          "chars": 836,
           "ids": []
         },
         {
@@ -222,6 +228,74 @@
           "path": "Clause Taxonomy — Contract Risk Analyzer (12 nhãn) > 4. Quy trình đổi taxonomy",
           "chars": 469,
           "ids": []
+        }
+      ]
+    },
+    "clause-taxonomy-freeze": {
+      "source": "CLAUSE_TAXONOMY_FREEZE.md",
+      "split_level": 2,
+      "raw_chars": 6357,
+      "clean_chars": 6348,
+      "chunks": [
+        {
+          "file": "00_clause-taxonomy-ho-so-dong-bang-ms-1-va-chinh-sach.md",
+          "title": "Clause Taxonomy — hồ sơ đóng băng MS-1 và chính sách đa nhãn (OI-10)",
+          "path": "Clause Taxonomy — hồ sơ đóng băng MS-1 và chính sách đa nhãn (OI-10)",
+          "chars": 620,
+          "ids": []
+        },
+        {
+          "file": "01_1-phan-da-dong-bang.md",
+          "title": "1. Phần đã đóng băng",
+          "path": "Clause Taxonomy — hồ sơ đóng băng MS-1 và chính sách đa nhãn (OI-10) > 1. Phần đã đóng băng",
+          "chars": 1810,
+          "ids": []
+        },
+        {
+          "file": "02_2-chinh-sach-da-nhan-oi-10-de-xuat-n1.md",
+          "title": "2. Chính sách đa nhãn (OI-10) — [Đề xuất N1]",
+          "path": "Clause Taxonomy — hồ sơ đóng băng MS-1 và chính sách đa nhãn (OI-10) > 2. Chính sách đa nhãn (OI-10) — [Đề xuất N1]",
+          "chars": 1753,
+          "ids": []
+        },
+        {
+          "file": "03_3-ba-topic-chua-co-nhan-rieng-de-xuat-n1-cho-n2-n3.md",
+          "title": "3. Ba topic chưa có nhãn riêng — [Đề xuất N1, chờ N2/N3]",
+          "path": "Clause Taxonomy — hồ sơ đóng băng MS-1 và chính sách đa nhãn (OI-10) > 3. Ba topic chưa có nhãn riêng — [Đề xuất N1, chờ N2/N3]",
+          "chars": 1853,
+          "ids": []
+        },
+        {
+          "file": "04_4-sign-off.md",
+          "title": "4. Sign-off",
+          "path": "Clause Taxonomy — hồ sơ đóng băng MS-1 và chính sách đa nhãn (OI-10) > 4. Sign-off",
+          "chars": 312,
+          "ids": [
+            "N1",
+            "N2",
+            "N3"
+          ]
+        }
+      ]
+    },
+    "d1-inventory-2026-10-28": {
+      "source": "D1_INVENTORY_2026-10-28.md",
+      "split_level": 1,
+      "raw_chars": 2374,
+      "clean_chars": 2364,
+      "chunks": [
+        {
+          "file": "00_kiem-ke-d1-tu-du-lieu-v06-28-10-2026.md",
+          "title": "Kiểm kê D1 từ dữ liệu v06 (28/10/2026)",
+          "path": "Kiểm kê D1 từ dữ liệu v06 (28/10/2026)",
+          "chars": 2364,
+          "ids": [
+            "HDLD001",
+            "HDLD002",
+            "HDLD003",
+            "HDLD004",
+            "HDLD005"
+          ]
         }
       ]
     },
@@ -278,8 +352,8 @@
     "data-plan": {
       "source": "DATA_PLAN.md",
       "split_level": 2,
-      "raw_chars": 4671,
-      "clean_chars": 4658,
+      "raw_chars": 6728,
+      "clean_chars": 6715,
       "chunks": [
         {
           "file": "00_data-plan-contract-risk-analyzer.md",
@@ -299,7 +373,7 @@
           "file": "02_2-hien-trang-dataset-kiem-ngay-12-17-10-2026.md",
           "title": "2. Hiện trạng dataset (kiểm ngày 12–17/10/2026)",
           "path": "Data Plan — Contract Risk Analyzer > 2. Hiện trạng dataset (kiểm ngày 12–17/10/2026)",
-          "chars": 1298,
+          "chars": 3355,
           "ids": []
         },
         {
@@ -332,31 +406,287 @@
         }
       ]
     },
-    "SDD": {
-      "source": "SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md",
-      "split_level": 1,
-      "raw_chars": 22131,
-      "clean_chars": 21500,
+    "n2-progress-audit-2026-11-01": {
+      "source": "N2_PROGRESS_AUDIT_2026-11-01.md",
+      "split_level": 2,
+      "raw_chars": 3264,
+      "clean_chars": 3253,
       "chunks": [
         {
-          "file": "00_preamble.md",
-          "title": "Preamble",
-          "path": "Preamble",
-          "chars": 309,
+          "file": "00_kiem-ke-tien-do-data-lead-n2-01-11-2026.md",
+          "title": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026",
+          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026",
+          "chars": 45,
+          "ids": []
+        },
+        {
+          "file": "01_cach-tinh.md",
+          "title": "Cách tính",
+          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026 > Cách tính",
+          "chars": 463,
+          "ids": []
+        },
+        {
+          "file": "02_da-dong-theo-progress-md.md",
+          "title": "Đã đóng theo PROGRESS.md",
+          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026 > Đã đóng theo PROGRESS.md",
+          "chars": 201,
+          "ids": []
+        },
+        {
+          "file": "03_cap-nhat-ngay-01-11-2026.md",
+          "title": "Cập nhật ngày 01/11/2026",
+          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026 > Cập nhật ngày 01/11/2026",
+          "chars": 836,
+          "ids": []
+        },
+        {
+          "file": "04_co-tien-trien-nhung-chua-dong.md",
+          "title": "Có tiến triển nhưng chưa đóng",
+          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026 > Có tiến triển nhưng chưa đóng",
+          "chars": 907,
+          "ids": []
+        },
+        {
+          "file": "05_cong-con-lai-de-dat-50-va-thu-tu-thuc-hien.md",
+          "title": "Cổng còn lại để đạt 50% và thứ tự thực hiện",
+          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026 > Cổng còn lại để đạt 50% và thứ tự thực hiện",
+          "chars": 801,
+          "ids": []
+        }
+      ]
+    },
+    "n2-progress-audit-2026-11-02": {
+      "source": "N2_PROGRESS_AUDIT_2026-11-02.md",
+      "split_level": 2,
+      "raw_chars": 10822,
+      "clean_chars": 10799,
+      "chunks": [
+        {
+          "file": "00_n2-data-lead-progress-audit-2026-11-02.md",
+          "title": "N2 Data Lead progress audit — 2026-11-02",
+          "path": "N2 Data Lead progress audit — 2026-11-02",
+          "chars": 42,
+          "ids": []
+        },
+        {
+          "file": "01_counting-method.md",
+          "title": "Counting method",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > Counting method",
+          "chars": 256,
+          "ids": []
+        },
+        {
+          "file": "02_current-result.md",
+          "title": "Current result",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > Current result",
+          "chars": 2882,
+          "ids": []
+        },
+        {
+          "file": "03_work-advanced-but-still-open.md",
+          "title": "Work advanced but still open",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > Work advanced but still open",
+          "chars": 916,
+          "ids": []
+        },
+        {
+          "file": "04_verification.md",
+          "title": "Verification",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > Verification",
+          "chars": 976,
+          "ids": []
+        },
+        {
+          "file": "05_additional-legal-source-work-2026-11-02-not-counte.md",
+          "title": "Additional legal source work — 2026-11-02 (not counted as a checkbox)",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > Additional legal source work — 2026-11-02 (not counted as a checkbox)",
+          "chars": 784,
+          "ids": []
+        },
+        {
+          "file": "06_guideline-alignment-draft-2026-11-02-not-counted-a.md",
+          "title": "Guideline alignment draft — 2026-11-02 (not counted as frozen)",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > Guideline alignment draft — 2026-11-02 (not counted as frozen)",
+          "chars": 650,
+          "ids": []
+        },
+        {
+          "file": "07_release-receipt-integrity-recovery-2026-11-02.md",
+          "title": "Release receipt integrity recovery — 2026-11-02",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > Release receipt integrity recovery — 2026-11-02",
+          "chars": 545,
+          "ids": []
+        },
+        {
+          "file": "08_corpus-inventory-recheck-2026-11-02.md",
+          "title": "Corpus inventory recheck — 2026-11-02",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > Corpus inventory recheck — 2026-11-02",
+          "chars": 1637,
+          "ids": []
+        },
+        {
+          "file": "09_scoped-x-03-closure-and-recount-2026-11-02.md",
+          "title": "Scoped X-03 closure and recount — 2026-11-02",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > Scoped X-03 closure and recount — 2026-11-02",
+          "chars": 602,
+          "ids": []
+        },
+        {
+          "file": "10_source-checked-c-13-a-first-batch-2026-11-02.md",
+          "title": "Source-checked C-13(a) first batch — 2026-11-02",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > Source-checked C-13(a) first batch — 2026-11-02",
+          "chars": 860,
+          "ids": []
+        },
+        {
+          "file": "11_x-10-intake-kickoff-2026-11-02.md",
+          "title": "X-10 intake kickoff — 2026-11-02",
+          "path": "N2 Data Lead progress audit — 2026-11-02 > X-10 intake kickoff — 2026-11-02",
+          "chars": 649,
+          "ids": []
+        }
+      ]
+    },
+    "PII": {
+      "source": "PII_MEASUREMENT_2026-11-01.md",
+      "split_level": 2,
+      "raw_chars": 3195,
+      "clean_chars": 3137,
+      "chunks": [
+        {
+          "file": "00_so-do-pii-dau-tien-c-09-b-ms-2.md",
+          "title": "Số đo PII đầu tiên (C-09 b, MS-2)",
+          "path": "Số đo PII đầu tiên (C-09 b, MS-2)",
+          "chars": 212,
+          "ids": []
+        },
+        {
+          "file": "01_1-nguon-gold-va-co-mau.md",
+          "title": "1. Nguồn gold và cỡ mẫu",
+          "path": "Số đo PII đầu tiên (C-09 b, MS-2) > 1. Nguồn gold và cỡ mẫu",
+          "chars": 463,
+          "ids": []
+        },
+        {
+          "file": "02_2-recall-khi-che-gold-span-phai-duoc-phu-100.md",
+          "title": "2. Recall khi che (gold span phải được phủ 100%)",
+          "path": "Số đo PII đầu tiên (C-09 b, MS-2) > 2. Recall khi che (gold span phải được phủ 100%)",
+          "chars": 651,
+          "ids": []
+        },
+        {
+          "file": "03_3-ty-le-giu-nguyen-truong-can-giu.md",
+          "title": "3. Tỷ lệ giữ nguyên trường cần giữ",
+          "path": "Số đo PII đầu tiên (C-09 b, MS-2) > 3. Tỷ lệ giữ nguyên trường cần giữ",
+          "chars": 150,
+          "ids": []
+        },
+        {
+          "file": "04_4-span-sot-gioi-han-da-biet-dua-vao-quyet-dinh-oi.md",
+          "title": "4. Span sót (giới hạn đã biết, đưa vào quyết định OI-12)",
+          "path": "Số đo PII đầu tiên (C-09 b, MS-2) > 4. Span sót (giới hạn đã biết, đưa vào quyết định OI-12)",
+          "chars": 179,
+          "ids": []
+        },
+        {
+          "file": "05_5-d1-kiem-tra-che-nham-va-quet-long.md",
+          "title": "5. D1: kiểm tra che nhầm và quét lỏng",
+          "path": "Số đo PII đầu tiên (C-09 b, MS-2) > 5. D1: kiểm tra che nhầm và quét lỏng",
+          "chars": 524,
+          "ids": []
+        },
+        {
+          "file": "06_6-ket-luan-cho-quyet-dinh-oi-12-local-ner.md",
+          "title": "6. Kết luận cho quyết định OI-12 (local NER)",
+          "path": "Số đo PII đầu tiên (C-09 b, MS-2) > 6. Kết luận cho quyết định OI-12 (local NER)",
+          "chars": 958,
+          "ids": []
+        }
+      ]
+    },
+    "RISK": {
+      "source": "RISK_TAXONOMY_v0.1.md",
+      "split_level": 2,
+      "raw_chars": 8418,
+      "clean_chars": 8391,
+      "chunks": [
+        {
+          "file": "00_risk-taxonomy-contract-risk-analyzer.md",
+          "title": "Risk Taxonomy - Contract Risk Analyzer",
+          "path": "Risk Taxonomy - Contract Risk Analyzer",
+          "chars": 40,
+          "ids": []
+        },
+        {
+          "file": "01_tl-dr.md",
+          "title": "TL;DR",
+          "path": "Risk Taxonomy - Contract Risk Analyzer > TL;DR",
+          "chars": 1281,
+          "ids": []
+        },
+        {
+          "file": "02_quy-trinh-gan-nhan-theo-vai-tro-cua-phien.md",
+          "title": "Quy trình gán nhãn (theo vai trò của phiên)",
+          "path": "Risk Taxonomy - Contract Risk Analyzer > Quy trình gán nhãn (theo vai trò của phiên)",
+          "chars": 1061,
+          "ids": []
+        },
+        {
+          "file": "03_cach-doc-bang.md",
+          "title": "Cách đọc bảng",
+          "path": "Risk Taxonomy - Contract Risk Analyzer > Cách đọc bảng",
+          "chars": 775,
+          "ids": []
+        },
+        {
+          "file": "04_xu-ly-khi-gap-o.md",
+          "title": "Xử lý khi gặp ô `-",
+          "path": "Risk Taxonomy - Contract Risk Analyzer > Xử lý khi gặp ô `-",
+          "chars": 455,
+          "ids": []
+        },
+        {
+          "file": "05_bang.md",
+          "title": "Bảng",
+          "path": "Risk Taxonomy - Contract Risk Analyzer > Bảng",
+          "chars": 3667,
+          "ids": []
+        },
+        {
+          "file": "06_gioi-han-da-biet.md",
+          "title": "Giới hạn đã biết",
+          "path": "Risk Taxonomy - Contract Risk Analyzer > Giới hạn đã biết",
+          "chars": 1112,
+          "ids": []
+        }
+      ]
+    },
+    "SDD": {
+      "source": "SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md",
+      "split_level": 1,
+      "raw_chars": 24293,
+      "clean_chars": 23628,
+      "chunks": [
+        {
+          "file": "00_system-design-document.md",
+          "title": "SYSTEM DESIGN DOCUMENT",
+          "path": "SYSTEM DESIGN DOCUMENT",
+          "chars": 307,
           "ids": []
         },
         {
           "file": "01_kiem-soat-tai-lieu.md",
           "title": "Kiểm soát tài liệu",
           "path": "Kiểm soát tài liệu",
-          "chars": 425,
+          "chars": 806,
           "ids": []
         },
         {
           "file": "02_1-muc-dich-va-nguyen-tac-thiet-ke.md",
           "title": "1. Mục đích và nguyên tắc thiết kế",
           "path": "1. Mục đích và nguyên tắc thiết kế",
-          "chars": 2638,
+          "chars": 2697,
           "ids": [
             "SDD-01",
             "SDD-02",
@@ -371,63 +701,63 @@
           "file": "03_2-system-context.md",
           "title": "2. System Context",
           "path": "2. System Context",
-          "chars": 743,
+          "chars": 748,
           "ids": []
         },
         {
           "file": "04_3-kien-truc-tong-the.md",
           "title": "3. Kiến trúc tổng thể",
           "path": "3. Kiến trúc tổng thể",
-          "chars": 2816,
+          "chars": 3652,
           "ids": []
         },
         {
           "file": "05_4-pipeline-xu-ly-end-to-end.md",
           "title": "4. Pipeline xử lý end-to-end",
           "path": "4. Pipeline xử lý end-to-end",
-          "chars": 2026,
+          "chars": 2257,
           "ids": []
         },
         {
           "file": "06_5-thiet-ke-data-graph.md",
           "title": "5. Thiết kế Data Graph",
           "path": "5. Thiết kế Data Graph",
-          "chars": 1592,
+          "chars": 1602,
           "ids": []
         },
         {
           "file": "07_6-thiet-ke-clause-graph.md",
           "title": "6. Thiết kế Clause Graph",
           "path": "6. Thiết kế Clause Graph",
-          "chars": 1315,
+          "chars": 1426,
           "ids": []
         },
         {
           "file": "08_7-kien-truc-du-lieu-va-luu-tru.md",
           "title": "7. Kiến trúc dữ liệu và lưu trữ",
           "path": "7. Kiến trúc dữ liệu và lưu trữ",
-          "chars": 1711,
+          "chars": 1744,
           "ids": []
         },
         {
           "file": "09_8-session-state-machine-va-dieu-phoi.md",
           "title": "8. Session, State Machine và điều phối",
           "path": "8. Session, State Machine và điều phối",
-          "chars": 604,
+          "chars": 609,
           "ids": []
         },
         {
           "file": "10_9-llm-integration-design.md",
           "title": "9. LLM Integration Design",
           "path": "9. LLM Integration Design",
-          "chars": 967,
+          "chars": 1030,
           "ids": []
         },
         {
           "file": "11_10-legal-corpus-va-citation-validation.md",
           "title": "10. Legal Corpus và Citation Validation",
           "path": "10. Legal Corpus và Citation Validation",
-          "chars": 724,
+          "chars": 896,
           "ids": []
         },
         {
@@ -441,31 +771,29 @@
           "file": "13_12-reliability-performance-va-cost.md",
           "title": "12. Reliability, Performance và Cost",
           "path": "12. Reliability, Performance và Cost",
-          "chars": 646,
+          "chars": 668,
           "ids": []
         },
         {
           "file": "14_13-deployment-architecture.md",
           "title": "13. Deployment Architecture",
           "path": "13. Deployment Architecture",
-          "chars": 821,
+          "chars": 819,
           "ids": []
         },
         {
           "file": "15_14-evaluation-architecture.md",
           "title": "14. Evaluation Architecture",
           "path": "14. Evaluation Architecture",
-          "chars": 501,
+          "chars": 614,
           "ids": []
         },
         {
           "file": "16_15-traceability-srs-component.md",
           "title": "15. Traceability: SRS -> Component",
           "path": "15. Traceability: SRS -> Component",
-          "chars": 898,
-          "ids": [
-            "FR-31"
-          ]
+          "chars": 989,
+          "ids": []
         },
         {
           "file": "17_16-cac-diem-de-tdd-chot.md",
@@ -491,23 +819,23 @@
       ]
     },
     "SRS": {
-      "source": "SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md",
+      "source": "SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md",
       "split_level": 2,
-      "raw_chars": 122351,
-      "clean_chars": 69465,
+      "raw_chars": 127974,
+      "clean_chars": 75035,
       "chunks": [
         {
-          "file": "00_srs-ai-labor-contract-risk-analyzer-phien-ban-1-4.md",
-          "title": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4)",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4)",
-          "chars": 291,
+          "file": "00_srs-ai-labor-contract-risk-analyzer-phien-ban-1-5.md",
+          "title": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5)",
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5)",
+          "chars": 264,
           "ids": []
         },
         {
           "file": "01_kiem-soat-tai-lieu.md",
           "title": "Kiểm soát tài liệu",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > Kiểm soát tài liệu",
-          "chars": 9331,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > Kiểm soát tài liệu",
+          "chars": 10891,
           "ids": [
             "DEC-01",
             "DEC-02",
@@ -542,22 +870,29 @@
         {
           "file": "02_1-gioi-thieu.md",
           "title": "1. Giới thiệu",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 1. Giới thiệu",
-          "chars": 3902,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 1. Giới thiệu",
+          "chars": 4001,
           "ids": []
         },
         {
           "file": "03_2-mo-ta-tong-quan-va-quyet-dinh-thiet-ke.md",
           "title": "2. Mô tả tổng quan và quyết định thiết kế",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 2. Mô tả tổng quan và quyết định thiết kế",
-          "chars": 3051,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 2. Mô tả tổng quan và quyết định thiết kế",
+          "chars": 3149,
           "ids": []
         },
         {
-          "file": "04_3-yeu-cau-chuc-nang-phan-1-2.md",
-          "title": "3. Yêu cầu chức năng (phần 1/2)",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 3. Yêu cầu chức năng",
-          "chars": 11900,
+          "file": "04_3-yeu-cau-chuc-nang-phan-1-3.md",
+          "title": "3. Yêu cầu chức năng (phần 1/3)",
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 3. Yêu cầu chức năng",
+          "chars": 298,
+          "ids": []
+        },
+        {
+          "file": "05_3-yeu-cau-chuc-nang-phan-2-3.md",
+          "title": "3. Yêu cầu chức năng (phần 2/3)",
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 3. Yêu cầu chức năng",
+          "chars": 11902,
           "ids": [
             "FR-01",
             "FR-02",
@@ -581,51 +916,53 @@
             "FR-20",
             "FR-21",
             "FR-22",
-            "FR-23",
-            "FR-24",
-            "FR-25",
-            "FR-26"
+            "FR-23"
           ]
         },
         {
-          "file": "05_3-yeu-cau-chuc-nang-phan-2-2.md",
-          "title": "3. Yêu cầu chức năng (phần 2/2)",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 3. Yêu cầu chức năng",
-          "chars": 2925,
+          "file": "06_3-yeu-cau-chuc-nang-phan-3-3.md",
+          "title": "3. Yêu cầu chức năng (phần 3/3)",
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 3. Yêu cầu chức năng",
+          "chars": 5476,
           "ids": [
+            "FR-24",
+            "FR-25",
+            "FR-26",
             "FR-27",
             "FR-28",
             "FR-29",
             "FR-30",
-            "FR-31"
+            "FR-31",
+            "FR-32",
+            "FR-33"
           ]
         },
         {
-          "file": "06_4-yeu-cau-du-lieu.md",
+          "file": "07_4-yeu-cau-du-lieu.md",
           "title": "4. Yêu cầu dữ liệu",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 4. Yêu cầu dữ liệu",
-          "chars": 5063,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 4. Yêu cầu dữ liệu",
+          "chars": 5249,
           "ids": []
         },
         {
-          "file": "07_5-quy-tac-legal-retrieval-va-citation.md",
+          "file": "08_5-quy-tac-legal-retrieval-va-citation.md",
           "title": "5. Quy tắc legal retrieval và citation",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 5. Quy tắc legal retrieval và citation",
-          "chars": 1922,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 5. Quy tắc legal retrieval và citation",
+          "chars": 2131,
           "ids": []
         },
         {
-          "file": "08_6-trang-thai-xu-ly-va-ma-loi.md",
+          "file": "09_6-trang-thai-xu-ly-va-ma-loi.md",
           "title": "6. Trạng thái xử lý và mã lỗi",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 6. Trạng thái xử lý và mã lỗi",
-          "chars": 4064,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 6. Trạng thái xử lý và mã lỗi",
+          "chars": 4055,
           "ids": []
         },
         {
-          "file": "09_7-yeu-cau-phi-chuc-nang-cho-demo.md",
+          "file": "10_7-yeu-cau-phi-chuc-nang-cho-demo.md",
           "title": "7. Yêu cầu phi chức năng cho demo",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 7. Yêu cầu phi chức năng cho demo",
-          "chars": 6483,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 7. Yêu cầu phi chức năng cho demo",
+          "chars": 6461,
           "ids": [
             "NFR-PERF-01",
             "NFR-PERF-02",
@@ -654,10 +991,10 @@
           ]
         },
         {
-          "file": "10_8-chat-luong-ai-va-danh-gia.md",
+          "file": "11_8-chat-luong-ai-va-danh-gia.md",
           "title": "8. Chất lượng AI và đánh giá",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 8. Chất lượng AI và đánh giá",
-          "chars": 2229,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 8. Chất lượng AI và đánh giá",
+          "chars": 2629,
           "ids": [
             "AIQ-01",
             "AIQ-02",
@@ -671,17 +1008,17 @@
           ]
         },
         {
-          "file": "11_9-giao-dien-thuc-thi-toi-thieu.md",
+          "file": "12_9-giao-dien-thuc-thi-toi-thieu.md",
           "title": "9. Giao diện thực thi tối thiểu",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 9. Giao diện thực thi tối thiểu",
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 9. Giao diện thực thi tối thiểu",
           "chars": 1471,
           "ids": []
         },
         {
-          "file": "12_10-quy-tac-nghiep-vu-bat-buoc.md",
+          "file": "13_10-quy-tac-nghiep-vu-bat-buoc.md",
           "title": "10. Quy tắc nghiệp vụ bắt buộc",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 10. Quy tắc nghiệp vụ bắt buộc",
-          "chars": 2807,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 10. Quy tắc nghiệp vụ bắt buộc",
+          "chars": 2862,
           "ids": [
             "R-01",
             "R-02",
@@ -708,10 +1045,10 @@
           ]
         },
         {
-          "file": "13_11-truy-vet-brd-va-srs.md",
+          "file": "14_11-truy-vet-brd-va-srs.md",
           "title": "11. Truy vết BRD và SRS",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 11. Truy vết BRD và SRS",
-          "chars": 2853,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 11. Truy vết BRD và SRS",
+          "chars": 2982,
           "ids": [
             "BO-1",
             "BO-2",
@@ -743,16 +1080,16 @@
           ]
         },
         {
-          "file": "14_12-tieu-chi-nghiem-thu-he-thong.md",
+          "file": "15_12-tieu-chi-nghiem-thu-he-thong.md",
           "title": "12. Tiêu chí nghiệm thu hệ thống",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 12. Tiêu chí nghiệm thu hệ thống",
-          "chars": 2014,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 12. Tiêu chí nghiệm thu hệ thống",
+          "chars": 2015,
           "ids": []
         },
         {
-          "file": "15_13-open-issues-va-quyet-dinh-da-dong.md",
+          "file": "16_13-open-issues-va-quyet-dinh-da-dong.md",
           "title": "13. Open Issues và quyết định đã đóng",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 13. Open Issues và quyết định đã đóng",
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 13. Open Issues và quyết định đã đóng",
           "chars": 2441,
           "ids": [
             "OI-01",
@@ -770,10 +1107,10 @@
           ]
         },
         {
-          "file": "16_phu-luc-c-thay-doi-can-lam-o-codebase-hien-tai-ghi.md",
+          "file": "17_phu-luc-c-thay-doi-can-lam-o-codebase-hien-tai-ghi.md",
           "title": "Phụ lục C: Thay đổi cần làm ở codebase hiện tại (ghi nhận, chưa thực hiện)",
-          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > Phụ lục C: Thay đổi cần làm ở codebase hiện tại (ghi nhận, chưa thực hiện)",
-          "chars": 6718,
+          "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > Phụ lục C: Thay đổi cần làm ở codebase hiện tại (ghi nhận, chưa thực hiện)",
+          "chars": 6758,
           "ids": [
             "C-01",
             "C-02",
@@ -801,23 +1138,23 @@
       ]
     },
     "TDD": {
-      "source": "TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md",
+      "source": "TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md",
       "split_level": 1,
-      "raw_chars": 76017,
-      "clean_chars": 74996,
+      "raw_chars": 82560,
+      "clean_chars": 81523,
       "chunks": [
         {
-          "file": "00_preamble.md",
-          "title": "Preamble",
-          "path": "Preamble",
-          "chars": 268,
+          "file": "00_technical-design-document.md",
+          "title": "TECHNICAL DESIGN DOCUMENT",
+          "path": "TECHNICAL DESIGN DOCUMENT",
+          "chars": 266,
           "ids": []
         },
         {
           "file": "01_kiem-soat-tai-lieu.md",
           "title": "Kiểm soát tài liệu",
           "path": "Kiểm soát tài liệu",
-          "chars": 3029,
+          "chars": 4312,
           "ids": []
         },
         {
@@ -831,7 +1168,7 @@
           "file": "03_2-cac-quyet-dinh-ky-thuat-tdd.md",
           "title": "2. Các quyết định kỹ thuật TDD",
           "path": "2. Các quyết định kỹ thuật TDD",
-          "chars": 4893,
+          "chars": 4980,
           "ids": [
             "TDD-01",
             "TDD-02",
@@ -871,28 +1208,28 @@
           "file": "05_4-configuration-secret-va-startup.md",
           "title": "4. Configuration, secret và startup",
           "path": "4. Configuration, secret và startup",
-          "chars": 3174,
+          "chars": 3207,
           "ids": []
         },
         {
           "file": "06_5-http-api-contract.md",
           "title": "5. HTTP API Contract",
           "path": "5. HTTP API Contract",
-          "chars": 7110,
+          "chars": 7351,
           "ids": []
         },
         {
           "file": "07_6-domain-model-va-json-schema.md",
           "title": "6. Domain model và JSON Schema",
           "path": "6. Domain model và JSON Schema",
-          "chars": 5296,
+          "chars": 5680,
           "ids": []
         },
         {
           "file": "08_7-analysis-orchestrator-state-machine-va-retry-res.md",
           "title": "7. Analysis Orchestrator, state machine và retry/resume",
           "path": "7. Analysis Orchestrator, state machine và retry/resume",
-          "chars": 3367,
+          "chars": 3376,
           "ids": []
         },
         {
@@ -913,7 +1250,7 @@
           "file": "11_10-pii-masking.md",
           "title": "10. PII Masking",
           "path": "10. PII Masking",
-          "chars": 1940,
+          "chars": 2370,
           "ids": []
         },
         {
@@ -941,14 +1278,14 @@
           "file": "15_14-legal-corpus-baseline-retrieval-va-data-graph.md",
           "title": "14. Legal Corpus, Baseline Retrieval và Data Graph",
           "path": "14. Legal Corpus, Baseline Retrieval và Data Graph",
-          "chars": 3893,
+          "chars": 4365,
           "ids": []
         },
         {
           "file": "16_15-risk-analysis-citation-validation-va-assembly.md",
           "title": "15. Risk Analysis, citation validation và assembly",
           "path": "15. Risk Analysis, citation validation và assembly",
-          "chars": 3643,
+          "chars": 4346,
           "ids": []
         },
         {
@@ -962,14 +1299,14 @@
           "file": "18_17-logging-quota-rate-limit-retention-va-security.md",
           "title": "17. Logging, quota, rate limit, retention và security",
           "path": "17. Logging, quota, rate limit, retention và security",
-          "chars": 3380,
+          "chars": 3887,
           "ids": []
         },
         {
           "file": "19_18-evaluation-harness-va-gold-format.md",
           "title": "18. Evaluation Harness và gold format",
           "path": "18. Evaluation Harness và gold format",
-          "chars": 4048,
+          "chars": 4647,
           "ids": [
             "M1",
             "M2",
@@ -980,6 +1317,9 @@
             "M6",
             "M7",
             "M8",
+            "M2b",
+            "M9",
+            "M10",
             "BL-1"
           ]
         },
@@ -987,7 +1327,7 @@
           "file": "20_19-test-strategy.md",
           "title": "19. Test strategy",
           "path": "19. Test strategy",
-          "chars": 3254,
+          "chars": 3263,
           "ids": [
             "INV-01",
             "INV-02",
@@ -1022,7 +1362,7 @@
           "file": "22_21-open-items-gioi-han-da-biet.md",
           "title": "21. Open items / giới hạn đã biết",
           "path": "21. Open items / giới hạn đã biết",
-          "chars": 1813,
+          "chars": 2086,
           "ids": [
             "O-01",
             "O-02",
@@ -1035,14 +1375,16 @@
             "O-09",
             "O-10",
             "O-11",
-            "O-12"
+            "O-12",
+            "O-13",
+            "O-14"
           ]
         },
         {
           "file": "23_phu-luc-a-json-schema-mau.md",
           "title": "Phụ lục A. JSON Schema mẫu",
           "path": "Phụ lục A. JSON Schema mẫu",
-          "chars": 2142,
+          "chars": 2495,
           "ids": []
         },
         {
@@ -1056,14 +1398,14 @@
           "file": "25_phu-luc-c-prompt-contract.md",
           "title": "Phụ lục C. Prompt contract",
           "path": "Phụ lục C. Prompt contract",
-          "chars": 999,
+          "chars": 2118,
           "ids": []
         },
         {
           "file": "26_phu-luc-d-checklist-truoc-khi-khoa-demo.md",
           "title": "Phụ lục D. Checklist trước khi khóa demo",
           "path": "Phụ lục D. Checklist trước khi khóa demo",
-          "chars": 1411,
+          "chars": 1438,
           "ids": []
         },
         {

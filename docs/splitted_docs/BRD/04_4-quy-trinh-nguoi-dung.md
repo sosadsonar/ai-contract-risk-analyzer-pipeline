@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_0_5.md | mục: BRD: AI Labor Contract Risk Analyzer > 4. Quy trình người dùng | 1478 ký tự | trước: 03_3-ben-lien-quan-va-dinh-nghia-rui-ro.md | sau: 05_5-yeu-cau-nghiep-vu.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 4. Quy trình người dùng | 1480 ký tự | trước: 03_3-ben-lien-quan-va-dinh-nghia-rui-ro.md | sau: 05_5-yeu-cau-nghiep-vu.md -->
 
 ## 4. Quy trình người dùng
 
@@ -8,9 +8,9 @@
 2. Chọn vai trò (NLĐ hoặc NSDLĐ) ở cạnh nút Upload.
 3. Upload một file hợp đồng.
 4. Hệ thống kiểm tra định dạng, kích thước và việc file có text.
-5. Hệ thống trích văn bản thô, ẩn dữ liệu cá nhân (PII Masking), thực hiện Clause Segmentation (tách điều khoản giữ nguyên tọa độ/offset văn bản gốc), phân loại loại điều khoản (Clause Classification qua Gemini Flash).
+5. Hệ thống trích văn bản thô, ẩn dữ liệu cá nhân (PII Masking), thực hiện Clause Segmentation (tách điều khoản, giữ offset trên canonical text), phân loại loại điều khoản (Clause Classification).
 6. Hệ thống phân tích rủi ro theo vai trò, đối chiếu với kho luật.
-7. Hệ thống hiển thị báo cáo: danh sách điều khoản rủi ro, highlight trên văn bản gốc.
+7. Hệ thống hiển thị báo cáo: danh sách điều khoản rủi ro, highlight trên canonical text (văn bản trích xuất).
 8. Người dùng có thể chọn xuất kết quả ra file PDF/docx
 9. Khi phiên kết thúc, dữ liệu bị xóa theo mục 7.
 

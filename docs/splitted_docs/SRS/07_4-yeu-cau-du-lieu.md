@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 4. Yêu cầu dữ liệu | 5063 ký tự | trước: 05_3-yeu-cau-chuc-nang-phan-2-2.md | sau: 07_5-quy-tac-legal-retrieval-va-citation.md -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 4. Yêu cầu dữ liệu | 5249 ký tự | trước: 06_3-yeu-cau-chuc-nang-phan-3-3.md | sau: 08_5-quy-tac-legal-retrieval-va-citation.md -->
 
 ## 4. Yêu cầu dữ liệu
 

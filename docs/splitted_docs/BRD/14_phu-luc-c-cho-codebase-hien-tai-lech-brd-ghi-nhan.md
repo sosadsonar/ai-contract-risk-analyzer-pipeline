@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_0_5.md | mục: BRD: AI Labor Contract Risk Analyzer > Phụ lục C: Chỗ codebase hiện tại lệch BRD (ghi nhận, chưa sửa code) | 1697 ký tự | trước: 13_11-open-issues.md | sau: - -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > Phụ lục C: Chỗ codebase hiện tại lệch BRD (ghi nhận, chưa sửa code) | 1697 ký tự | trước: 13_11-open-issues.md | sau: - -->
 
 ## Phụ lục C: Chỗ codebase hiện tại lệch BRD (ghi nhận, chưa sửa code)
 

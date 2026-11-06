@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 12. Clause Graph và Context Resolver | 2225 ký tự | trước: 12_11-clause-segmentation.md | sau: 14_13-clause-classification-llm.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 12. Clause Graph và Context Resolver | 2225 ký tự | trước: 12_11-clause-segmentation.md | sau: 14_13-clause-classification-llm.md -->
 
 # 12. Clause Graph và Context Resolver
 

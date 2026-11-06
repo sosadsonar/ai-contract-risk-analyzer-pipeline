@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 8. Session, State Machine và điều phối | 604 ký tự | trước: 08_7-kien-truc-du-lieu-va-luu-tru.md | sau: 10_9-llm-integration-design.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 8. Session, State Machine và điều phối | 609 ký tự | trước: 08_7-kien-truc-du-lieu-va-luu-tru.md | sau: 10_9-llm-integration-design.md -->
 
 # 8. Session, State Machine và điều phối
 

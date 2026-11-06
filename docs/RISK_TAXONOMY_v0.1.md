@@ -5,7 +5,7 @@
 
 Version: `risk_taxonomy_v01`, rubric `severity_v01` (rubric chữ ở SRS 2.3). Nguồn duy nhất trong code: `backend/app/risk/taxonomy.py`. Test `tests/unit/test_risk_taxonomy.py` đọc bảng bên dưới và so với code (nhãn, thứ tự, severity), nên sửa bảng thì phải sửa code (và ngược lại). Cột `Clause label tham khảo` không có trong code và không đưa vào prompt.
 
-Trạng thái: **FROZEN** tại MS-1 (25/10/2026). Phần đóng băng: danh sách 21 nhãn, thứ tự nhãn, bảng severity (hai cột EMPLOYEE và EMPLOYER), hai version ở trên. Đổi một trong các phần này phải tăng version, đổi hằng trong `tests/unit/test_risk_taxonomy_freeze.py` và báo cả nhóm. Các cột `Clause label tham khảo`, `Gom từ (expression)`, `Căn cứ (candidate)` chỉ để đọc: sửa được, không cần tăng version.`
+Trạng thái: **FROZEN** tại MS-1 (25/10/2026). Phần đóng băng: danh sách 21 nhãn, thứ tự nhãn, bảng severity (hai cột EMPLOYEE và EMPLOYER), hai version ở trên. Đổi một trong các phần này phải tăng version, đổi hằng trong `tests/unit/test_risk_taxonomy_freeze.py` và báo cả nhóm. Các cột `Clause label tham khảo`, `Gom từ (expression)`, `Căn cứ (candidate)` chỉ để đọc: sửa được, không cần tăng version.
 
 ## Quy trình gán nhãn (theo vai trò của phiên)
 1. **basis_type**: một giá trị cho cả clause (LLM trả).

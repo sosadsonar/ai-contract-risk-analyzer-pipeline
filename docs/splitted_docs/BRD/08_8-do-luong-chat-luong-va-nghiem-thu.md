@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_0_5.md | mục: BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu | 7943 ký tự | trước: 07_7-du-lieu-ca-nhan-va-bao-mat.md | sau: 09_9-rang-buoc-gia-dinh-phu-thuoc.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu | 9877 ký tự | trước: 07_7-du-lieu-ca-nhan-va-bao-mat.md | sau: 09_9-rang-buoc-gia-dinh-phu-thuoc.md -->
 
 ## 8. Đo lường chất lượng và nghiệm thu
 
@@ -22,10 +22,12 @@ Ngoài phạm vi: không đo false positive riêng. Precision nằm trong F1 c�
 
 | Tập | Nội dung | Dùng cho |
 |---|---|---|
-| D1 | 4 hợp đồng dev hiện có (183 điều khoản) | Phát triển, tuning prompt, few-shot; không báo số nghiệm thu |
+| D1 | 4 hợp đồng dev hiện có (HDLD001 đến HDLD004, 183 điều khoản) cùng HDLD005 bổ sung (tổng 5 hợp đồng, 234 điều khoản theo clauses_v06, trạng thái PROVISIONAL), chia theo nhóm mẫu giống nhau (similarity group) | Phát triển, tuning prompt, few-shot; đo bằng leave-one-group-out theo nhóm mẫu kèm khoảng tin cậy (ví dụ few-shot lấy từ nhóm khác, loại ví dụ gần trùng điều đang chấm); không báo số nghiệm thu |
 | D2 | D1 kèm lỗi chèn riêng cho dev, câu chữ và quy định không dùng chung với T2 (tốt nhất tách quy định) | Phát triển |
-| T1 | Tối thiểu 10 hợp đồng gốc, tách hoàn toàn khỏi dữ liệu dev, few-shot, prompt; đa dạng định dạng (PDF, DOCX), kiểu đánh số điều khoản, ngành và độ dài | M1, M2, M3a, M3b, M4, M6, M7, BL-1 |
+| D3 | Bản sao hợp đồng D1 cài tối thiểu 10 cặp điều khoản mâu thuẫn (cặp có cạnh trong Clause Graph) và 10 cặp đối chứng nhất quán | M10 |
+| T1 | Tối thiểu 10 hợp đồng gốc, tách hoàn toàn khỏi dữ liệu dev, few-shot, prompt; đa dạng định dạng (PDF, DOCX), kiểu đánh số điều khoản, ngành và độ dài | M1, M2, M2b, M3a, M3b, M4, M6, M7, M9, BL-1 |
 | T2 | Bản sao T1 đã chèn tối thiểu 30 lỗi (8.4) | M5, M8 |
+| P1 | PII giả sinh bằng script, chèn vào hợp đồng đã de-identify tại vị trí đã biết; tối thiểu 100 mẫu mỗi loại nhóm recall 99% và 50 mẫu mỗi loại nhóm 90%; có mẫu âm (số và ngày không phải PII); bộ sinh tách khỏi regex của masker; gồm lỗi trích PDF (xuống dòng, khoảng trắng giữa chữ số, NFD) | Chỉ số PII (7.3) |
 
 Quy tắc:
 
@@ -58,9 +60,14 @@ Một "output" là một bản ghi rủi ro gồm điều khoản, nhãn, giải
 | M6 | Judge và người trùng nhau | ≥ 80% và Cohen's kappa ≥ 0.6 | Kết quả mỗi output | Hai người chấm | T1 (mẫu 40 output) | Tỷ lệ judge trùng nhãn với người; đạt cả hai thì dùng judge cho phần còn lại |
 | M7 | Clause classification macro-F1 | ≥ 0.80 | Cặp (điều khoản, clause label) | LLM khác họ gán, người xác minh | T1 | Tự động; báo per-class; macro chỉ tính nhãn có ≥ 5 mẫu |
 | M8 | Retrieval recall@5 | ≥ 90% | Mỗi lỗi chèn | Điều luật gold của lỗi chèn | T2 | Tự động: điều luật gold nằm trong 5 candidate đầu. Chỉ số chẩn đoán. Báo thêm recall@5 khi tắt mở rộng qua Data Graph để thấy đóng góp của Graph (BR-17); không có ngưỡng riêng |
+| M2b | Độ chính xác loại căn cứ (basis_type) | Báo cáo kèm khoảng tin cậy; ngưỡng đặt sau số đo dev (OI-09) | Bộ ba đã khớp ở M2 | LLM khác họ gán, người xác minh | T1 | Tự động. Severity không có chỉ số riêng vì do bảng taxonomy tra từ (nhãn, loại căn cứ, vai trò) |
+| M9 | Giải thích đúng | ≥ 80% (tạm, đặt lại theo OI-09) | Mỗi output | Người chấm; judge nếu M6 đạt | T1 (cùng mẫu 40 output của M3b) | Chấm Đúng, Đúng một phần hoặc Sai: giải thích đúng căn cứ và đúng vai trò |
+| M10 | Phát hiện mâu thuẫn trong hợp đồng | Báo cáo, không ngưỡng | Cặp điều khoản có cạnh trong Clause Graph | Cặp cài do nhóm tạo, kèm cặp đối chứng nhất quán | D3 | Tự động: phát hiện khi rủi ro của một trong hai điều có related_clause_ids chứa điều còn lại. Báo recall và tỷ lệ báo nhầm, so Graph tắt và mở |
 | BL-1 | So với LLM thông dụng | Tỷ lệ citation sai của hệ thống ≤ một nửa của baseline | Mỗi điều luật được trích | Người đối chiếu văn bản luật thật | T1 (cùng mẫu 40) | "Sai" = không tồn tại hoặc nội dung không khớp. Cùng hợp đồng đã che, cùng vai trò, cùng yêu cầu. Baseline: LLM thông dụng chọn ở OI-07, cấu hình cụ thể ghi trong báo cáo. |
 
 \* Ngưỡng M2, M7 và M3b được đặt lại sau số đo dev đầu tiên (OI-09). Mọi con số báo kèm khoảng tin cậy (bootstrap) và số mẫu mỗi nhãn.
+
+Quy đổi gold sang đầu ra pipeline (M2, M2b, M7): ghép một-một tham lam theo span với IoU ≥ 0.5 (riêng M1 giữ ngưỡng 0.80); clause dự đoán thừa hưởng nhãn của clause gold khớp; gold không khớp tính là sót, clause dự đoán không khớp tính là báo thừa; gold một nhãn tính trúng khi nằm trong tập 1 đến 3 nhãn dự đoán, đồng thời báo F1 theo từng nhãn.
 
 ### 8.4 Đánh giá false negative bằng lỗi chèn
 
@@ -98,11 +105,11 @@ Judge dùng để chấm hai việc trên các bản ghi rủi ro của T1: gi�
 
 * Luồng chính chạy trọn vẹn cho cả hai vai trò trên toàn bộ T1: mỗi hợp đồng đạt trạng thái hoàn thành sau tối đa 2 lần thử lại thủ công mỗi phiên.
 
-* BO-3: năm ca mẫu ở §3.3 cho kết quả khác nhau giữa hai vai trò đúng như kỳ vọng đã được người phụ trách dữ liệu xác minh (đạt hoặc không đạt, không tính tỷ lệ).
+* BO-3: sáu ca mẫu ở §3.3 cho kết quả khác nhau giữa hai vai trò đúng như kỳ vọng đã được người phụ trách dữ liệu xác minh (đạt hoặc không đạt, không tính tỷ lệ).
 
-* Đạt các ngưỡng M1 đến M8 và ngưỡng ở §7.3, hoặc có giải trình nếu chưa đạt. BL-1 nếu chưa bị cắt theo §9.5.
+* Đạt các ngưỡng M1 đến M9 (M2b và M10 chỉ báo cáo) và ngưỡng ở §7.3, hoặc có giải trình nếu chưa đạt. BL-1 nếu chưa bị cắt theo §9.5.
 
-* Mọi yêu cầu BR-01 đến BR-16 được kiểm tra và có kết quả.
+* Mọi yêu cầu BR-01 đến BR-18 được kiểm tra và có kết quả.
 
 * Báo cáo đánh giá nêu rõ phương pháp, nguồn gold, cỡ tập và giới hạn của phép đo.
 

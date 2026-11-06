@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 8. Chất lượng AI và đánh giá | 2229 ký tự | trước: 09_7-yeu-cau-phi-chuc-nang-cho-demo.md | sau: 11_9-giao-dien-thuc-thi-toi-thieu.md -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 8. Chất lượng AI và đánh giá | 2629 ký tự | trước: 10_7-yeu-cau-phi-chuc-nang-cho-demo.md | sau: 12_9-giao-dien-thuc-thi-toi-thieu.md -->
 
 ## 8. Chất lượng AI và đánh giá
 
@@ -16,16 +16,18 @@ Ngưỡng, tập dữ liệu và cách đo của mọi chỉ số nằm ở BRD 
 | AIQ-08 | BL-1 (cắt số 1) | FR-15 (log citation trước khi lọc) |
 | Mới | M8 | FR-12, FR-30 |
 | NFR-SEC-01 | BRD 7.3 | FR-10 |
+| Mới | M2b, M9, M10 | FR-13, FR-17, FR-32 |
 
 Yêu cầu hỗ trợ đánh giá:
 
 * EV-01: harness đánh giá chạy pipeline như thư viện ngoại tuyến, không đi qua API và session, xuất JSON; output đánh giá lưu ngoài đường session nên không bị FR-23 xóa.
-* EV-02: hợp đồng dev và test được de-identify thủ công trước khi đưa vào kho mã (BRD 7.6).
+* EV-02: hợp đồng dev và test được de-identify thủ công trước khi đưa vào kho mã (BRD 7.6). Tập P1 (BRD 8.2) dùng PII giả sinh bằng script, không dùng PII thật.
 * EV-03: hệ thống ghi số citation LLM chọn ngoài candidate trước khi lọc, phục vụ M3b và BL-1.
 * EV-04: mọi output ghi các trường version (FR-29) để biết mỗi phép đo dùng cấu hình nào.
-* EV-05: mỗi lỗi chèn có điều luật gold, nhãn, vai trò và vị trí điều khoản được chèn; định dạng file gold cho M1, M2, M5, M7, M8 do TDD định nghĩa.
+* EV-05: mỗi lỗi chèn có điều luật gold, nhãn, loại căn cứ (basis_type), vai trò và vị trí điều khoản được chèn; định dạng file gold cho M1, M2, M5, M7, M8 do TDD định nghĩa.
 * EV-06: judge chạy ngoại tuyến và chỉ nhận dữ liệu đã che hoặc đã de-identify (BRD 7.5); sản phẩm không có API judge.
 * EV-07: phiên bản hệ thống được khóa ở MS-3 và ghi commit hash vào báo cáo; không tuning trên T1 và T2.
 * EV-08: harness chạy M8 ở hai cấu hình Data Graph enabled/disabled với **cùng final candidate budget**, cùng corpus/config/input ngoài graph flag. Primary M8 dùng predicted clause labels từ pipeline; có thể báo thêm oracle-label diagnostic nhưng phải tách tên. Log số candidate graph thêm.
 * EV-09: harness/demo evidence xuất ContextResolutionTrace cho Clause Graph: target clause_id, related clause_ids, relation và graph flag; không contract text. Dùng fixture xác nhận context đã thực sự được đưa vào Risk stage, và graph on/off không làm đổi span.
 * EV-10: evaluation harness chạy ngoài runtime admission quota/rate-limit của product, nhưng mọi provider request/token/cost được ghi vào evaluation cost ledger riêng; không được dùng eval để né ngân sách đánh giá.
+* EV-11: harness chạy M10 trên tập D3 (cặp mâu thuẫn cài và cặp đối chứng) ở hai cấu hình Clause Graph bật và tắt, cùng corpus, config và input; phát hiện khi related_clause_ids của một trong hai điều chứa điều còn lại; báo recall và tỷ lệ báo nhầm (BRD 8.3).

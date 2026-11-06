@@ -1,6 +1,6 @@
-# **SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4)**
+# **SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5)**
 
-Software Requirements Specification. Cơ sở: BRD 0.5 (dự thảo), SRS 1.3, SDD 0.1, TDD 0.2, yêu cầu của giảng viên về Data Graph và Clause Graph, review kỹ thuật ngày 12/10/2026 và các quyết định trong Decision Log.
+Software Requirements Specification. Cơ sở: BRD 0.6 (dự thảo), yêu cầu của giảng viên về Data Graph và Clause Graph, review kỹ thuật ngày 12/10/2026 và các quyết định trong Decision Log.
 
 Oct 13, 2026 · @shdw
 
@@ -12,6 +12,15 @@ Oct 13, 2026 · @shdw
 | 1.2 | 12/10/2026 | Xem danh sách bên dưới | Review BRD 0.3 và SRS 1.1 ngày 12/10/2026; BRD 0.4; Decision Log | Chủ sở hữu SRS (chờ duyệt) |
 | 1.3 | 12/10/2026 | Xem danh sách bên dưới | Yêu cầu của giảng viên (Data Graph, Clause Graph); đối chiếu codebase hiện tại; BRD 0.5 | Chủ sở hữu SRS (chờ duyệt) |
 | 1.4 | 13/10/2026 | Xem danh sách bên dưới | Backport review kỹ thuật và TDD 0.2; sửa lifecycle upload/retry, graph evidence, offset và evaluation | Chủ sở hữu SRS (chờ duyệt) |
+| 1.5 | 03/11/2026 | Xem danh sách bên dưới | Audit tài liệu ngày 03/11/2026 sau BRD 0.6; tách các điều chỉnh ngày 23/10/2026 (basis\_type, risk taxonomy v0.1) thành phiên bản riêng | Chủ sở hữu SRS (chờ duyệt) |
+
+Thay đổi chính trong 1.5:
+
+* Cơ sở chỉ còn BRD 0.6; không chuyển nội dung cơ chế cài đặt sang TDD. Các điều chỉnh ngày 23/10/2026 (basis\_type, risk taxonomy v0.1) nằm trong phiên bản này.  
+* 2.3 và 5: bảng trong risk taxonomy là nguồn duy nhất của severity (rubric chỉ để đọc); INSUFFICIENT\_EVIDENCE áp dụng cho cả ba loại căn cứ; LLM khai evidence\_status, backend hạ xuống khi không còn citation hợp lệ.  
+* FR-03 (một lệnh Create/Upload; bỏ mã lỗi SESSION\_NOT\_ACCEPTING\_UPLOAD), FR-10 và NFR-SEC-01 (danh sách che theo BRD 7.2, không lặp số), FR-13 và FR-18 (quy tắc prompt, bản ghi "cần xem xét"), FR-21 và NFR-REL-03 (resume chỉ ở giai đoạn AI), NFR-PERF-01 (đếm mọi phiên).  
+* Thêm FR-32 (mâu thuẫn qua related\_clause\_ids), FR-33 (context chung JOB\_INFO và CONTRACT\_TERM\_TYPE); EV-02, EV-05, EV-11; M2b, M9, M10.  
+* 6.1: End Session từ VALIDATING và PROCESSING sang EXPIRED. Sơ đồ pipeline ở 2.2 cần vẽ lại theo bộ sơ đồ master (docs/diagrams).
 
 Thay đổi chính trong 1.4:
 
@@ -64,7 +73,7 @@ Thay đổi chính trong 1.2:
 | DEC-14 | 8 tuần kể cả tuần 12/10/2026, hạn demo 06/12/2026 | 12/10/2026 | Nhóm | BRD 9 |
 | DEC-15 | Không dùng mật khẩu demo; chống lạm dụng bằng trần call mỗi ngày và giới hạn tần suất theo IP | 12/10/2026 | Nhóm | FR-27 |
 | DEC-16 | Nội dung hợp đồng của phiên không lưu ở cơ sở dữ liệu hay kho bền vững; chỉ ở bộ nhớ tiến trình hoặc kho tạm bị xóa theo FR-23. Bỏ PostgreSQL, SQLAlchemy, Alembic cho dữ liệu hợp đồng | 12/10/2026 | Nhóm | NFR-DATA-04, Phụ lục C |
-| DEC-17 | Clause chỉ có clause\_labels (1 đến 3 nhãn); bỏ type\_scores, tier rủi ro theo nhãn, review\_zone | 12/10/2026 | Không duyệt | FR-11, 4.1, Phụ lục C |
+| DEC-17 | Clause chỉ có clause\_labels (1 đến 3 nhãn); bỏ type\_scores, tier rủi ro theo nhãn, review\_zone | 12/10/2026 | Cả nhóm | FR-11, 4.1, Phụ lục C |
 | DEC-18 | Tách điều khoản mặc định bằng luật cấu trúc kèm fallback paragraph; bỏ bộ định tuyến theo tỉ lệ dòng tiêu đề | 12/10/2026 | Nhóm | FR-09, Phụ lục C |
 | DEC-19 | Demo và đánh giá dùng Gemini Flash gói trả phí; gói miễn phí dùng API Flash không trả phí | 12/10/2026 | Nhóm | NFR-SEC-06, FR-29 |
 | DEC-20 | Danh sách nhãn clause có một nguồn duy nhất trong code; enum của JSON Schema sinh từ đó hoặc có test đối chiếu | 12/10/2026 | Nhóm | NFR-MAINT-02 |
@@ -170,8 +179,8 @@ Hai bước tô màu là các lần gọi LLM bên thứ ba; các bước còn l
 
 ### **2.3 Taxonomy và severity**
 
-* Clause taxonomy (12 nhãn) và risk taxonomy nằm ở /data/docs/X\_TAXONOMY.md. Hai artifact tách biệt, có phiên bản, và được đóng băng cùng severity rubric và annotation guideline ở MS-1 (25/10/2026) theo DEC-10.  
-* Severity: HIGH, MEDIUM, LOW. Severity có thể khác nhau giữa hai vai trò và là null khi evidence\_status \= INSUFFICIENT\_EVIDENCE.  
+* Clause taxonomy (12 nhãn) và risk taxonomy nằm ở docs/CLAUSE\_TAXONOMY.md và docs/RISK\_TAXONOMY\_v0.1.md. Hai artifact tách biệt, có phiên bản, và được đóng băng cùng severity rubric và annotation guideline theo DEC-10 (mốc MS-1 25/10/2026 đã trễ, xem BRD 9.4).  
+* Severity: HIGH, MEDIUM, LOW. Bảng trong risk taxonomy là nguồn duy nhất của severity; rubric bên dưới chỉ để đọc. Severity có thể khác nhau giữa hai vai trò và là null khi evidence\_status \= INSUFFICIENT\_EVIDENCE.  
 * Điều khoản có lợi hơn mức pháp luật yêu cầu cho một vai trò không phải rủi ro của vai trò đó (BRD 3.2).
 
 | Severity | Rubric tối thiểu (theo vai trò đang phân tích) |
@@ -188,25 +197,25 @@ Tất cả yêu cầu là bắt buộc cho bản demo, trừ phần có ghi số
 | :---- | :---- | :---- | :---- | :---- |
 | FR-01 | Chọn vai trò | Người dùng chọn NLĐ hoặc NSDLĐ trước khi upload. Vai trò gắn với phiên và không đổi. | Không upload được khi thiếu vai trò (ROLE\_REQUIRED); mọi stage downstream nhận cùng vai trò. |  |
 | FR-02 | Khởi tạo phiên | Create/Upload request chỉ tạo session sau khi qua admission gate: role hợp lệ, processing slot còn trống, quota và rate limit cho phép. Khi gate pass, backend tạo session\_id opaque/ngẫu nhiên, gắn đúng một vai trò và một file, rồi có thể trả response trước khi hoàn tất VALIDATING. Các lỗi file/phạm vi/segmentation phát hiện sau đó chuyển chính session sang REJECTED; REJECTED kết thúc phiên. Không có contract\_id (DEC-03, DEC-23). | Các lỗi ROLE\_REQUIRED, SYSTEM\_BUSY, QUOTA\_EXCEEDED, RATE\_LIMITED không tạo session. Session đã tạo có thể chuyển REJECTED và error\_code được đọc qua Get Status. session\_id không đoán được; không nhận file thứ hai. |  |
-| FR-03 | Upload file | Nhận đúng một PDF hoặc DOCX cho session vừa tạo. Kiểm tra type có thể chạy trong VALIDATING; type không hỗ trợ chuyển session sang REJECTED. | PDF hoặc DOCX hợp lệ tiếp tục pipeline; định dạng khác có session state REJECTED với UNSUPPORTED\_FILE\_TYPE. |  |
+| FR-03 | Upload file | Nhận đúng một PDF hoặc DOCX trong cùng request Create/Upload tạo phiên (một lệnh duy nhất, mục 9). Kiểm tra type có thể chạy trong VALIDATING; type không hỗ trợ chuyển session sang REJECTED. | PDF hoặc DOCX hợp lệ tiếp tục pipeline; định dạng khác có session state REJECTED với UNSUPPORTED\_FILE\_TYPE. |  |
 | FR-04 | Validate dung lượng và độ dài | PDF tối đa 10MB và 30 trang. DOCX tối đa 10MB và 100.000 ký tự canonical (ngưỡng chốt theo BRD OI-12). | Test biên tại ngưỡng và vượt ngưỡng; file vượt giới hạn bị REJECTED trước khi gọi LLM. |  |
 | FR-05 | Kiểm tra khả năng trích text | Từ chối scan, image-only, hoặc text extraction lỗi hay không đọc được. Canonical text là Unicode NFC. | Bộ test có text pass; scan và mẫu text rác bị REJECTED với mã lỗi phù hợp. |  |
 | FR-06 | Kiểm tra có phải HĐLĐ | Kiểm tra phạm vi bằng luật cục bộ trên canonical text (từ khóa và cấu trúc điển hình); không gọi LLM (DEC-11). HĐLĐ, hợp đồng thử việc và phụ lục trong cùng file thuộc phạm vi. Tín hiệu tiêu đề mạnh chỉ được tính khi xuất hiện ở vùng tiêu đề/đầu tài liệu theo cấu hình TDD; chỉ nhắc cụm “hợp đồng lao động” trong thân văn bản không đủ để chấp nhận. | Bộ test cố định có tài liệu dương và âm, gồm ca chỉ nhắc HĐLĐ trong thân văn bản. Tài liệu ngoài phạm vi chuyển session sang REJECTED (NOT\_LABOR\_CONTRACT) và không chạy bước sau. |  |
 | FR-07 | Sinh canonical text | Parser tạo một canonical\_text ổn định, giữ thứ tự đọc và newline cần cho ranh giới điều khoản; normalization theo Text Extraction Contract (TDD). | Cùng file và cùng extraction\_version sinh cùng canonical\_text; NFC; không gộp newline cấu trúc. |  |
 | FR-08 | Bảng, header, footer và các ca của hợp đồng tiếng Việt | Bảng làm phẳng theo từng dòng, giữ nội dung ô; header, footer, số trang lặp không chen vào giữa clause. DOCX: đánh số tự động ("Điều 1", "1.1") được render thành text; chấp nhận mọi tracked change; bỏ comment và footnote; đọc text box theo vị trí. PDF: hai cột đọc theo thứ tự cột; PDF font cũ (TCVN3, VNI) bị từ chối theo NFR-DATA-03 kể cả khi text extract ra vẫn là Unicode hợp lệ nhưng mojibake. | Mỗi ca có fixture và canonical text đúng thứ tự đọc theo expected output; fixture TCVN3/VNI phải bị từ chối. Các kiểu đánh số tự động cần hỗ trợ được chốt theo hợp đồng thực có trong D1 và T1 (OI-11); kiểu ngoài danh sách đó phải ghi vào giới hạn đã biết. |  |
 | FR-09 | Clause Segmentation và span | Chạy trên masked\_text trong trusted backend bằng luật cấu trúc (regex theo "Điều n", "n.n", chữ cái, gạch đầu dòng) kèm fallback theo paragraph khi không có tiêu đề. Backend tự tính clause\_id, start\_char, end\_char theo Unicode code point sau NFC; original\_text lấy từ canonical\_text. Các clause span phải có thứ tự và không chồng lấn; một ký tự thuộc vùng clause không được thuộc đồng thời clause cha và clause con. Với cấu trúc cha-con, clause cha chỉ giữ heading/lời dẫn trước child đầu tiên, còn body của child thuộc span child. Ranh giới không cắt ngang placeholder. Vượt 150 clause thì REJECTED (TOO\_MANY\_CLAUSES). Luật cấu trúc là đường xử lý mặc định; không router theo tỉ lệ heading (DEC-18). Tùy chọn LLM segmentation vẫn là cut item 3. | 100% clause có canonical\_text\[start:end\] \== original\_text; spans sorted/non-overlap; không boundary trong placeholder; fixture nested Điều/Khoản, không tiêu đề, hybrid, điều khoản dài và ký tự non-BMP. | 3 (phần LLM hỗ trợ) |
-| FR-10 | PII Masking | Chạy cục bộ trên toàn canonical\_text, trước FR-09: phát hiện họ tên, ngày sinh, CCCD hoặc hộ chiếu, địa chỉ cư trú, số điện thoại, email, số tài khoản, tên pháp nhân và thay mỗi đoạn bằng placeholder cùng độ dài; masked\_text có cùng độ dài canonical\_text. Giữ nguyên các trường cần giữ (lương, phụ cấp, thời hạn, thời giờ, chức danh, tỉnh, từ chỉ vai trò). Không dùng LLM bên thứ ba. Không lưu giá trị gốc của đoạn đã che ngoài canonical\_text. | Capture hoặc mock payload gửi ra không chứa PII gold trong bộ privacy test; đạt ngưỡng BRD 7.3; len(masked\_text) \== len(canonical\_text); không tồn tại bảng ánh xạ placeholder sang giá trị. |  |
+| FR-10 | PII Masking | Chạy cục bộ trên toàn canonical\_text, trước FR-09: phát hiện họ tên (kể cả người đại diện), ngày sinh, CCCD hoặc hộ chiếu, mã số thuế, ngày và nơi cấp giấy tờ, địa chỉ cư trú và địa chỉ trụ sở, số điện thoại, email, số tài khoản, tên pháp nhân (ẩn nguyên cụm), chữ ký và thay mỗi đoạn bằng placeholder cùng độ dài; masked\_text có cùng độ dài canonical\_text. Giữ nguyên các trường cần giữ (lương, phụ cấp, thời hạn, thời giờ, chức danh, chức vụ đại diện NSDLĐ, tỉnh khi đứng riêng, từ chỉ vai trò). Không dùng LLM bên thứ ba. Không lưu giá trị gốc của đoạn đã che ngoài canonical\_text. | Capture hoặc mock payload gửi ra không chứa PII gold trong bộ privacy test; đạt ngưỡng BRD 7.3; len(masked\_text) \== len(canonical\_text); không tồn tại bảng ánh xạ placeholder sang giá trị. |  |
 | FR-11 | Clause Classification | Phân loại theo clause taxonomy đã đóng băng. Input chỉ gồm clause\_id và masked clause, kèm ngữ cảnh cấu trúc tối thiểu nếu cần; **không gửi role** để tránh làm lệch taxonomy. Xử lý theo lô (FR-28). Provider structured output/response schema được dùng để ép schema. Output chỉ tham chiếu clause\_id và 1 đến 3 nhãn; không confidence/type\_scores/tier/review\_zone (DEC-17). | Output chỉ chứa nhãn hợp lệ; request không có role/original/span; không trả hoặc ghi đè span, quote. |  |
 | FR-12 | Legal Retrieval | Từ masked clause, clause labels và vai trò, truy xuất candidate từ kho luật. Kho luật chia thành đơn vị trích dẫn được (văn bản, điều, khoản, điểm). Hai tầng: retrieval nền tạo seed; bước mở rộng và xếp hạng qua Data Graph (FR-30) trong giới hạn số candidate cấu hình được. Tắt mở rộng thì retrieval nền vẫn trả kết quả. | Mỗi candidate có citation\_id hợp lệ, nội dung và metadata hiệu lực; không có candidate ngoài kho; đo M8 trên T2, có và không mở rộng graph (EV-08). |  |
-| FR-13 | Risk Classification | Phân loại theo risk taxonomy theo từng clause và vai trò. Risk LLM chọn `risk_labels` và một `basis_type` cho mỗi clause (LEGAL\_VIOLATION, UNFAVORABLE hoặc AMBIGUOUS). Backend kiểm (label, basis\_type, vai trò) theo taxonomy (tổ hợp không phải rủi ro của vai trò thì gỡ nhãn) rồi dựng `risk_basis=[{label,basis_type}]` một-một với `risk_labels`. Risk stage có thể nhận related masked clauses do Clause Graph Context Resolver cung cấp. Không phát hiện missing-clause risk. | Mỗi risk gắn clause\_id, vai trò và risk label hợp lệ; `risk_basis` khớp 100% taxonomy; không có risk không có clause\_id. |  |
+| FR-13 | Risk Classification | Phân loại theo risk taxonomy theo từng clause và vai trò. Risk LLM chọn `risk_labels` và một `basis_type` cho mỗi clause (LEGAL\_VIOLATION, UNFAVORABLE hoặc AMBIGUOUS). Backend kiểm (label, basis\_type, vai trò) theo taxonomy (tổ hợp không phải rủi ro của vai trò thì gỡ nhãn) rồi dựng `risk_basis=[{label,basis_type}]` một-một với `risk_labels`. Risk stage có thể nhận related masked clauses do Clause Graph Context Resolver cung cấp. Không phát hiện missing-clause risk. Định nghĩa ba loại căn cứ theo vai trò nằm ở annotation guideline và risk taxonomy (BRD 3.2). LLM chỉ gắn LEGAL\_VIOLATION khi đối chiếu được nội dung clause với điều luật trong candidate; nghi ngờ LEGAL\_VIOLATION mà không có candidate phù hợp thì vẫn gắn LEGAL\_VIOLATION kèm evidence\_status INSUFFICIENT\_EVIDENCE (FR-18). Khi hai clause trong context mâu thuẫn nhau thì đặt basis\_type AMBIGUOUS, điền `related_clause_ids` và nêu mâu thuẫn trong giải thích (FR-32). Tổ hợp (label, basis\_type, vai trò) sai sau một lần retry có phản hồi thì phát bản ghi "nghi ngờ, cần xem xét" với severity null, không bỏ clause. Giải thích viết tên văn bản khi nhắc điều luật (ví dụ "Điều 97 Bộ luật Lao động 2019"), gọi điều khoản hợp đồng là "điều khoản số N của hợp đồng", và nhắc điểm của khoản bằng lời, không chép lại nội dung điểm. | Mỗi risk gắn clause\_id, vai trò và risk label hợp lệ; `risk_basis` khớp 100% taxonomy; không có risk không có clause\_id. |  |
 | FR-14 | Severity | Backend gán HIGH, MEDIUM hoặc LOW bằng cách tra bảng risk taxonomy theo (nhãn, basis\_type, vai trò), lấy mức cao nhất khi có nhiều nhãn; LLM không trả severity. Có thể khác giữa hai vai trò. Với INSUFFICIENT\_EVIDENCE, severity là null. | Severity thuộc enum cho phép hoặc null đúng quy tắc; ca thiếu căn cứ không trình bày như kết luận chắc chắn. |  |
 | FR-15 | Legal Citation | AI chỉ chọn citation trong candidate list, không tự sinh điều luật. Backend xác minh citation\_id tồn tại, thuộc kho luật, đúng phiên bản hiệu lực tại ngày phân tích; citation không hợp lệ bị loại, và số bị loại được log trước khi lọc. | M3a \= 100%; số citation bị loại được ghi lại cho BRD 8.3. |  |
 | FR-16 | Relevance của citation | Citation phải hỗ trợ nội dung risk và giải thích, không chỉ tồn tại. Hệ thống lưu evidence snippet (nội dung candidate) để rà soát. | Mẫu 40 output chấm tay theo rubric relevance (M3b); citation tồn tại nhưng không liên quan tính là sai. |  |
 | FR-17 | Explanation | Giải thích ngắn vì sao clause là rủi ro theo vai trò, dựa trên căn cứ đã chọn. Không có lời khuyên sửa hay đàm phán. Advice lint phải dựa trên cụm/hành vi khuyến nghị đầy đủ, không được coi riêng từ nối như “nên” trong câu giải thích là vi phạm. Nếu output có advice, hệ thống được correction/sanitize tối đa một lần; chỉ fail khi sau xử lý không còn explanation hợp lệ. | Mẫu chấm tay không có advice; lint fixture không false-positive câu giải thích hợp lệ; explanation không viện dẫn điều luật ngoài citation hợp lệ. |  |
-| FR-18 | Thiếu căn cứ | Nếu kho luật hoặc retrieval không đủ căn cứ, hệ thống không tự suy ra citation. Bản ghi được giữ với evidence\_status \= INSUFFICIENT\_EVIDENCE, citation\_ids rỗng, severity null (DEC-12). | Không có fabricated citation; giao diện thể hiện rõ "chưa đủ căn cứ". |  |
+| FR-18 | Thiếu căn cứ | Nếu kho luật hoặc retrieval không đủ căn cứ, hệ thống không tự suy ra citation. Bản ghi được giữ với evidence\_status \= INSUFFICIENT\_EVIDENCE, citation\_ids rỗng, severity null (DEC-12). Áp dụng cho cả LEGAL\_VIOLATION, UNFAVORABLE và AMBIGUOUS; backend hạ evidence\_status xuống INSUFFICIENT\_EVIDENCE khi không còn citation hợp lệ sau khi lọc. Giao diện hiển thị "có thể có rủi ro, chưa đủ căn cứ trong kho luật, cần đọc kỹ", không dùng từ khẳng định vi phạm (FR-14). | Không có fabricated citation; giao diện thể hiện rõ "chưa đủ căn cứ". |  |
 | FR-19 | Kết quả và highlight | Backend ghép output AI theo clause\_id với original\_text và span từ canonical\_text. Giao diện highlight trên canonical text, không overlay lên PDF hoặc DOCX gốc (DEC-04), và ghi rõ đây là bản văn bản trích xuất. | Bấm vào highlight cho đúng substring; M4 \= 100%; giao diện có dòng giải thích. |  |
 | FR-20 | Không phát hiện risk | Nếu không có risk hợp lệ, hiển thị "không phát hiện rủi ro trong phạm vi phân tích" kèm disclaimer; không khẳng định hợp đồng an toàn. | Ca không risk trả COMPLETED kèm disclaimer, không báo lỗi. |  |
-| FR-21 | Retry và resume | Auto-retry mỗi provider request tối đa 1 lần theo NFR-REL-02. Chỉ phiên FAILED được manual retry, tối đa 2 lần; REJECTED không retry. Manual retry phải acquire lại processing slot trước khi tăng `manual_retry_count`; nếu slot bận trả SYSTEM\_BUSY và counter không đổi. Nếu failed stage thuộc VALIDATING thì retry quay lại VALIDATING; nếu failed stage thuộc PROCESSING thì quay lại PROCESSING. Resume từ stage lỗi nếu fingerprint/version còn hợp lệ; nếu cut stage-resume thì chạy lại từ đầu. | Retry local-failure về VALIDATING; processing-failure về PROCESSING; SYSTEM\_BUSY không tăng counter; lần manual retry thứ 3 mới trả RETRY\_LIMIT\_EXCEEDED. | 2 (phần dùng lại stage) |
+| FR-21 | Retry và resume | Auto-retry mỗi provider request tối đa 1 lần theo NFR-REL-02. Chỉ phiên FAILED được manual retry, tối đa 2 lần; REJECTED không retry. Manual retry phải acquire lại processing slot trước khi tăng `manual_retry_count`; nếu slot bận trả SYSTEM\_BUSY và counter không đổi. Nếu failed stage thuộc VALIDATING thì retry quay lại VALIDATING; nếu failed stage thuộc PROCESSING thì quay lại PROCESSING. Resume chỉ áp dụng cho giai đoạn PROCESSING: chạy lại từ stage AI lỗi nếu bộ version pin lưu trong phiên khớp bộ hiện tại; retry giai đoạn VALIDATING luôn chạy lại từ EXTRACTION. Nếu cut stage-resume thì chạy lại từ đầu giai đoạn PROCESSING. | Retry local-failure về VALIDATING; processing-failure về PROCESSING; SYSTEM\_BUSY không tăng counter; lần manual retry thứ 3 mới trả RETRY\_LIMIT\_EXCEEDED. | 2 (phần dùng lại stage) |
 | FR-22 | Export | Export PDF hoặc DOCX gồm vai trò, original clause quote từ canonical\_text, risk label + basis type, severity (hoặc "chưa đủ căn cứ"), explanation, citation, disclaimer **và thông báo xử lý dữ liệu cá nhân** theo FR-25. Nhúng font hỗ trợ tiếng Việt. File export không lưu phía máy chủ sau phiên. | File mở được, đủ trường, quote là original\_text, không phải masked\_text; có disclaimer và data notice. | 4 (chỉ giữ DOCX) |
 | FR-23 | Session cleanup | Khi kết thúc phiên hoặc sau 60 phút không hoạt động, xóa file gốc, canonical text, masked text, kết quả và dữ liệu tạm. Hoạt động là thao tác do người dùng khởi tạo; polling trạng thái không tính. | Sau cleanup không đọc lại được qua session hoặc API (SESSION\_NOT\_FOUND hoặc EXPIRED). |  |
 | FR-24 | Quản lý kho luật | Người phụ trách dữ liệu cập nhật văn bản và metadata version, effective date mà không sửa mã nguồn. Hai version chồng hiệu lực của cùng provision làm build index thất bại (fail fast). Cạnh Data Graph cũng là dữ liệu cập nhật không sửa mã (NFR-MAINT-03). | Thêm hoặc cập nhật corpus không cần build code; retriever thấy dữ liệu mới sau reload hoặc index; corpus lỗi bị chặn khi build; cạnh Data Graph lỗi (trỏ tới citation\_id không tồn tại, vòng lặp trong cạnh cấu trúc) cũng bị chặn khi build. |  |
@@ -217,6 +226,8 @@ Tất cả yêu cầu là bắt buộc cho bản demo, trừ phần có ghi số
 | FR-29 | Ghim phiên bản | Mọi output ghi model id, phiên bản prompt, taxonomy, severity rubric, corpus (gồm cạnh Data Graph) và extraction. Temperature cố định. | Mẫu output chứa đủ các trường version. |  |
 | FR-30 | Data Graph | Kho luật được biểu diễn thêm dưới dạng đồ thị. Nút là LegalProvision (citation\_id). Cạnh: PARENT\_OF sinh tự động từ parent\_path; REFERS\_TO và GUIDES chỉ được load runtime sau khi người phụ trách dữ liệu xác minh. Gợi ý tự động chưa xác minh phải nằm ngoài runtime graph. Graph dùng để mở rộng/xếp hạng candidate tối đa số hop/candidate cấu hình được; mọi candidate vẫn thuộc closed corpus và hiệu lực. Baseline retriever độc lập graph và khi graph tắt vẫn trả cùng final candidate budget dùng cho evaluation (DEC-27). | Build fixture đúng; endpoint/acyclic validation fail-fast; graph off vẫn chạy; EV-08 so graph on/off cùng final_k, cùng input/config ngoài graph flag. | 5 (REFERS\_TO, GUIDES) |
 | FR-31 | Clause Graph | Backend dựng graph ngay sau FR-09, cục bộ, không gọi LLM. Nút là clause\_id; cạnh tối thiểu NEXT, PARENT\_OF, REFERS\_TO. REFERS\_TO chỉ tạo khi dẫn chiếu resolve duy nhất tới clause khác **trong cùng hợp đồng**; các cụm dẫn chiếu pháp luật như “Điều 26 Bộ luật...”, “Luật...”, “Nghị định...” phải bị loại trừ. Graph chỉ chứa ID + edge type, không chứa text và không có thẩm quyền quote/span. Context Resolver lấy các related clause trực tiếp, backend truy xuất masked text tương ứng và đưa vào Risk stage; không thêm LLM call. Demo bắt buộc graph bật; tắt chỉ cho dev/eval/test. Có ContextResolutionTrace không chứa text để chứng minh context đã được cấp. `related_clause_ids` trong RiskResult là tùy chọn; nếu có phải là tập con của context đã cấp. | Fixture internal/external reference phân biệt đúng; context trace chứng minh related IDs đã vào Risk request; graph cleanup cùng session; graph on/off không đổi original\_text/span; mọi related\_clause\_ids hợp lệ và thuộc context. | 5 (REFERS\_TO) |
+| FR-32 | Báo mâu thuẫn giữa các điều khoản | Risk prompt yêu cầu: khi target clause mâu thuẫn với một related clause trong context thì đặt basis\_type AMBIGUOUS, điền `related_clause_ids` (tập con của context đã cấp) và nêu mâu thuẫn trong giải thích. Kết quả cuối trả `related_clause_ids`; giao diện hiện dòng "Liên quan: Điều X" trong thẻ clause. Phạm vi chỉ gồm các cặp có cạnh trong quan hệ Context Resolver lấy. | Hợp đồng demo cài sẵn một mâu thuẫn: rủi ro của một trong hai điều mang related\_clause\_ids chứa điều còn lại với basis\_type AMBIGUOUS; đo M10 (BRD 8.3). |  |
+| FR-33 | Context chung cho phân tích rủi ro | Context Resolver cấp thêm clause có nhãn JOB\_INFO và CONTRACT\_TERM\_TYPE (tối đa một hoặc hai clause mỗi nhãn, trong giới hạn ký tự của context) cho mọi lượt phân tích rủi ro, vì nhiều ngưỡng pháp luật phụ thuộc loại công việc hoặc loại hợp đồng (ví dụ thời gian thử việc theo Điều 25). Chỉ kết luận LEGAL\_VIOLATION chắc chắn khi giá trị vượt mức nới nhất của mọi trường hợp; khoảng giữa dựa vào context, thiếu thì AMBIGUOUS hoặc INSUFFICIENT\_EVIDENCE. | ContextResolutionTrace (EV-09) ghi các clause chung được cấp; hợp đồng thử việc 90 ngày kèm clause chức danh cho kết quả theo chức danh. |  |
 
 ## **4\. Yêu cầu dữ liệu**
 
@@ -272,7 +283,7 @@ Tất cả yêu cầu là bắt buộc cho bản demo, trừ phần có ghi số
 * Retriever chỉ đưa candidate có hiệu lực tại ngày phân tích. Nếu corpus có hai version chồng hiệu lực cho cùng một provision, đó là lỗi cấu hình dữ liệu: bị chặn khi build hoặc reload index (FR-24), không để người dùng gặp ở runtime; nếu vẫn lọt, provision đó bị loại khỏi candidate.  
 * Phương pháp retrieval chọn ở SDD và TDD, gồm retrieval nền và bước mở rộng qua Data Graph (FR-30, DEC-21). Yêu cầu tối thiểu: số candidate mỗi clause cấu hình được, và chất lượng đo bằng M8 (recall@5 trên lỗi chèn) như chỉ số chẩn đoán.  
 * Citation validation có ba lớp: (1) existence và version, tự động, M3a \= 100%; (2) relevance, chấm tay hoặc judge đã hiệu chuẩn, M3b; (3) số citation LLM chọn ngoài candidate được log trước khi lọc để so sánh ở BL-1.  
-* evidence\_status \= SUPPORTED cần ít nhất một citation hợp lệ và liên quan. Rủi ro bất lợi hợp pháp (UNFAVORABLE) hoặc mơ hồ (AMBIGUOUS) mà không có điều luật trong kho thì có evidence\_status \= INSUFFICIENT\_EVIDENCE; giao diện hiển thị loại rủi ro cùng dòng "chưa đủ căn cứ pháp lý trong kho luật" và không gán severity.
+* evidence\_status \= SUPPORTED cần ít nhất một citation hợp lệ và liên quan. Rủi ro thuộc bất kỳ loại căn cứ nào (LEGAL\_VIOLATION, UNFAVORABLE hoặc AMBIGUOUS) mà không có citation hợp lệ thì có evidence\_status \= INSUFFICIENT\_EVIDENCE; giao diện hiển thị loại rủi ro cùng dòng "chưa đủ căn cứ pháp lý trong kho luật" và không gán severity. LLM khai evidence\_status; backend hạ xuống INSUFFICIENT\_EVIDENCE khi không còn citation hợp lệ sau khi lọc. "Hợp lệ" do backend kiểm; "liên quan" do LLM xác nhận và được đo ngoại tuyến ở M3b.
 * Data Graph chỉ mở rộng và xếp hạng candidate, không tự tạo căn cứ. Mọi provision do mở rộng đưa vào phải qua cùng bộ lọc hiệu lực và thuộc kho như candidate thường; M3a vẫn 100%.  
 * Graph không thay retrieval nền: khi tắt mở rộng, hoặc graph lỗi bất thường lúc chạy, hệ thống dùng retrieval nền và ghi log. Trong EV-08, graph-on và graph-off phải có cùng final candidate budget; số candidate do graph thêm được log. Primary M8 dùng predicted clause labels từ pipeline; oracle-label diagnostic nếu có phải báo riêng.
 
@@ -291,6 +302,7 @@ UPLOADED \-\> VALIDATING \-\> REJECTED                  (input/file/out-of-scope
 FAILED --manual retry\--> VALIDATING   nếu failed stage thuộc local validating stages  
 FAILED --manual retry\--> PROCESSING   nếu failed stage thuộc processing stages  
 COMPLETED | FAILED | REJECTED \-\> EXPIRED
+VALIDATING | PROCESSING --End Session\--> EXPIRED   (hủy tác vụ đang chạy, giải phóng processing slot)
 
 | State | Ý nghĩa |
 | :---- | :---- |
@@ -315,7 +327,6 @@ COMPLETED | FAILED | REJECTED \-\> EXPIRED
 | NOT\_LABOR\_CONTRACT | Ngoài phạm vi HĐLĐ | REJECTED | Không |
 | TOO\_MANY\_CLAUSES | Quá 150 clause | REJECTED | Không |
 | ROLE\_REQUIRED | Upload không kèm vai trò | Từ chối request, không tạo phiên | Có, gửi lại kèm vai trò |
-| SESSION\_NOT\_ACCEPTING\_UPLOAD | Phiên đã nhận file hoặc đã kết thúc | Từ chối request | Không, mở phiên mới |
 | SYSTEM\_BUSY | Đang có phiên xử lý khác | Từ chối request, không tạo phiên | Có, sau |
 | QUOTA\_EXCEEDED | Vượt trần call LLM trong ngày | Từ chối request, không tạo phiên | Có, sau |
 | RATE\_LIMITED | Vượt giới hạn tần suất theo IP | Từ chối request | Có, sau |
@@ -338,11 +349,11 @@ Các NFR là mục tiêu nghiệm thu cho môi trường demo học tập, khôn
 
 | ID | Thuộc tính | Yêu cầu | Cách kiểm tra |
 | :---- | :---- | :---- | :---- |
-| NFR-PERF-01 | Hiệu năng E2E | Với PDF hợp lệ tối đa 15 trang hoặc DOCX tối đa 50.000 canonical characters, mỗi lần một phiên: ít nhất 90% lượt không kết thúc bằng AI\_TIMEOUT hoặc AI\_PROVIDER\_ERROR phải hoàn thành trong 120 giây. | Đo p50 và p90 trên bộ demo; báo riêng lượt lỗi, không tính vào mẫu latency thành công. |
+| NFR-PERF-01 | Hiệu năng E2E | Với PDF hợp lệ tối đa 15 trang hoặc DOCX tối đa 50.000 canonical characters, mỗi lần một phiên: ít nhất 90% các lượt được test (tính cả lượt lỗi) phải hoàn thành trong 120 giây. Ngưỡng DOCX 50.000 canonical characters là mức tương đương 15 trang. | Đo p50 và p90 trên bộ demo; lượt lỗi tính là không đạt. |
 | NFR-PERF-02 | Phản hồi UI | Giao diện hiển thị trạng thái VALIDATING hoặc PROCESSING trong 2 giây sau khi backend chấp nhận upload. | Đo timestamp ở browser và backend. |
 | NFR-SCALE-01 | Đồng thời / deployment | Chỉ một phiên VALIDATING/PROCESSING tại một thời điểm. Demo runtime dùng đúng một backend worker/process, không autoscale/serverless vì session store và processing slot là process-local. LLM có thể song song theo batch bên trong cùng session. | Hai upload race chỉ một session được tạo; kiểm tra deploy có 1 worker; dữ liệu phiên không trộn. |
 | NFR-CAP-01 | Giới hạn input | PDF tối đa 10MB và 30 trang; DOCX tối đa 10MB và 100.000 canonical characters; tối đa 150 clause. | Boundary tests. |
-| NFR-SEC-01 | PII masking | Theo BRD 7.3: recall ít nhất 99% cho CCCD hoặc hộ chiếu, số điện thoại, email, số tài khoản; ít nhất 90% cho họ tên, ngày sinh, địa chỉ cư trú, tên pháp nhân; giữ nguyên ít nhất 95% các trường cần giữ. | Gold spans và values; đo trên payload trước khi gửi LLM. |
+| NFR-SEC-01 | PII masking | Theo BRD 7.3 (SRS không lặp ngưỡng). | Gold spans và values trên tập P1 (BRD 8.2); đo trên payload trước khi gửi LLM. |
 | NFR-SEC-02 | Transport security | Mọi traffic Browser sang Backend và Backend sang LLM đi qua HTTPS trong môi trường deploy. | Kiểm tra endpoint và cấu hình deploy. |
 | NFR-SEC-03 | Session security | session\_id là identifier ngẫu nhiên opaque (UUID v4 hoặc tương đương); dữ liệu của phiên A không truy cập được bằng phiên B. | Cross-session negative tests. |
 | NFR-SEC-04 | Secrets | API key và secret không hard-code, không commit vào repository; dùng cấu hình môi trường. | Quét repository và cấu hình deploy. |
@@ -354,7 +365,7 @@ Các NFR là mục tiêu nghiệm thu cho môi trường demo học tập, khôn
 | NFR-DATA-04 | Lưu trữ phiên | Nội dung hợp đồng (file gốc, canonical text, masked text, kết quả, graph của phiên) không được ghi vào cơ sở dữ liệu hay kho bền vững; chỉ ở bộ nhớ tiến trình hoặc kho tạm bị xóa theo FR-23. Khởi động lại dịch vụ thì mất mọi phiên đang có. | Khởi động lại dịch vụ sau một phiên rồi kiểm tra không còn dữ liệu; rà soát schema và thư mục lưu không có cột hoặc file chứa nội dung hợp đồng. |
 | NFR-REL-01 | Không có partial final | FAILED không được trả partial report như final result. | Chèn lỗi giữa pipeline. |
 | NFR-REL-02 | Timeout và retry | Mỗi provider request timeout 30 giây; auto-retry tối đa 1 lần chỉ cho timeout/network, HTTP 429/5xx hoặc structured output sai schema. HTTP 400/401/403 không auto-retry. Manual retry tối đa 2 lần/session, chỉ FAILED. Mỗi actual retry vẫn tính cost/call. | Mock từng nhóm lỗi, kiểm số lần provider request và call counter. |
-| NFR-REL-03 | Stage resume (cắt số 2\) | Retry dùng lại stage đã thành công nếu input, taxonomy version, extraction\_version, corpus version, model id và prompt version không đổi. | Chèn lỗi và đếm số call. |
+| NFR-REL-03 | Stage resume (cắt số 2\) | Chỉ áp dụng cho các stage AI (PROCESSING): retry dùng lại stage AI đã thành công nếu bộ version pin lưu trong phiên (taxonomy, extraction\_version, corpus version, model id, prompt version) khớp bộ hiện tại. Giai đoạn VALIDATING không resume. | Chèn lỗi và đếm số call. |
 | NFR-COST-01 | Ngân sách | Tổng ngân sách demo \$20: \$5 cho hosting và vận hành, \$15 cho đánh giá. Hệ thống và nhóm log số call, token và chi phí ước tính để theo dõi. | Báo cáo chi phí trước demo. |
 | NFR-COST-02 | Trần chi phí vận hành | Daily call quota và session call reserve là cấu hình bắt buộc ở demo, phải được chốt từ số call/token/cost đo trên D1 + giá model cụ thể để phần vận hành không vượt \$5; SRS không hard-code một quota tùy ý. Eval có cost ledger riêng cho ngân sách \$15. | Trước demo có cost model D1, planned vs actual calls và cấu hình quota/reserve tương ứng. |
 | NFR-COMP-01 | Trình duyệt | Hỗ trợ Chrome, Edge, Firefox desktop bản ổn định mới nhất. Mobile ngoài phạm vi. | Smoke test trên 3 trình duyệt. |
@@ -380,19 +391,21 @@ Ngưỡng, tập dữ liệu và cách đo của mọi chỉ số nằm ở BRD 
 | AIQ-08 | BL-1 (cắt số 1\) | FR-15 (log citation trước khi lọc) |
 | Mới | M8 | FR-12, FR-30 |
 | NFR-SEC-01 | BRD 7.3 | FR-10 |
+| Mới | M2b, M9, M10 | FR-13, FR-17, FR-32 |
 
 Yêu cầu hỗ trợ đánh giá:
 
 * EV-01: harness đánh giá chạy pipeline như thư viện ngoại tuyến, không đi qua API và session, xuất JSON; output đánh giá lưu ngoài đường session nên không bị FR-23 xóa.  
-* EV-02: hợp đồng dev và test được de-identify thủ công trước khi đưa vào kho mã (BRD 7.6).  
+* EV-02: hợp đồng dev và test được de-identify thủ công trước khi đưa vào kho mã (BRD 7.6). Tập P1 (BRD 8.2) dùng PII giả sinh bằng script, không dùng PII thật.  
 * EV-03: hệ thống ghi số citation LLM chọn ngoài candidate trước khi lọc, phục vụ M3b và BL-1.  
 * EV-04: mọi output ghi các trường version (FR-29) để biết mỗi phép đo dùng cấu hình nào.  
-* EV-05: mỗi lỗi chèn có điều luật gold, nhãn, vai trò và vị trí điều khoản được chèn; định dạng file gold cho M1, M2, M5, M7, M8 do TDD định nghĩa.  
+* EV-05: mỗi lỗi chèn có điều luật gold, nhãn, loại căn cứ (basis\_type), vai trò và vị trí điều khoản được chèn; định dạng file gold cho M1, M2, M5, M7, M8 do TDD định nghĩa.  
 * EV-06: judge chạy ngoại tuyến và chỉ nhận dữ liệu đã che hoặc đã de-identify (BRD 7.5); sản phẩm không có API judge.  
 * EV-07: phiên bản hệ thống được khóa ở MS-3 và ghi commit hash vào báo cáo; không tuning trên T1 và T2.
 * EV-08: harness chạy M8 ở hai cấu hình Data Graph enabled/disabled với **cùng final candidate budget**, cùng corpus/config/input ngoài graph flag. Primary M8 dùng predicted clause labels từ pipeline; có thể báo thêm oracle-label diagnostic nhưng phải tách tên. Log số candidate graph thêm.
 * EV-09: harness/demo evidence xuất ContextResolutionTrace cho Clause Graph: target clause\_id, related clause\_ids, relation và graph flag; không contract text. Dùng fixture xác nhận context đã thực sự được đưa vào Risk stage, và graph on/off không làm đổi span.
 * EV-10: evaluation harness chạy ngoài runtime admission quota/rate-limit của product, nhưng mọi provider request/token/cost được ghi vào evaluation cost ledger riêng; không được dùng eval để né ngân sách đánh giá.
+* EV-11: harness chạy M10 trên tập D3 (cặp mâu thuẫn cài và cặp đối chứng) ở hai cấu hình Clause Graph bật và tắt, cùng corpus, config và input; phát hiện khi related\_clause\_ids của một trong hai điều chứa điều còn lại; báo recall và tỷ lệ báo nhầm (BRD 8.3).
 
 ## **9\. Giao diện thực thi tối thiểu**
 
@@ -483,12 +496,13 @@ Mỗi yêu cầu SRS có nguồn gốc nghiệp vụ trong BRD, hoặc phải gh
 | NFR-DATA-04 | BR-13 | Dữ liệu hợp đồng không tồn tại ngoài phiên |
 | NFR-SEC-06 | BRD 7.5 | Nhà cung cấp LLM và cấu hình model |
 | NFR-MAINT-03 | BR-14, BR-17 | Dữ liệu graph cập nhật không sửa mã |
-| EV-01 đến EV-10 | BRD 7.6, 8; BR-17, BR-18 | Hỗ trợ đánh giá, fair graph A/B, Clause Graph trace và cost isolation |
+| EV-01 đến EV-11 | BRD 7.6, 8; BR-17, BR-18 | Hỗ trợ đánh giá, fair graph A/B, Clause Graph trace và cost isolation |
+| FR-32, FR-33 | BRD BR-18 (3.2, 8.3 M10) | Báo mâu thuẫn qua related\_clause\_ids và context chung JOB\_INFO, CONTRACT\_TERM\_TYPE |
 
 ## **12\. Tiêu chí nghiệm thu hệ thống**
 
-* Toàn bộ FR-01 đến FR-31 có test case hoặc minh chứng demo tương ứng.  
-* Luồng end-to-end chạy trọn vẹn cho cả NLĐ và NSDLĐ trên T1; năm ca mẫu ở BRD 3.3 cho kết quả đúng theo từng vai trò.  
+* Toàn bộ FR-01 đến FR-33 có test case hoặc minh chứng demo tương ứng.  
+* Luồng end-to-end chạy trọn vẹn cho cả NLĐ và NSDLĐ trên T1; sáu ca mẫu ở BRD 3.3 cho kết quả đúng theo từng vai trò.  
 * Pipeline tuân đúng invariant ở 4.2: masked\_text cùng độ dài canonical\_text, span code-point áp dụng cho canonical\_text, clause spans non-overlap, outbound LLM chỉ có masked text, join bằng clause\_id.  
 * Không có missing-clause risk trong output; mọi risk có clause\_id.  
 * Clause taxonomy và risk taxonomy là hai artifact riêng đã đóng băng cho đánh giá.  
@@ -497,7 +511,7 @@ Mỗi yêu cầu SRS có nguồn gốc nghiệp vụ trong BRD, hoặc phải gh
 * REJECTED và FAILED được phân biệt đúng; các input reject sau session creation xuất hiện qua Get Status; REJECTED không retry. FAILED local/process retry về đúng state, SYSTEM\_BUSY không tăng counter, lần thứ 3 mới RETRY\_LIMIT\_EXCEEDED.  
 * Phiên thứ hai bị từ chối khi đang có phiên xử lý (FR-26); trần chi phí hoạt động (FR-27).  
 * NFR về bảo mật, dữ liệu, chi phí, hiệu năng có bằng chứng đo được trong môi trường demo.  
-* Các chỉ số ở BRD 7.3 và 8.3 (M1 đến M8, BL-1 nếu chưa bị cắt) được báo theo ngưỡng, hoặc có giải trình rõ nếu chưa đạt.  
+* Các chỉ số ở BRD 7.3 và 8.3 (M1 đến M10, BL-1 nếu chưa bị cắt) được báo theo ngưỡng, hoặc có giải trình rõ nếu chưa đạt.  
 * Không tuning hệ thống trên T1 và T2 (EV-07).
 * Data Graph dựng được từ corpus fixture; build lỗi bị chặn; không đưa citation ngoài kho/hết hiệu lực; M8 graph on/off dùng cùng final_k và primary run dùng predicted labels (FR-30, EV-08).  
 * Clause Graph dựng cho mọi phiên COMPLETED, chỉ chứa ID, xóa cùng phiên, không làm đổi span; fixture loại trừ dẫn chiếu luật và ContextResolutionTrace chứng minh context đã được cấp cho Risk stage (FR-31, EV-09).  

@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 16. Export report | 946 ký tự | trước: 16_15-risk-analysis-citation-validation-va-assembly.md | sau: 18_17-logging-quota-rate-limit-retention-va-security.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 16. Export report | 946 ký tự | trước: 16_15-risk-analysis-citation-validation-va-assembly.md | sau: 18_17-logging-quota-rate-limit-retention-va-security.md -->
 
 # 16. Export report
 

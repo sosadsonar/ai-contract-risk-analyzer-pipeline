@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 10. Quy tắc nghiệp vụ bắt buộc | 2807 ký tự | trước: 11_9-giao-dien-thuc-thi-toi-thieu.md | sau: 13_11-truy-vet-brd-va-srs.md -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 10. Quy tắc nghiệp vụ bắt buộc | 2862 ký tự | trước: 12_9-giao-dien-thuc-thi-toi-thieu.md | sau: 14_11-truy-vet-brd-va-srs.md -->
 
 ## 10. Quy tắc nghiệp vụ bắt buộc
 

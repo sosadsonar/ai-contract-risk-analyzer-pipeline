@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_0_5.md | mục: BRD: AI Labor Contract Risk Analyzer > 1. Tổng quan | 2798 ký tự | trước: 00_brd-ai-labor-contract-risk-analyzer.md | sau: 02_2-pham-vi.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 1. Tổng quan | 2833 ký tự | trước: 00_brd-ai-labor-contract-risk-analyzer.md | sau: 02_2-pham-vi.md -->
 
 ## 1. Tổng quan
 
@@ -16,7 +16,7 @@ Sản phẩm là một web app: người dùng chọn vai trò, tải HĐLĐ lê
 * BO-2: mọi rủi ro nêu ra đều gắn với điều khoản gốc và điều luật có thật trong kho luật của hệ thống và liên quan đến rủi ro đó. Rủi ro không có căn cứ trong kho luật được gắn nhãn "chưa đủ căn cứ" (BR-15), không bị gán điều luật.
 * BO-3: cùng một hợp đồng, kết quả (loại rủi ro, mức độ nghiêm trọng, giải thích) thay đổi theo vai trò đã chọn. Nghiệm thu bằng các ca mẫu ở mục 3.3 và 8.6
 * BO-4: dữ liệu cá nhân trong hợp đồng được ẩn trước khi gửi cho LLM bên thứ ba, đạt ngưỡng theo loại ở 7.3.
-* BO-5: có Data Graph (đồ thị kho luật, phục vụ Retrieval & Fact-finding: tìm kiếm thông tin, truy vấn tri thức, tức truy xuất căn cứ pháp lý) và Clause Graph (đồ thị điều khoản của hợp đồng đang phân tích, phục vụ Validation & Reasoning: kiểm tra mâu thuẫn, suy diễn điều kiện) theo yêu cầu của giảng viên. Nghiệm thu bằng BR-17, BR-18 và M8 báo có và không dùng Graph (8.3).
+* BO-5: có Data Graph (đồ thị kho luật, phục vụ Retrieval & Fact-finding: tìm kiếm thông tin, truy vấn tri thức, tức truy xuất căn cứ pháp lý) và Clause Graph (đồ thị điều khoản của hợp đồng đang phân tích, phục vụ Validation & Reasoning: phát hiện mâu thuẫn giữa các điều khoản trong phạm vi quan hệ Graph) theo yêu cầu của giảng viên. Nghiệm thu bằng BR-17, BR-18, M8 báo có và không dùng Graph, và M10 (8.3).
 
 ### 1.3 Chỉ số thành công
 
