@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 7. Dữ liệu cá nhân và bảo mật | 2717 ký tự | trước: 06_6-yeu-cau-phi-chuc-nang.md | sau: 08_8-do-luong-chat-luong-va-nghiem-thu.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 7. Dữ liệu cá nhân và bảo mật | 3072 ký tự | trước: 06_6-yeu-cau-phi-chuc-nang.md | sau: 08_8-do-luong-chat-luong-va-nghiem-thu.md -->
 
 ## 7. Dữ liệu cá nhân và bảo mật
 
@@ -20,7 +20,7 @@ Luồng xử lý dữ liệu: file được upload, hệ thống trích văn b�
 | Họ tên (kể cả người đại diện), ngày sinh, ngày và nơi cấp giấy tờ, địa chỉ cư trú và trụ sở, tên pháp nhân, chữ ký | Recall khi che | ≥ 90% |
 | Trường cần giữ (lương, phụ cấp, thời hạn, thời giờ, chức danh, chức vụ đại diện NSDLĐ, tỉnh khi đứng riêng, từ chỉ vai trò) | Tỷ lệ giữ nguyên | ≥ 95% |
 
-Đo trên nội dung thực tế gửi cho LLM, bằng tập P1 có gold span (8.2); ngưỡng không phải 100% nên có rủi ro ở mục 10. Đây là mục tiêu cho demo, không phải cam kết với người dùng (Phụ lục A).
+Đo trên nội dung thực tế gửi cho LLM, so với Gold privacy đã khóa của D1 và T1; T2 có thể báo chẩn đoán trên tham chiếu suy ra từ T1 và lỗi chèn nhưng phải ghi rõ chưa được phân xử độc lập. Báo riêng từng nhóm PII và trường cần giữ; không biến tỷ lệ giữ trường thành chỉ số M4 (M4 đo trích dẫn rủi ro nguyên văn và offset). Tập P1 là phép thử mở rộng độc lập khi đã có Gold span; việc chưa có P1 không hủy số đo cơ sở D1/T1. Ngưỡng không phải 100% nên có rủi ro ở mục 10. Đây là mục tiêu cho demo, không phải cam kết với người dùng (Phụ lục A).
 
 ### 7.4 Lưu và xóa
 

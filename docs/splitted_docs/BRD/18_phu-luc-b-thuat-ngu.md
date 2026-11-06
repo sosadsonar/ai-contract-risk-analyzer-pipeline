@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > Phụ lục B: Thuật ngữ | 1629 ký tự | trước: 11_phu-luc-a-noi-dung-hien-thi-de-xuat.md | sau: 13_11-open-issues.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > Phụ lục B: Thuật ngữ | 1629 ký tự | trước: 17_phu-luc-a-noi-dung-hien-thi-de-xuat.md | sau: 19_11-open-issues.md -->
 
 ## Phụ lục B: Thuật ngữ
 

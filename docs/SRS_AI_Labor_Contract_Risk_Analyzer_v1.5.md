@@ -353,7 +353,7 @@ Các NFR là mục tiêu nghiệm thu cho môi trường demo học tập, khôn
 | NFR-PERF-02 | Phản hồi UI | Giao diện hiển thị trạng thái VALIDATING hoặc PROCESSING trong 2 giây sau khi backend chấp nhận upload. | Đo timestamp ở browser và backend. |
 | NFR-SCALE-01 | Đồng thời / deployment | Chỉ một phiên VALIDATING/PROCESSING tại một thời điểm. Demo runtime dùng đúng một backend worker/process, không autoscale/serverless vì session store và processing slot là process-local. LLM có thể song song theo batch bên trong cùng session. | Hai upload race chỉ một session được tạo; kiểm tra deploy có 1 worker; dữ liệu phiên không trộn. |
 | NFR-CAP-01 | Giới hạn input | PDF tối đa 10MB và 30 trang; DOCX tối đa 10MB và 100.000 canonical characters; tối đa 150 clause. | Boundary tests. |
-| NFR-SEC-01 | PII masking | Theo BRD 7.3 (SRS không lặp ngưỡng). | Gold spans và values trên tập P1 (BRD 8.2); đo trên payload trước khi gửi LLM. |
+| NFR-SEC-01 | PII masking | Theo BRD 7.3 (SRS không lặp ngưỡng). | Gold privacy D1/T1 đã khóa cho đánh giá cơ sở trên payload trước khi gửi LLM; P1 là phép thử mở rộng khi có Gold riêng. T2 dùng tham chiếu suy ra thì báo riêng, không gọi là Gold phân xử độc lập. |
 | NFR-SEC-02 | Transport security | Mọi traffic Browser sang Backend và Backend sang LLM đi qua HTTPS trong môi trường deploy. | Kiểm tra endpoint và cấu hình deploy. |
 | NFR-SEC-03 | Session security | session\_id là identifier ngẫu nhiên opaque (UUID v4 hoặc tương đương); dữ liệu của phiên A không truy cập được bằng phiên B. | Cross-session negative tests. |
 | NFR-SEC-04 | Secrets | API key và secret không hard-code, không commit vào repository; dùng cấu hình môi trường. | Quét repository và cấu hình deploy. |

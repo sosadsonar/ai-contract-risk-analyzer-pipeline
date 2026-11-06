@@ -3,8 +3,8 @@
     "BRD": {
       "source": "BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md",
       "split_level": 2,
-      "raw_chars": 46760,
-      "clean_chars": 46115,
+      "raw_chars": 49889,
+      "clean_chars": 49224,
       "chunks": [
         {
           "file": "00_brd-ai-labor-contract-risk-analyzer.md",
@@ -80,21 +80,42 @@
           "file": "07_7-du-lieu-ca-nhan-va-bao-mat.md",
           "title": "7. Dữ liệu cá nhân và bảo mật",
           "path": "BRD: AI Labor Contract Risk Analyzer > 7. Dữ liệu cá nhân và bảo mật",
-          "chars": 2717,
+          "chars": 3072,
           "ids": []
         },
         {
           "file": "08_8-do-luong-chat-luong-va-nghiem-thu.md",
           "title": "8. Đo lường chất lượng và nghiệm thu",
           "path": "BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu",
-          "chars": 9877,
+          "chars": 125,
+          "ids": []
+        },
+        {
+          "file": "09_8-1-nguyen-tac-va-gioi-han.md",
+          "title": "8.1 Nguyên tắc và giới hạn",
+          "path": "BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.1 Nguyên tắc và giới hạn",
+          "chars": 770,
+          "ids": []
+        },
+        {
+          "file": "10_8-2-du-lieu-danh-gia.md",
+          "title": "8.2 Dữ liệu đánh giá",
+          "path": "BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.2 Dữ liệu đánh giá",
+          "chars": 4155,
           "ids": [
             "D1",
             "D2",
             "D3",
             "T1",
-            "T2",
-            "P1",
+            "T2"
+          ]
+        },
+        {
+          "file": "11_8-3-cac-chi-so.md",
+          "title": "8.3 Các chỉ số",
+          "path": "BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.3 Các chỉ số",
+          "chars": 4338,
+          "ids": [
             "M1",
             "M2",
             "M3a",
@@ -111,7 +132,28 @@
           ]
         },
         {
-          "file": "09_9-rang-buoc-gia-dinh-phu-thuoc.md",
+          "file": "12_8-4-danh-gia-false-negative-bang-loi-chen.md",
+          "title": "8.4 Đánh giá false negative bằng lỗi chèn",
+          "path": "BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.4 Đánh giá false negative bằng lỗi chèn",
+          "chars": 1315,
+          "ids": []
+        },
+        {
+          "file": "13_8-5-llm-as-a-judge-va-m6.md",
+          "title": "8.5 LLM-as-a-judge và M6",
+          "path": "BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.5 LLM-as-a-judge và M6",
+          "chars": 1089,
+          "ids": []
+        },
+        {
+          "file": "14_8-6-tieu-chi-nghiem-thu.md",
+          "title": "8.6 Tiêu chí nghiệm thu",
+          "path": "BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.6 Tiêu chí nghiệm thu",
+          "chars": 839,
+          "ids": []
+        },
+        {
+          "file": "15_9-rang-buoc-gia-dinh-phu-thuoc.md",
           "title": "9. Ràng buộc, giả định, phụ thuộc",
           "path": "BRD: AI Labor Contract Risk Analyzer > 9. Ràng buộc, giả định, phụ thuộc",
           "chars": 3732,
@@ -132,28 +174,28 @@
           ]
         },
         {
-          "file": "10_10-rui-ro-du-an.md",
+          "file": "16_10-rui-ro-du-an.md",
           "title": "10. Rủi ro dự án",
           "path": "BRD: AI Labor Contract Risk Analyzer > 10. Rủi ro dự án",
           "chars": 2140,
           "ids": []
         },
         {
-          "file": "11_phu-luc-a-noi-dung-hien-thi-de-xuat.md",
+          "file": "17_phu-luc-a-noi-dung-hien-thi-de-xuat.md",
           "title": "Phụ lục A: Nội dung hiển thị đề xuất",
           "path": "BRD: AI Labor Contract Risk Analyzer > Phụ lục A: Nội dung hiển thị đề xuất",
           "chars": 438,
           "ids": []
         },
         {
-          "file": "12_phu-luc-b-thuat-ngu.md",
+          "file": "18_phu-luc-b-thuat-ngu.md",
           "title": "Phụ lục B: Thuật ngữ",
           "path": "BRD: AI Labor Contract Risk Analyzer > Phụ lục B: Thuật ngữ",
           "chars": 1629,
           "ids": []
         },
         {
-          "file": "13_11-open-issues.md",
+          "file": "19_11-open-issues.md",
           "title": "11. Open Issues",
           "path": "BRD: AI Labor Contract Risk Analyzer > 11. Open Issues",
           "chars": 3205,
@@ -180,7 +222,7 @@
           ]
         },
         {
-          "file": "14_phu-luc-c-cho-codebase-hien-tai-lech-brd-ghi-nhan.md",
+          "file": "20_phu-luc-c-cho-codebase-hien-tai-lech-brd-ghi-nhan.md",
           "title": "Phụ lục C: Chỗ codebase hiện tại lệch BRD (ghi nhận, chưa sửa code)",
           "path": "BRD: AI Labor Contract Risk Analyzer > Phụ lục C: Chỗ codebase hiện tại lệch BRD (ghi nhận, chưa sửa code)",
           "chars": 1697,
@@ -406,56 +448,6 @@
         }
       ]
     },
-    "n2-progress-audit-2026-11-01": {
-      "source": "N2_PROGRESS_AUDIT_2026-11-01.md",
-      "split_level": 2,
-      "raw_chars": 3264,
-      "clean_chars": 3253,
-      "chunks": [
-        {
-          "file": "00_kiem-ke-tien-do-data-lead-n2-01-11-2026.md",
-          "title": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026",
-          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026",
-          "chars": 45,
-          "ids": []
-        },
-        {
-          "file": "01_cach-tinh.md",
-          "title": "Cách tính",
-          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026 > Cách tính",
-          "chars": 463,
-          "ids": []
-        },
-        {
-          "file": "02_da-dong-theo-progress-md.md",
-          "title": "Đã đóng theo PROGRESS.md",
-          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026 > Đã đóng theo PROGRESS.md",
-          "chars": 201,
-          "ids": []
-        },
-        {
-          "file": "03_cap-nhat-ngay-01-11-2026.md",
-          "title": "Cập nhật ngày 01/11/2026",
-          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026 > Cập nhật ngày 01/11/2026",
-          "chars": 836,
-          "ids": []
-        },
-        {
-          "file": "04_co-tien-trien-nhung-chua-dong.md",
-          "title": "Có tiến triển nhưng chưa đóng",
-          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026 > Có tiến triển nhưng chưa đóng",
-          "chars": 907,
-          "ids": []
-        },
-        {
-          "file": "05_cong-con-lai-de-dat-50-va-thu-tu-thuc-hien.md",
-          "title": "Cổng còn lại để đạt 50% và thứ tự thực hiện",
-          "path": "Kiểm kê tiến độ Data Lead (N2) — 01/11/2026 > Cổng còn lại để đạt 50% và thứ tự thực hiện",
-          "chars": 801,
-          "ids": []
-        }
-      ]
-    },
     "n2-progress-audit-2026-11-02": {
       "source": "N2_PROGRESS_AUDIT_2026-11-02.md",
       "split_level": 2,
@@ -665,8 +657,8 @@
     "SDD": {
       "source": "SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md",
       "split_level": 1,
-      "raw_chars": 24293,
-      "clean_chars": 23628,
+      "raw_chars": 24453,
+      "clean_chars": 23789,
       "chunks": [
         {
           "file": "00_system-design-document.md",
@@ -785,7 +777,7 @@
           "file": "15_14-evaluation-architecture.md",
           "title": "14. Evaluation Architecture",
           "path": "14. Evaluation Architecture",
-          "chars": 614,
+          "chars": 775,
           "ids": []
         },
         {
@@ -821,8 +813,8 @@
     "SRS": {
       "source": "SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md",
       "split_level": 2,
-      "raw_chars": 127974,
-      "clean_chars": 75035,
+      "raw_chars": 128092,
+      "clean_chars": 75152,
       "chunks": [
         {
           "file": "00_srs-ai-labor-contract-risk-analyzer-phien-ban-1-5.md",
@@ -962,7 +954,7 @@
           "file": "10_7-yeu-cau-phi-chuc-nang-cho-demo.md",
           "title": "7. Yêu cầu phi chức năng cho demo",
           "path": "SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 7. Yêu cầu phi chức năng cho demo",
-          "chars": 6461,
+          "chars": 6578,
           "ids": [
             "NFR-PERF-01",
             "NFR-PERF-02",
@@ -1137,11 +1129,68 @@
         }
       ]
     },
+    "t1-equivalent-gate-evaluation": {
+      "source": "T1_EQUIVALENT_GATE_EVALUATION_GUIDE.md",
+      "split_level": 2,
+      "raw_chars": 6055,
+      "clean_chars": 6041,
+      "chunks": [
+        {
+          "file": "00_huong-dan-cong-t1-tuong-duong-va-doc-ket-qua-danh.md",
+          "title": "Hướng dẫn cổng T1 tương đương và đọc kết quả đánh giá",
+          "path": "Hướng dẫn cổng T1 tương đương và đọc kết quả đánh giá",
+          "chars": 376,
+          "ids": []
+        },
+        {
+          "file": "01_1-quyet-dinh-can-nho.md",
+          "title": "1. Quyết định cần nhớ",
+          "path": "Hướng dẫn cổng T1 tương đương và đọc kết quả đánh giá > 1. Quyết định cần nhớ",
+          "chars": 1392,
+          "ids": []
+        },
+        {
+          "file": "02_2-ba-lat-cat-bat-buoc-trong-bao-cao-t1.md",
+          "title": "2. Ba lát cắt bắt buộc trong báo cáo T1",
+          "path": "Hướng dẫn cổng T1 tương đương và đọc kết quả đánh giá > 2. Ba lát cắt bắt buộc trong báo cáo T1",
+          "chars": 890,
+          "ids": []
+        },
+        {
+          "file": "03_3-doc-dung-cac-chi-so.md",
+          "title": "3. Đọc đúng các chỉ số",
+          "path": "Hướng dẫn cổng T1 tương đương và đọc kết quả đánh giá > 3. Đọc đúng các chỉ số",
+          "chars": 1573,
+          "ids": []
+        },
+        {
+          "file": "04_4-trang-thai-diem-ky-thuat-da-co.md",
+          "title": "4. Trạng thái điểm kỹ thuật đã có",
+          "path": "Hướng dẫn cổng T1 tương đương và đọc kết quả đánh giá > 4. Trạng thái điểm kỹ thuật đã có",
+          "chars": 680,
+          "ids": []
+        },
+        {
+          "file": "05_5-quy-trinh-khi-cap-nhat-du-lieu-hoac-danh-gia.md",
+          "title": "5. Quy trình khi cập nhật dữ liệu hoặc đánh giá",
+          "path": "Hướng dẫn cổng T1 tương đương và đọc kết quả đánh giá > 5. Quy trình khi cập nhật dữ liệu hoặc đánh giá",
+          "chars": 774,
+          "ids": []
+        },
+        {
+          "file": "06_6-gioi-han-trach-nhiem.md",
+          "title": "6. Giới hạn trách nhiệm",
+          "path": "Hướng dẫn cổng T1 tương đương và đọc kết quả đánh giá > 6. Giới hạn trách nhiệm",
+          "chars": 356,
+          "ids": []
+        }
+      ]
+    },
     "TDD": {
       "source": "TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md",
       "split_level": 1,
-      "raw_chars": 82560,
-      "clean_chars": 81523,
+      "raw_chars": 82662,
+      "clean_chars": 81624,
       "chunks": [
         {
           "file": "00_technical-design-document.md",
@@ -1306,7 +1355,7 @@
           "file": "19_18-evaluation-harness-va-gold-format.md",
           "title": "18. Evaluation Harness và gold format",
           "path": "18. Evaluation Harness và gold format",
-          "chars": 4647,
+          "chars": 4748,
           "ids": [
             "M1",
             "M2",

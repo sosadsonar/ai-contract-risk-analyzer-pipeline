@@ -1,6 +1,6 @@
 # Mục lục SDD (SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md)
 
-Tách ở heading mức 1. Gốc 24,293 ký tự -> sau làm sạch 23,628 ký tự (~7,876 token).
+Tách ở heading mức 1. Gốc 24,453 ký tự -> sau làm sạch 23,789 ký tự (~7,930 token).
 
 | File | Mục | Ký tự | ID hàng bảng |
 |---|---|---|---|
@@ -19,7 +19,7 @@ Tách ở heading mức 1. Gốc 24,293 ký tự -> sau làm sạch 23,628 ký t
 | [12_11-security-va-privacy-architecture.md](12_11-security-va-privacy-architecture.md) | 11. Security và Privacy Architecture | 786 |  |
 | [13_12-reliability-performance-va-cost.md](13_12-reliability-performance-va-cost.md) | 12. Reliability, Performance và Cost | 668 |  |
 | [14_13-deployment-architecture.md](14_13-deployment-architecture.md) | 13. Deployment Architecture | 819 |  |
-| [15_14-evaluation-architecture.md](15_14-evaluation-architecture.md) | 14. Evaluation Architecture | 614 |  |
+| [15_14-evaluation-architecture.md](15_14-evaluation-architecture.md) | 14. Evaluation Architecture | 775 |  |
 | [16_15-traceability-srs-component.md](16_15-traceability-srs-component.md) | 15. Traceability: SRS -> Component | 989 |  |
 | [17_16-cac-diem-de-tdd-chot.md](17_16-cac-diem-de-tdd-chot.md) | 16. Các điểm để TDD chốt | 787 |  |
 | [18_17-rui-ro-kien-truc-va-bien-phap.md](18_17-rui-ro-kien-truc-va-bien-phap.md) | 17. Rủi ro kiến trúc và biện pháp | 850 |  |

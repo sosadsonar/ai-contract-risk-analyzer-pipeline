@@ -4,14 +4,14 @@ ID xuất hiện ở đầu hàng bảng (thường là nơi định nghĩa; m�
 
 | ID | File con |
 |---|---|
-| A1 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| A2 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| A3 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| A4 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| A5 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| A6 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| A7 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| A8 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| A1 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| A2 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| A3 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| A4 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| A5 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| A6 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| A7 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| A8 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
 | AIQ-01 | [SRS/11_8-chat-luong-ai-va-danh-gia.md](SRS/11_8-chat-luong-ai-va-danh-gia.md) |
 | AIQ-02 | [SRS/11_8-chat-luong-ai-va-danh-gia.md](SRS/11_8-chat-luong-ai-va-danh-gia.md) |
 | AIQ-03 | [SRS/11_8-chat-luong-ai-va-danh-gia.md](SRS/11_8-chat-luong-ai-va-danh-gia.md) |
@@ -20,7 +20,7 @@ ID xuất hiện ở đầu hàng bảng (thường là nơi định nghĩa; m�
 | AIQ-06 | [SRS/11_8-chat-luong-ai-va-danh-gia.md](SRS/11_8-chat-luong-ai-va-danh-gia.md) |
 | AIQ-07 | [SRS/11_8-chat-luong-ai-va-danh-gia.md](SRS/11_8-chat-luong-ai-va-danh-gia.md) |
 | AIQ-08 | [SRS/11_8-chat-luong-ai-va-danh-gia.md](SRS/11_8-chat-luong-ai-va-danh-gia.md) |
-| BL-1 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| BL-1 | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
 | BO-1 | [SRS/14_11-truy-vet-brd-va-srs.md](SRS/14_11-truy-vet-brd-va-srs.md) |
 | BO-2 | [SRS/14_11-truy-vet-brd-va-srs.md](SRS/14_11-truy-vet-brd-va-srs.md) |
 | BO-3 | [SRS/14_11-truy-vet-brd-va-srs.md](SRS/14_11-truy-vet-brd-va-srs.md) |
@@ -67,9 +67,9 @@ ID xuất hiện ở đầu hàng bảng (thường là nơi định nghĩa; m�
 | C-19 | [SRS/17_phu-luc-c-thay-doi-can-lam-o-codebase-hien-tai-ghi.md](SRS/17_phu-luc-c-thay-doi-can-lam-o-codebase-hien-tai-ghi.md) |
 | C-20 | [SRS/17_phu-luc-c-thay-doi-can-lam-o-codebase-hien-tai-ghi.md](SRS/17_phu-luc-c-thay-doi-can-lam-o-codebase-hien-tai-ghi.md) |
 | C-21 | [SRS/17_phu-luc-c-thay-doi-can-lam-o-codebase-hien-tai-ghi.md](SRS/17_phu-luc-c-thay-doi-can-lam-o-codebase-hien-tai-ghi.md) |
-| D1 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md) |
-| D2 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md) |
-| D3 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md) |
+| D1 | [BRD/10_8-2-du-lieu-danh-gia.md](BRD/10_8-2-du-lieu-danh-gia.md) |
+| D2 | [BRD/10_8-2-du-lieu-danh-gia.md](BRD/10_8-2-du-lieu-danh-gia.md) |
+| D3 | [BRD/10_8-2-du-lieu-danh-gia.md](BRD/10_8-2-du-lieu-danh-gia.md) |
 | DEC-01 | [SRS/01_kiem-soat-tai-lieu.md](SRS/01_kiem-soat-tai-lieu.md) |
 | DEC-02 | [SRS/01_kiem-soat-tai-lieu.md](SRS/01_kiem-soat-tai-lieu.md) |
 | DEC-03 | [SRS/01_kiem-soat-tai-lieu.md](SRS/01_kiem-soat-tai-lieu.md) |
@@ -148,23 +148,23 @@ ID xuất hiện ở đầu hàng bảng (thường là nơi định nghĩa; m�
 | INV-10 | [TDD/20_19-test-strategy.md](TDD/20_19-test-strategy.md) |
 | INV-11 | [TDD/20_19-test-strategy.md](TDD/20_19-test-strategy.md) |
 | INV-12 | [TDD/20_19-test-strategy.md](TDD/20_19-test-strategy.md) |
-| M1 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M2 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M2b | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M3a | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M3b | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M4 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M5 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M6 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M7 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M8 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M9 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| M10 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
-| MS-1 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| MS-2 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| MS-3 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| MS-4 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
-| MS-5 | [BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/09_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| M1 | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M2 | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M2b | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M3a | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M3b | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M4 | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M5 | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M6 | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M7 | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M8 | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M9 | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| M10 | [BRD/11_8-3-cac-chi-so.md](BRD/11_8-3-cac-chi-so.md); [TDD/19_18-evaluation-harness-va-gold-format.md](TDD/19_18-evaluation-harness-va-gold-format.md) |
+| MS-1 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| MS-2 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| MS-3 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| MS-4 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
+| MS-5 | [BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md](BRD/15_9-rang-buoc-gia-dinh-phu-thuoc.md) |
 | N1 | [clause-taxonomy-freeze/04_4-sign-off.md](clause-taxonomy-freeze/04_4-sign-off.md) |
 | N2 | [clause-taxonomy-freeze/04_4-sign-off.md](clause-taxonomy-freeze/04_4-sign-off.md) |
 | N3 | [clause-taxonomy-freeze/04_4-sign-off.md](clause-taxonomy-freeze/04_4-sign-off.md) |
@@ -206,26 +206,25 @@ ID xuất hiện ở đầu hàng bảng (thường là nơi định nghĩa; m�
 | O-12 | [TDD/22_21-open-items-gioi-han-da-biet.md](TDD/22_21-open-items-gioi-han-da-biet.md) |
 | O-13 | [TDD/22_21-open-items-gioi-han-da-biet.md](TDD/22_21-open-items-gioi-han-da-biet.md) |
 | O-14 | [TDD/22_21-open-items-gioi-han-da-biet.md](TDD/22_21-open-items-gioi-han-da-biet.md) |
-| OI-01 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-02 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-03 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-04 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-05 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-06 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-07 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-08 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-09 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-10 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-11 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-12 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
-| OI-13 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md) |
-| OI-14 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md) |
-| OI-15 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md) |
-| OI-16 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md) |
-| OI-17 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md) |
-| OI-18 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md) |
-| OI-19 | [BRD/13_11-open-issues.md](BRD/13_11-open-issues.md) |
-| P1 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md) |
+| OI-01 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-02 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-03 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-04 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-05 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-06 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-07 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-08 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-09 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-10 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-11 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-12 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md); [SRS/16_13-open-issues-va-quyet-dinh-da-dong.md](SRS/16_13-open-issues-va-quyet-dinh-da-dong.md) |
+| OI-13 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md) |
+| OI-14 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md) |
+| OI-15 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md) |
+| OI-16 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md) |
+| OI-17 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md) |
+| OI-18 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md) |
+| OI-19 | [BRD/19_11-open-issues.md](BRD/19_11-open-issues.md) |
 | R-01 | [SRS/13_10-quy-tac-nghiep-vu-bat-buoc.md](SRS/13_10-quy-tac-nghiep-vu-bat-buoc.md) |
 | R-02 | [SRS/13_10-quy-tac-nghiep-vu-bat-buoc.md](SRS/13_10-quy-tac-nghiep-vu-bat-buoc.md) |
 | R-03 | [SRS/13_10-quy-tac-nghiep-vu-bat-buoc.md](SRS/13_10-quy-tac-nghiep-vu-bat-buoc.md) |
@@ -255,8 +254,8 @@ ID xuất hiện ở đầu hàng bảng (thường là nơi định nghĩa; m�
 | SDD-05 | [SDD/02_1-muc-dich-va-nguyen-tac-thiet-ke.md](SDD/02_1-muc-dich-va-nguyen-tac-thiet-ke.md) |
 | SDD-06 | [SDD/02_1-muc-dich-va-nguyen-tac-thiet-ke.md](SDD/02_1-muc-dich-va-nguyen-tac-thiet-ke.md) |
 | SDD-07 | [SDD/02_1-muc-dich-va-nguyen-tac-thiet-ke.md](SDD/02_1-muc-dich-va-nguyen-tac-thiet-ke.md) |
-| T1 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md) |
-| T2 | [BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md](BRD/08_8-do-luong-chat-luong-va-nghiem-thu.md) |
+| T1 | [BRD/10_8-2-du-lieu-danh-gia.md](BRD/10_8-2-du-lieu-danh-gia.md) |
+| T2 | [BRD/10_8-2-du-lieu-danh-gia.md](BRD/10_8-2-du-lieu-danh-gia.md) |
 | TDD-01 | [TDD/03_2-cac-quyet-dinh-ky-thuat-tdd.md](TDD/03_2-cac-quyet-dinh-ky-thuat-tdd.md) |
 | TDD-02 | [TDD/03_2-cac-quyet-dinh-ky-thuat-tdd.md](TDD/03_2-cac-quyet-dinh-ky-thuat-tdd.md) |
 | TDD-03 | [TDD/03_2-cac-quyet-dinh-ky-thuat-tdd.md](TDD/03_2-cac-quyet-dinh-ky-thuat-tdd.md) |

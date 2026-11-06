@@ -1,6 +1,6 @@
 # Mục lục TDD (TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md)
 
-Tách ở heading mức 1. Gốc 82,560 ký tự -> sau làm sạch 81,523 ký tự (~27,174 token).
+Tách ở heading mức 1. Gốc 82,662 ký tự -> sau làm sạch 81,624 ký tự (~27,208 token).
 
 | File | Mục | Ký tự | ID hàng bảng |
 |---|---|---|---|
@@ -23,7 +23,7 @@ Tách ở heading mức 1. Gốc 82,560 ký tự -> sau làm sạch 81,523 ký t
 | [16_15-risk-analysis-citation-validation-va-assembly.md](16_15-risk-analysis-citation-validation-va-assembly.md) | 15. Risk Analysis, citation validation và assembly | 4,346 |  |
 | [17_16-export-report.md](17_16-export-report.md) | 16. Export report | 946 |  |
 | [18_17-logging-quota-rate-limit-retention-va-security.md](18_17-logging-quota-rate-limit-retention-va-security.md) | 17. Logging, quota, rate limit, retention và security | 3,887 |  |
-| [19_18-evaluation-harness-va-gold-format.md](19_18-evaluation-harness-va-gold-format.md) | 18. Evaluation Harness và gold format | 4,647 | M1, M2, M3a, M3b, M4, M5, M6, M7, M8, M2b ... |
+| [19_18-evaluation-harness-va-gold-format.md](19_18-evaluation-harness-va-gold-format.md) | 18. Evaluation Harness và gold format | 4,748 | M1, M2, M3a, M3b, M4, M5, M6, M7, M8, M2b ... |
 | [20_19-test-strategy.md](20_19-test-strategy.md) | 19. Test strategy | 3,263 | INV-01, INV-02, INV-03, INV-04, INV-05, INV-06, INV-07, INV-08, INV-09, INV-10 ... |
 | [21_20-traceability-va-ke-hoach-migration-codebase.md](21_20-traceability-va-ke-hoach-migration-codebase.md) | 20. Traceability và kế hoạch migration codebase | 1,958 | FR-09, FR-10, FR-21, FR-22, FR-23, FR-25, FR-31 |
 | [22_21-open-items-gioi-han-da-biet.md](22_21-open-items-gioi-han-da-biet.md) | 21. Open items / giới hạn đã biết | 2,086 | O-01, O-02, O-03, O-04, O-05, O-06, O-07, O-08, O-09, O-10 ... |

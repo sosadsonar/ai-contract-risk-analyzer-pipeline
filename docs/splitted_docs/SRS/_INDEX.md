@@ -1,6 +1,6 @@
 # Mục lục SRS (SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md)
 
-Tách ở heading mức 2. Gốc 127,974 ký tự -> sau làm sạch 75,035 ký tự (~25,012 token).
+Tách ở heading mức 2. Gốc 128,092 ký tự -> sau làm sạch 75,152 ký tự (~25,051 token).
 
 | File | Mục | Ký tự | ID hàng bảng |
 |---|---|---|---|
@@ -14,7 +14,7 @@ Tách ở heading mức 2. Gốc 127,974 ký tự -> sau làm sạch 75,035 ký 
 | [07_4-yeu-cau-du-lieu.md](07_4-yeu-cau-du-lieu.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 4. Yêu cầu dữ liệu | 5,249 |  |
 | [08_5-quy-tac-legal-retrieval-va-citation.md](08_5-quy-tac-legal-retrieval-va-citation.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 5. Quy tắc legal retrieval và citation | 2,131 |  |
 | [09_6-trang-thai-xu-ly-va-ma-loi.md](09_6-trang-thai-xu-ly-va-ma-loi.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 6. Trạng thái xử lý và mã lỗi | 4,055 |  |
-| [10_7-yeu-cau-phi-chuc-nang-cho-demo.md](10_7-yeu-cau-phi-chuc-nang-cho-demo.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 7. Yêu cầu phi chức năng cho demo | 6,461 | NFR-PERF-01, NFR-PERF-02, NFR-SCALE-01, NFR-CAP-01, NFR-SEC-01, NFR-SEC-02, NFR-SEC-03, NFR-SEC-04, NFR-SEC-05, NFR-SEC-06 ... |
+| [10_7-yeu-cau-phi-chuc-nang-cho-demo.md](10_7-yeu-cau-phi-chuc-nang-cho-demo.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 7. Yêu cầu phi chức năng cho demo | 6,578 | NFR-PERF-01, NFR-PERF-02, NFR-SCALE-01, NFR-CAP-01, NFR-SEC-01, NFR-SEC-02, NFR-SEC-03, NFR-SEC-04, NFR-SEC-05, NFR-SEC-06 ... |
 | [11_8-chat-luong-ai-va-danh-gia.md](11_8-chat-luong-ai-va-danh-gia.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 8. Chất lượng AI và đánh giá | 2,629 | AIQ-01, AIQ-02, AIQ-03, AIQ-04, AIQ-05, AIQ-06, AIQ-07, AIQ-08, NFR-SEC-01 |
 | [12_9-giao-dien-thuc-thi-toi-thieu.md](12_9-giao-dien-thuc-thi-toi-thieu.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 9. Giao diện thực thi tối thiểu | 1,471 |  |
 | [13_10-quy-tac-nghiep-vu-bat-buoc.md](13_10-quy-tac-nghiep-vu-bat-buoc.md) | SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 10. Quy tắc nghiệp vụ bắt buộc | 2,862 | R-01, R-02, R-03, R-04, R-05, R-06, R-07, R-08, R-09, R-10 ... |

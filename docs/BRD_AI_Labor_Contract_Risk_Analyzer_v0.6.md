@@ -251,7 +251,7 @@ Luồng xử lý dữ liệu: file được upload, hệ thống trích văn b�
 | Họ tên (kể cả người đại diện), ngày sinh, ngày và nơi cấp giấy tờ, địa chỉ cư trú và trụ sở, tên pháp nhân, chữ ký | Recall khi che | ≥ 90% |
 | Trường cần giữ (lương, phụ cấp, thời hạn, thời giờ, chức danh, chức vụ đại diện NSDLĐ, tỉnh khi đứng riêng, từ chỉ vai trò) | Tỷ lệ giữ nguyên | ≥ 95% |
 
-Đo trên nội dung thực tế gửi cho LLM, bằng tập P1 có gold span (8.2); ngưỡng không phải 100% nên có rủi ro ở mục 10. Đây là mục tiêu cho demo, không phải cam kết với người dùng (Phụ lục A).
+Đo trên nội dung thực tế gửi cho LLM, so với Gold privacy đã khóa của D1 và T1; T2 có thể báo chẩn đoán trên tham chiếu suy ra từ T1 và lỗi chèn nhưng phải ghi rõ chưa được phân xử độc lập. Báo riêng từng nhóm PII và trường cần giữ; không biến tỷ lệ giữ trường thành chỉ số M4 (M4 đo trích dẫn rủi ro nguyên văn và offset). Tập P1 là phép thử mở rộng độc lập khi đã có Gold span; việc chưa có P1 không hủy số đo cơ sở D1/T1. Ngưỡng không phải 100% nên có rủi ro ở mục 10. Đây là mục tiêu cho demo, không phải cam kết với người dùng (Phụ lục A).
 
 ### **7.4 Lưu và xóa**
 
@@ -287,16 +287,28 @@ Ngoài phạm vi: không đo false positive riêng. Precision nằm trong F1 c�
 
 | Tập | Nội dung | Dùng cho |
 | :---- | :---- | :---- |
-| D1 | 4 hợp đồng dev hiện có (HDLD001 đến HDLD004, 183 điều khoản) cùng HDLD005 bổ sung (tổng 5 hợp đồng, 234 điều khoản theo clauses\_v06, trạng thái PROVISIONAL), chia theo nhóm mẫu giống nhau (similarity group) | Phát triển, tuning prompt, few-shot; đo bằng leave-one-group-out theo nhóm mẫu kèm khoảng tin cậy (ví dụ few-shot lấy từ nhóm khác, loại ví dụ gần trùng điều đang chấm); không báo số nghiệm thu |
-| D2 | D1 kèm lỗi chèn riêng cho dev, câu chữ và quy định không dùng chung với T2 (tốt nhất tách quy định) | Phát triển |
+| D1 | HDLD001–004: 4 hợp đồng Dev, 183 điều khoản đã REVIEWED; HDLD005 không thuộc D1 | Phát triển, tuning prompt, few-shot; kiểm tra theo nhóm mẫu giống nhau khi cần; không báo số nghiệm thu |
+| D2 | 9 tài liệu Dev, 30 lỗi chèn đã duyệt, tách khỏi T2; câu chữ và quy định không dùng chung với T2 | Phát triển và đo lỗi chèn Dev |
 | D3 | Bản sao hợp đồng D1 cài tối thiểu 10 cặp điều khoản mâu thuẫn (cặp có cạnh trong Clause Graph) và 10 cặp đối chứng nhất quán | M10 |
-| T1 | Tối thiểu 10 hợp đồng gốc, tách hoàn toàn khỏi dữ liệu dev, few-shot, prompt; đa dạng định dạng (PDF, DOCX), kiểu đánh số điều khoản, ngành và độ dài | M1, M2, M2b, M3a, M3b, M4, M6, M7, M9, BL-1 |
-| T2 | Bản sao T1 đã chèn tối thiểu 30 lỗi (8.4) | M5, M8 |
-| P1 | PII giả sinh bằng script, chèn vào hợp đồng đã de-identify tại vị trí đã biết; tối thiểu 100 mẫu mỗi loại nhóm recall 99% và 50 mẫu mỗi loại nhóm 90%; có mẫu âm (số và ngày không phải PII); bộ sinh tách khỏi regex của masker; gồm lỗi trích PDF (xuống dòng, khoảng trắng giữa chữ số, NFD) | Chỉ số PII (7.3) |
+| T1 | Cổng tương đương `T1_EQUIVALENT_GATE_V1`: HDLD005–014, gồm 4 tài liệu thực/nội bộ hạn chế truy cập, 5 biểu mẫu công khai và 1 đối chứng tổng hợp; HDLD005 luôn thuộc T1 | M1, M2, M3a, M4, M7; M3b/M6 và các chỉ số mở rộng khi có gói đánh giá tương ứng |
+| T2 | 9 tài liệu phát sinh từ T1 thực/mẫu HDLD005–013, 872 span và 30 lỗi chèn (8.4); HDLD014 không nằm trong T2 hiện hành | M3a, M4, M5, M8 |
+| P1 (mở rộng) | PII giả sinh bằng script, chèn vào hợp đồng đã de-identify tại vị trí đã biết; tối thiểu 100 mẫu mỗi loại nhóm recall 99% và 50 mẫu mỗi loại nhóm 90%; có mẫu âm và lỗi trích PDF; bộ sinh tách khỏi regex masker | Chẩn đoán bổ sung cho §7.3 khi gói P1 sẵn sàng |
+
+#### Cổng tiếp nhận tương đương T1 — `T1_EQUIVALENT_GATE_V1`
+
+Nhóm (`DucAnh_N2`, `argon`, `Minh_N1`) phê duyệt cổng đa tầng để đánh giá trong điều kiện không thể đưa hợp đồng đã ký chứa dữ liệu cá nhân vào Git công khai. Việc quản lý dữ liệu cá nhân chịu ràng buộc của Nghị định 13/2023/NĐ-CP; biên nhận này là quyết định nghiệm thu **trong dự án**, không tự chứng minh quyền phân phối, sự đồng ý của chủ thể dữ liệu hay tuân thủ pháp luật cho từng nguồn. Văn bản gốc hạn chế truy cập và Gold có nội dung nhạy cảm chỉ lưu cục bộ. File băm SHA-256 chứng minh tính đồng nhất của bản lưu, không chứng minh chữ ký hoặc nguồn gốc pháp lý.
+
+| Chế độ | Tài liệu | Bằng chứng và mục đích |
+| :---- | :---- | :---- |
+| `REAL_EXECUTED_RESTRICTED` | HDLD010–013 (4) | Bản lưu cục bộ có SHA-256 và vùng PII được khoanh trong `T1_privacy_gold_v01`; không yêu cầu URL công khai hoặc giấy phép phân phối mở. |
+| `PUBLIC_TEMPLATE_VERIFIED` | HDLD005–009 (5) | Biểu mẫu công khai; HDLD005–006 là `GRANULARITY_ABLATION_PAIR` cùng họ mẫu, dùng để khảo sát độ mịn tách đoạn. |
+| `SYNTHETIC_CALIBRATION_CONTROL` | HDLD014 (1) | Đối chứng tổng hợp 10 điều khoản, 7 trường cần giữ và 0 PII thật; không được gọi là hợp đồng thực đã ký. |
+
+Cổng trả `10/10 ACCEPTED_UNDER_EQUIVALENT_GATE_V1` khi đủ ba chế độ, 10 tài liệu, phiên bản Gold và manifest được ghim. Không dùng HDLD014 để làm tăng cỡ mẫu thực hoặc để huấn luyện/tune. Báo cáo luôn tách ba lát cắt: `slice_unique_8` = HDLD005, 007–013 (8 tài liệu không trùng họ mẫu); `slice_t1_real_9` = HDLD005–013 (9 tài liệu, 747 span toàn văn và 340 điều khoản thực `[GENUINE_CLAUSE]`); `slice_composite_10` = HDLD005–014 (10 tài liệu gồm đối chứng tổng hợp). Điểm của ba lát cắt phải được ghi riêng với cỡ mẫu, CI bootstrap và giới hạn suy rộng; không gộp điểm tổng hợp thành điểm của 10 hợp đồng thực.
 
 Quy tắc:
 
-1. Số hợp đồng của T1 hiện là 10 và có thể đổi sau; khi đổi, xem lại ngưỡng và cỡ mẫu.
+1. T1 gồm 10 tài liệu theo cổng tương đương, trong đó chỉ 9 tài liệu thuộc lát cắt thực/mẫu và 8 tài liệu thuộc lát cắt không trùng họ mẫu; khi đổi thành phần phải version lại cổng, Gold và báo cáo.
 
 2. Chèn lỗi đổi văn bản, ranh giới và nhãn, nên T1 và T2 không dùng chung một bộ gold; gold segmentation của T2 được sửa lại sau khi chèn.
 
@@ -323,16 +335,16 @@ Một "output" là một bản ghi rủi ro gồm điều khoản, nhãn, giải
 | M4 | Trích nguyên văn và vị trí | 100% | Mỗi rủi ro | Văn bản trích xuất | T1, T2 | Tự động: đoạn trích là chuỗi con nguyên văn, offset đúng |
 | M5 | Recall trên lỗi chèn | ≥ 90%, với ≥ 30 lỗi chèn | Mỗi lỗi chèn | Lỗi chèn do nhóm tạo | T2 | Tự động: đúng điều khoản, đúng vai trò, đúng nhãn |
 | M6 | Judge và người trùng nhau | ≥ 80% và Cohen's kappa ≥ 0.6 | Kết quả mỗi output | Hai người chấm | T1 (mẫu 40 output) | Tỷ lệ judge trùng nhãn với người; đạt cả hai thì dùng judge cho phần còn lại |
-| M7 | Clause classification macro-F1 | ≥ 0.80 | Cặp (điều khoản, clause label) | LLM khác họ gán, người xác minh | T1 | Tự động; báo per-class; macro chỉ tính nhãn có ≥ 5 mẫu |
+| M7 | Clause classification macro-F1 | ≥ 0.80 | Cặp (điều khoản, clause label) | Gold T1 đã khóa, người xác minh | T1 | Báo song song 747 span toàn văn và 340 điều khoản thực `[GENUINE_CLAUSE]` của lát cắt 9 tài liệu; macro chỉ tính nhãn có ≥ 5 mẫu; ghi rõ cách căn chỉnh trước khi so điểm |
 | M8 | Retrieval recall@5 | ≥ 90% | Mỗi lỗi chèn | Điều luật gold của lỗi chèn | T2 | Tự động: điều luật gold nằm trong 5 candidate đầu. Chỉ số chẩn đoán. Báo thêm recall@5 khi tắt mở rộng qua Data Graph để thấy đóng góp của Graph (BR-17); không có ngưỡng riêng |
 | M2b | Độ chính xác loại căn cứ (basis\_type) | Báo cáo kèm khoảng tin cậy; ngưỡng đặt sau số đo dev (OI-09) | Bộ ba đã khớp ở M2 | LLM khác họ gán, người xác minh | T1 | Tự động. Severity không có chỉ số riêng vì do bảng taxonomy tra từ (nhãn, loại căn cứ, vai trò) |
 | M9 | Giải thích đúng | ≥ 80% (tạm, đặt lại theo OI-09) | Mỗi output | Người chấm; judge nếu M6 đạt | T1 (cùng mẫu 40 output của M3b) | Chấm Đúng, Đúng một phần hoặc Sai: giải thích đúng căn cứ và đúng vai trò |
 | M10 | Phát hiện mâu thuẫn trong hợp đồng | Báo cáo, không ngưỡng | Cặp điều khoản có cạnh trong Clause Graph | Cặp cài do nhóm tạo, kèm cặp đối chứng nhất quán | D3 | Tự động: phát hiện khi rủi ro của một trong hai điều có related\_clause\_ids chứa điều còn lại. Báo recall và tỷ lệ báo nhầm, so Graph tắt và mở |
 | BL-1 | So với LLM thông dụng | Tỷ lệ citation sai của hệ thống ≤ một nửa của baseline | Mỗi điều luật được trích | Người đối chiếu văn bản luật thật | T1 (cùng mẫu 40\) | "Sai" \= không tồn tại hoặc nội dung không khớp. Cùng hợp đồng đã che, cùng vai trò, cùng yêu cầu. Baseline: LLM thông dụng chọn ở OI-07, cấu hình cụ thể ghi trong báo cáo. |
 
-\* Ngưỡng M2, M7 và M3b được đặt lại sau số đo dev đầu tiên (OI-09). Mọi con số báo kèm khoảng tin cậy (bootstrap) và số mẫu mỗi nhãn.
+\* Ngưỡng M2, M7 và M3b được đặt lại sau số đo dev đầu tiên (OI-09). Mọi con số báo kèm khoảng tin cậy (bootstrap) và số mẫu mỗi nhãn. Bộ M1, M2, M3a, M4, M5, M7, M8 và privacy §7.3 trên D1/D2/T1/T2 là **đường đánh giá cơ sở**, dùng Gold và quy tắc đã khóa; không dùng nhãn T1/T2 làm đầu vào dự đoán hoặc tuning. M3b và M6 cần gói chấm tay/hiệu chuẩn riêng; D3, P1, M2b, M9 và M10 là **hạng mục mở rộng/chẩn đoán giai đoạn 2** cho đến khi có Gold hoặc gói đánh giá tương ứng. Thiếu gói mở rộng không xóa hoặc sửa điểm cơ sở, và cũng không được ghi hạng mục chưa chạy là đạt.
 
-Quy đổi gold sang đầu ra pipeline (M2, M2b, M7): ghép một-một tham lam theo span với IoU ≥ 0.5 (riêng M1 giữ ngưỡng 0.80); clause dự đoán thừa hưởng nhãn của clause gold khớp; gold không khớp tính là sót, clause dự đoán không khớp tính là báo thừa; gold một nhãn tính trúng khi nằm trong tập 1 đến 3 nhãn dự đoán, đồng thời báo F1 theo từng nhãn.
+Quy đổi Gold sang đầu ra pipeline (M2, M2b, M7) cho **lần đánh giá mới có dự đoán span khác Gold**: ghép một-một tham lam theo span với IoU ≥ 0.5 (riêng M1 giữ ngưỡng 0.80); clause dự đoán thừa hưởng nhãn của clause Gold khớp; Gold không khớp tính là sót, clause dự đoán không khớp tính là báo thừa; Gold một nhãn tính trúng khi nằm trong tập 1 đến 3 nhãn dự đoán, đồng thời báo F1 theo từng nhãn. Báo cáo baseline đã khóa dùng dự đoán nhãn trên chính các span tham chiếu phải ghi rõ phạm vi đó; không diễn giải điểm baseline ấy thành điểm end-to-end sau căn chỉnh.
 
 ### **8.4 Đánh giá false negative bằng lỗi chèn**
 
@@ -372,7 +384,7 @@ Judge dùng để chấm hai việc trên các bản ghi rủi ro của T1: gi�
 
 * BO-3: sáu ca mẫu ở §3.3 cho kết quả khác nhau giữa hai vai trò đúng như kỳ vọng đã được người phụ trách dữ liệu xác minh (đạt hoặc không đạt, không tính tỷ lệ).
 
-* Đạt các ngưỡng M1 đến M9 (M2b và M10 chỉ báo cáo) và ngưỡng ở §7.3, hoặc có giải trình nếu chưa đạt. BL-1 nếu chưa bị cắt theo §9.5.
+* Đánh giá cơ sở báo M1, M2, M3a, M4, M5, M7, M8 và §7.3 trên tập thích hợp, nêu rõ chỉ số đạt, không đạt hoặc chưa chạy; giải trình điểm dưới ngưỡng. M3b, M6, BL-1 và hạng mục mở rộng M2b, M9, M10 cần gói bằng chứng riêng trước khi nhận là hoàn thành; không làm vô hiệu kết quả kỹ thuật cơ sở đã xuất.
 
 * Mọi yêu cầu BR-01 đến BR-18 được kiểm tra và có kết quả.
 
@@ -531,5 +543,3 @@ Mục chưa chốt. Mỗi mục có người chịu trách nhiệm, hạn và gi
 | Kế hoạch dữ liệu | DATA\_PLAN: dữ liệu tổng hợp, 8 nhãn, 40 đến 50 hợp đồng | 8.2: D1, D2, T1, T2 với hợp đồng thật de-identify | DATA\_PLAN lỗi thời; thay bằng con trỏ về 8.2, giữ annotation guideline |
 | Nguồn nhãn clause | Bốn bản (repo dữ liệu, taxonomy.py, docs, enum schema) | Taxonomy đóng băng ở MS-1 (8.2, quy tắc 5) | Một nguồn duy nhất trong code; enum schema sinh từ đó hoặc có test đối chiếu |
 | Graph | Chưa có | BR-17, BR-18 | Thêm vào kế hoạch; thiết kế ở SDD và TDD |
-
-## 

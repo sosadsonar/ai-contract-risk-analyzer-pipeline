@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 9. Ràng buộc, giả định, phụ thuộc | 3732 ký tự | trước: 08_8-do-luong-chat-luong-va-nghiem-thu.md | sau: 10_10-rui-ro-du-an.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 9. Ràng buộc, giả định, phụ thuộc | 3732 ký tự | trước: 14_8-6-tieu-chi-nghiem-thu.md | sau: 16_10-rui-ro-du-an.md -->
 
 ## 9. Ràng buộc, giả định, phụ thuộc
 

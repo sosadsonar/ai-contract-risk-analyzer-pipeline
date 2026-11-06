@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 11. Open Issues | 3205 ký tự | trước: 12_phu-luc-b-thuat-ngu.md | sau: 14_phu-luc-c-cho-codebase-hien-tai-lech-brd-ghi-nhan.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 11. Open Issues | 3205 ký tự | trước: 18_phu-luc-b-thuat-ngu.md | sau: 20_phu-luc-c-cho-codebase-hien-tai-lech-brd-ghi-nhan.md -->
 
 ## 11. Open Issues
 
