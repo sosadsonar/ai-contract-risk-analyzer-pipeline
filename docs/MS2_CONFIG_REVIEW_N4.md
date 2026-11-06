@@ -1,6 +1,6 @@
 # N4 W4 — Hồ sơ trình nhóm chốt cấu hình MS-2 (chưa phê duyệt)
 
-Phạm vi ID: **SRS 1.4 §13 OI-03, OI-05, OI-09–12**, không phải các ID trùng số ở BRD 0.5 §11. Nguồn quyết định có hiệu lực là SRS/TDD và biên bản nhóm; tài liệu này là đề xuất kỹ thuật của N4, **không phải biên bản họp hoặc quyết định của nhóm**. Không đổi default production, gold, taxonomy hay chính sách đánh giá khi chưa được người phụ trách chấp thuận. Các OI của BRD vẫn mở độc lập (đặc biệt BRD OI-03 về dữ liệu cá nhân/Gemini Paid Tier và BRD OI-12 về chi phí/giới hạn).
+Phạm vi ID: **SRS 1.5 §13 OI-03, OI-05, OI-09–12**, không phải các ID trùng số ở BRD 0.6 §11. Nguồn quyết định có hiệu lực là SRS/TDD và biên bản nhóm; tài liệu này là đề xuất kỹ thuật của N4, **không phải biên bản họp hoặc quyết định của nhóm**. Không đổi default production, gold, taxonomy hay chính sách đánh giá khi chưa được người phụ trách chấp thuận. Các OI của BRD vẫn mở độc lập (đặc biệt BRD OI-03 về dữ liệu cá nhân/Gemini Paid Tier và BRD OI-12 về chi phí/giới hạn).
 
 | SRS ID | Trạng thái gốc | Bằng chứng đã có và giới hạn | Đề xuất đem ra họp / điều kiện chốt | Người cần review |
 | --- | --- | --- | --- | --- |

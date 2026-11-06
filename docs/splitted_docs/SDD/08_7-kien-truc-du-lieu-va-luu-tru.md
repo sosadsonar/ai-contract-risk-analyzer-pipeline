@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 7. Kiến trúc dữ liệu và lưu trữ | 1711 ký tự | trước: 07_6-thiet-ke-clause-graph.md | sau: 09_8-session-state-machine-va-dieu-phoi.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 7. Kiến trúc dữ liệu và lưu trữ | 1744 ký tự | trước: 07_6-thiet-ke-clause-graph.md | sau: 09_8-session-state-machine-va-dieu-phoi.md -->
 
 # 7. Kiến trúc dữ liệu và lưu trữ
 
@@ -8,7 +8,7 @@
 |---|---|---|---|
 | Session content | File gốc, canonical_text, masked_text, clauses, RiskResult, Clause Graph | Memory / temp storage | Xóa khi End Session hoặc 60 phút inactivity; mất khi restart. |
 | Legal knowledge | LegalProvision, LegalEdge, taxonomy artifacts | Versioned corpus artifacts / index | Persistent, cập nhật ngoài source code. |
-| Operational metadata | RunLog, token/cost, quota counter, error metadata | Metadata-only store/log | Có thể persistent; không chứa contract content/PII. |
+| Operational metadata | RunLog, token/cost, quota counter, error metadata | Metadata-only store/log | Phải persistent (quota ngày giữ qua khởi động lại); không chứa contract content/PII. |
 | Evaluation data | D1/D2/T1/T2 đã de-identify, gold, metrics output | Evaluation workspace | Ngoài session runtime; theo BRD 8. |
 
 ## 7.2 Session aggregate

@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: Nguồn tài liệu dùng cho TDD | 457 ký tự | trước: 27_phu-luc-e-catalog-thong-bao-ui-toi-thieu.md | sau: - -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: Nguồn tài liệu dùng cho TDD | 457 ký tự | trước: 27_phu-luc-e-catalog-thong-bao-ui-toi-thieu.md | sau: - -->
 
 # Nguồn tài liệu dùng cho TDD
 

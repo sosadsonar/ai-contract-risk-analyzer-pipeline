@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 9. Scope Precheck | 1143 ký tự | trước: 09_8-document-processing-va-canonical-text.md | sau: 11_10-pii-masking.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 9. Scope Precheck | 1143 ký tự | trước: 09_8-document-processing-va-canonical-text.md | sau: 11_10-pii-masking.md -->
 
 # 9. Scope Precheck
 

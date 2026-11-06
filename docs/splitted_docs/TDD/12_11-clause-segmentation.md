@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 11. Clause Segmentation | 2334 ký tự | trước: 11_10-pii-masking.md | sau: 13_12-clause-graph-va-context-resolver.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 11. Clause Segmentation | 2334 ký tự | trước: 11_10-pii-masking.md | sau: 13_12-clause-graph-va-context-resolver.md -->
 
 # 11. Clause Segmentation
 

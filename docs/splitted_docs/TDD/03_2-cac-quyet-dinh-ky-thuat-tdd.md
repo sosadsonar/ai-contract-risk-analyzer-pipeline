@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 2. Các quyết định kỹ thuật TDD | 4893 ký tự | trước: 02_1-muc-dich-pham-vi-va-invariant-ky-thuat.md | sau: 04_3-stack-trien-khai-va-cau-truc-repository.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 2. Các quyết định kỹ thuật TDD | 4980 ký tự | trước: 02_1-muc-dich-pham-vi-va-invariant-ky-thuat.md | sau: 04_3-stack-trien-khai-va-cau-truc-repository.md -->
 
 # 2. Các quyết định kỹ thuật TDD
 

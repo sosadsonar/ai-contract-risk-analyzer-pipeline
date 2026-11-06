@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 4. Pipeline xử lý end-to-end | 2026 ký tự | trước: 04_3-kien-truc-tong-the.md | sau: 06_5-thiet-ke-data-graph.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 4. Pipeline xử lý end-to-end | 2257 ký tự | trước: 04_3-kien-truc-tong-the.md | sau: 06_5-thiet-ke-data-graph.md -->
 
 # 4. Pipeline xử lý end-to-end
 
@@ -20,8 +20,8 @@ Pipeline giữ đúng các quy tắc của SRS: PII masking trước segmentatio
 8. State chuyển PROCESSING; Clause Classification xử lý theo lô qua Gemini.
 9. Baseline Retriever tạo seed legal candidates; Data Graph mở rộng tối đa 1 hop và lọc hiệu lực.
 10. Clause Graph Context Resolver chọn related_clause_ids; backend lấy masked text tương ứng làm context cho Risk stage.
-11. Risk LLM trả risk labels, severity/explanation/citation_ids/evidence_status theo clause_id.
-12. Citation Validator loại citation không hợp lệ; Result Assembler ghép quote/span chuẩn.
+11. Risk LLM trả risk labels, basis_type, explanation, citation_ids, evidence_status và related_clause_ids theo clause_id; severity không do LLM trả.
+12. Citation Validator loại citation không hợp lệ và hạ evidence_status xuống INSUFFICIENT_EVIDENCE khi không còn citation hợp lệ; Taxonomy Validator kiểm (nhãn, basis_type, vai trò) và Severity Resolver tra bảng taxonomy; Result Assembler ghép quote/span chuẩn.
 13. Nếu toàn bộ stage thành công, state = COMPLETED; frontend lấy result/highlight/export.
 
 ## 4.2 Retry và lỗi

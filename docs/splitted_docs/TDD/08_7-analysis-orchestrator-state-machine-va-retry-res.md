@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 7. Analysis Orchestrator, state machine và retry/resume | 3367 ký tự | trước: 07_6-domain-model-va-json-schema.md | sau: 09_8-document-processing-va-canonical-text.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 7. Analysis Orchestrator, state machine và retry/resume | 3376 ký tự | trước: 07_6-domain-model-va-json-schema.md | sau: 09_8-document-processing-va-canonical-text.md -->
 
 # 7. Analysis Orchestrator, state machine và retry/resume
 
@@ -47,22 +47,9 @@ COMPLETED | FAILED | REJECTED -> EXPIRED
 | Local runtime | PipelineInternalError | FAILED / INTERNAL_ERROR |
 | Corpus startup/reload | LegalCorpusConflict | Fail fast / LEGAL_CORPUS_CONFLICT |
 
-## 7.3 Stage resume fingerprint
+## 7.3 Stage resume (chỉ giai đoạn AI)
 
-Mỗi StageArtifact in-memory lưu status, output và fingerprint. Fingerprint dùng canonical JSON + SHA-256; content hash không ghi vào persistent RunLog.
-
-```text
-fingerprint(stage) = SHA256(
-  stage_name
-  + upstream_artifact_hashes
-  + role
-  + analysis_date
-  + relevant extraction/taxonomy/corpus/prompt/model versions
-  + stage-specific config version
-)
-```
-
-Manual retry tìm `failed_stage` và chỉ reuse artifact có fingerprint còn hợp lệ. Nếu stage resume bị cắt, chạy lại pipeline từ đầu nhưng giữ giới hạn 2 manual retries.
+Mỗi StageArtifact in-memory lưu status và output của stage AI. Artifact dùng lại được khi bộ version pin (§6.4) lưu trong phiên khớp bộ hiện tại; phiên nằm trong RAM của một process nên file, vai trò và analysis_date không đổi trong phiên, vì vậy không dùng SHA-256 chuỗi hash upstream. Retry giai đoạn VALIDATING luôn chạy lại từ EXTRACTION, không resume. Manual retry của giai đoạn PROCESSING chạy lại từ stage AI lỗi. Nếu stage resume bị cắt (cut item 2), chạy lại giai đoạn PROCESSING từ đầu, vẫn giữ giới hạn 2 manual retries.
 
 ## 7.4 Processing lease, concurrency và cancellation
 

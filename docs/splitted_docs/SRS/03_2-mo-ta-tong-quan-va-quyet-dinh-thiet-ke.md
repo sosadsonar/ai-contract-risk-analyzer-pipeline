@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > 2. Mô tả tổng quan và quyết định thiết kế | 3051 ký tự | trước: 02_1-gioi-thieu.md | sau: 04_3-yeu-cau-chuc-nang-phan-1-2.md -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > 2. Mô tả tổng quan và quyết định thiết kế | 3149 ký tự | trước: 02_1-gioi-thieu.md | sau: 04_3-yeu-cau-chuc-nang-phan-1-3.md -->
 
 ## 2. Mô tả tổng quan và quyết định thiết kế
 
@@ -31,8 +31,8 @@ Hai bước tô màu là các lần gọi LLM bên thứ ba; các bước còn l
 
 ### 2.3 Taxonomy và severity
 
-* Clause taxonomy (12 nhãn) nằm ở /data/docs/clause_taxonomy. Risk taxonomy chưa có; placeholder đặt cùng thư mục tại /data/docs/risk_taxonomy. Hai artifact tách biệt, có phiên bản, và được đóng băng cùng severity rubric và annotation guideline ở MS-1 (25/10/2026) theo DEC-10.
-* Severity: HIGH, MEDIUM, LOW. Severity có thể khác nhau giữa hai vai trò và là null khi evidence_status = INSUFFICIENT_EVIDENCE.
+* Clause taxonomy (12 nhãn) và risk taxonomy nằm ở docs/CLAUSE_TAXONOMY.md và docs/RISK_TAXONOMY_v0.1.md. Hai artifact tách biệt, có phiên bản, và được đóng băng cùng severity rubric và annotation guideline theo DEC-10 (mốc MS-1 25/10/2026 đã trễ, xem BRD 9.4).
+* Severity: HIGH, MEDIUM, LOW. Bảng trong risk taxonomy là nguồn duy nhất của severity; rubric bên dưới chỉ để đọc. Severity có thể khác nhau giữa hai vai trò và là null khi evidence_status = INSUFFICIENT_EVIDENCE.
 * Điều khoản có lợi hơn mức pháp luật yêu cầu cho một vai trò không phải rủi ro của vai trò đó (BRD 3.2).
 
 | Severity | Rubric tối thiểu (theo vai trò đang phân tích) |

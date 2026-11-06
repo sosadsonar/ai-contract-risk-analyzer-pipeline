@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 10. Legal Corpus và Citation Validation | 724 ký tự | trước: 10_9-llm-integration-design.md | sau: 12_11-security-va-privacy-architecture.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 10. Legal Corpus và Citation Validation | 896 ký tự | trước: 10_9-llm-integration-design.md | sau: 12_11-security-va-privacy-architecture.md -->
 
 # 10. Legal Corpus và Citation Validation
 
@@ -8,3 +8,4 @@
 * Citation Validator kiểm tra: candidate membership -> existence -> version/effectivity -> structured metadata.
 * Relevance là quality property được đánh giá bằng M3b; runtime không tự tuyên bố relevance chỉ vì citation tồn tại.
 * Nếu không đủ căn cứ: giữ RiskResult với INSUFFICIENT_EVIDENCE, citation_ids rỗng và severity null.
+* Citation Validator hạ evidence_status xuống INSUFFICIENT_EVIDENCE khi LLM khai SUPPORTED mà không còn citation hợp lệ sau khi lọc; quy tắc áp dụng cho cả ba loại căn cứ.

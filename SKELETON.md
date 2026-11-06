@@ -1,6 +1,6 @@
 # SKELETON.md — Hàm, API và cách chúng tương tác
 
-> Nguồn: TDD 0.2 (chính), SRS 1.4 (FR/Phụ lục C), SDD 0.1, BRD 0.5. Mục đích: biết **module nào, hàm nào, gọi ai, trả gì, lỗi gì** trước khi viết code.
+> Nguồn: TDD 0.3 (chính), SRS 1.5 (FR/Phụ lục C), SDD 0.2, BRD 0.6. Mục đích: biết **module nào, hàm nào, gọi ai, trả gì, lỗi gì** trước khi viết code.
 > Đọc kèm: `AI_CONTEXT.md` (invariant), `ARCHITECTURE.md` (kiến trúc), `PROGRESS.md` (ai làm gì, tuần nào).
 
 ## 0. Quy ước đánh dấu — đọc trước
@@ -38,7 +38,7 @@ api/routes/sessions.py ──► admission_gate ──► ops.rate_limit ─► 
             └─► result.assembler ─► (publish nguyên tử) COMPLETED
                                       └─► result.exporter (khi gọi /export)
 Mọi actual LLM request ─► ops.quota (tăng counter TRƯỚC call) + ops.runlog (cost) 
-Eval harness (ai_pipeline/evaluation) gọi trực tiếp các module trên, không qua HTTP/quota.
+`backend/app/pipeline.py` (sẽ thêm): `analyze(file, role, deps, on_stage, check_cancel, stop_after=None) -> PipelineResult` chạy chuỗi stage; Orchestrator chỉ lo lease, state, lỗi và publish. Eval harness (ai_pipeline/eval) gọi cùng `analyze()`, không qua HTTP/quota.
 ```
 
 Quy tắc phụ thuộc: `api → session → {document, privacy, clause, ai, legal, result, ops}`; các stage module **không** gọi ngược lên `session/`; `domain/`, `core/` là lá, ai cũng import được.
@@ -62,7 +62,7 @@ Quy tắc phụ thuộc: `api → session → {document, privacy, clause, ai, le
 | `backend/app/integrations/{clause_ai,risk_ai,explanation_ai}` (3 adapter rỗng) | Giữ 2, **xóa `explanation_ai`** (explanation nằm trong LLM #2) | `ai/clause_adapter.py`, `ai/risk_adapter.py`; sửa `backend_architecture.md` | C-11 |
 | `mock_clause_service.py` (schema cũ) | **Viết lại theo schema mới** | `tests/` mock API/pipeline | C-17 |
 | `test_pipeline.py`, `test_llm_pipeline.py` (script chạy tay; `pyproject` trỏ `tests/` chưa có) | **Chuyển pytest** | `tests/{unit,integration,contract}/` | C-17 |
-| `eval/eval_segmentation.py` (M1: IoU 0.80, ghép tham lam) | **Giữ M1**, chuyển chỗ | `ai_pipeline/evaluation/metrics/segmentation.py` + `runner.py` | C-18 |
+| `eval/eval_segmentation.py` (M1: IoU 0.80, ghép tham lam) | **Giữ M1**, chuyển chỗ | `ai_pipeline/eval/metrics/segmentation.py` + `runner.py` | C-18 |
 | `docs/CLAUSE_TAXONOMY.md`, `docs/DATA_PLAN.md`, `README.md`, `CONTRIBUTING.md`, `backend/text_extraction_contract.md` | Thay bằng con trỏ về BRD; sửa contract cho khớp SRS | — | C-19 |
 | `pyproject.toml` (thiếu deps backend) | Gộp nguồn deps, thêm lib DOCX/export | — | C-20 |
 | **Chưa có**: DOCX, scope precheck, PII masking, kho luật/retrieval, Data Graph, Clause Graph, risk/citation/assembly, export, RunLog/quota/rate, frontend | **Viết mới** | xem §5 | C-09, 10, 12–16, 21 |
@@ -127,8 +127,9 @@ class ClauseEdgeType(str, Enum): NEXT; PARENT_OF; REFERS_TO
 @dataclass class RiskResult:     clause_id: str; role: Role; risk_labels: list[str]
                                  risk_basis: list[dict]        # BACKEND dựng từ basis_type (LLM trả) + risk_labels
                                  severity: Severity | None; explanation: str
+                                  related_clause_ids: list[str]  # tùy chọn (FR-32), tập con context đã cấp
                                  evidence_status: EvidenceStatus; citation_ids: list[str]; version_pins: VersionPins
-@dataclass class StageArtifact:  stage: Stage; status: str; output: Any; fingerprint: str
+@dataclass class StageArtifact:  stage: Stage; status: str; output: Any; version_pins: VersionPins   # chỉ stage AI; so khớp bộ pin hiện tại, không dùng SHA-256 chuỗi hash
 @dataclass class ErrorInfo:      code: str; stage: Stage | None; retryable: bool
 @dataclass class VersionPins:    extraction_version; clause_taxonomy_version; risk_taxonomy_version; severity_rubric_version
                                  corpus_version; data_graph_version; clause_prompt_version; risk_prompt_version
@@ -258,9 +259,9 @@ def precheck(canonical_text: str, cfg) -> ScopeDecision         # luật từ kh
 
 ```python
 # privacy/pii_types.py
-class PiiType(str, Enum): PERSON_NAME; DATE_OF_BIRTH; NATIONAL_ID_OR_PASSPORT; RESIDENTIAL_ADDRESS; PHONE; EMAIL; BANK_ACCOUNT; LEGAL_ENTITY
+class PiiType(str, Enum): PERSON_NAME; DATE_OF_BIRTH; NATIONAL_ID_OR_PASSPORT; RESIDENTIAL_ADDRESS; PHONE; EMAIL; BANK_ACCOUNT; LEGAL_ENTITY; TAX_ID; ID_ISSUE; BUSINESS_ADDRESS; SIGNATURE
 TYPE_TAG: dict[PiiType,str]         # "<EMAIL>", "<NAME>", ...
-TYPE_SHORT_CODE: dict[PiiType,str]  # N D I R P E B O
+TYPE_SHORT_CODE: dict[PiiType,str]  # N D I R P E B O T S A G
 # privacy/detector.py
 def detect(canonical_text: str) -> list[PiiSpan]    # regex độ chính xác cao trước; heuristic anchor ("Ông/Bà","Người lao động","Công ty","MST") sau; preserve-list; resolve overlap
 # privacy/masker.py
@@ -324,7 +325,7 @@ async def classify_clauses(masked_items: list[ClauseMasked], provider, ledger, c
 #   validate: mỗi clause_id đúng 1 lần; 1..3 nhãn thuộc taxonomy; không confidence/type_scores/quote/span; sai ⇒ retry ≤1 ⇒ AiOutputInvalid
 #   batch=CLAUSE_BATCH_SIZE, song song ≤ LLM_PARALLELISM; kiểm cancel giữa batch
 
-# ai/risk_adapter.py   — LLM #2 (basis_type + explanation + chọn citation; severity do backend tra bảng)
+# ai/risk_adapter.py   — LLM #2 (basis_type + explanation + chọn citation + related_clause_ids; severity do backend tra bảng)
 async def analyze_risks(role, items: list[RiskItemIn], candidates: dict[str, LegalCandidate],
                         risk_taxonomy, provider, ledger, cfg, cancel) -> RiskOutput
 #   request = risk_analysis_request_v2: role, risk_taxonomy(label+definition), basis_types, candidates(catalog dedupe), items[{clause_id, masked_text,
@@ -438,7 +439,7 @@ async def _run(self, session, resume_from=None):
         self.lease.release(owner)                                                    # FAILED KHÔNG giữ lease ⇒ retry phải acquire lại
 ```
 
-Retry: `lease.try_acquire()` → (thất bại ⇒ `SYSTEM_BUSY`, counter giữ nguyên) → `manual_retry_count += 1` → `failed_stage` thuộc local stage ⇒ về `VALIDATING`, thuộc processing ⇒ về `PROCESSING` → resume artifact có fingerprint còn hợp lệ (nếu cut item 2 thì chạy lại từ đầu, vẫn giới hạn 2 lần).
+Retry: `lease.try_acquire()` → (thất bại ⇒ `SYSTEM_BUSY`, counter giữ nguyên) → `manual_retry_count += 1` → `failed_stage` thuộc local stage ⇒ về `VALIDATING`, thuộc processing ⇒ về `PROCESSING` → resume artifact AI có version pin khớp, chỉ ở giai đoạn PROCESSING (VALIDATING luôn chạy lại từ EXTRACTION; nếu cut item 2 thì chạy lại PROCESSING từ đầu, vẫn giới hạn 2 lần).
 
 Số LLM call/hợp đồng ≈ `ceil(n/CLAUSE_BATCH_SIZE) + ceil(n/RISK_BATCH_SIZE)` (40–60 clause ≈ 9–13 call, trước retry). Graph không thêm LLM call.
 
@@ -455,7 +456,7 @@ Số LLM call/hợp đồng ≈ `ceil(n/CLAUSE_BATCH_SIZE) + ceil(n/RISK_BATCH_S
 | CLAUSE_GRAPH | clauses + structure + masked | `ClauseGraph` (ID + edge_type) | node tồn tại, không self-loop, PARENT_OF không chu trình | `INTERNAL_ERROR` |
 | CLAUSE_CLASSIFICATION | `{clause_id, masked_text}` theo lô | `clause_output_v3` {items[{clause_id, clause_labels}], model_id, prompt_version, taxonomy_version} | mỗi ID đúng 1 lần, 1..3 nhãn hợp lệ | `AI_*` |
 | LEGAL_RETRIEVAL | masked clause + labels + analysis_date | `retrieval_v1` {per_clause[{clause_id, candidates[]}], corpus_version, data_graph_version, graph_enabled} | candidate tồn tại + hiệu lực, ≤ final_k | `INTERNAL_ERROR` |
-| RISK_ANALYSIS | role + items + candidate catalog | `risk_output_v2` {items[{clause_id, basis_type, risk_labels, citation_ids, evidence_status, explanation}]} | nhãn ∈ taxonomy; SUPPORTED ⇒ citation + severity; INSUFFICIENT ⇒ `[]` + `null`; lint advice/tham chiếu | `AI_OUTPUT_INVALID` |
+| RISK_ANALYSIS | role + items + candidate catalog | `risk_output_v2` {items[{clause_id, basis_type, risk_labels, citation_ids, evidence_status, explanation, related_clause_ids?}]} | nhãn ∈ taxonomy; SUPPORTED ⇒ citation + severity; INSUFFICIENT ⇒ `[]` + `null`; lint advice/tham chiếu | `AI_OUTPUT_INVALID` |
 | CITATION_VALIDATION | risk + candidate_ids + corpus | `ValidatedRisk` | citation ⊂ candidates ⊂ corpus ⊂ hiệu lực | — (hạ về INSUFFICIENT) |
 | ASSEMBLY | tất cả | `final_result_v1` | `risk_basis` dựng đủ, severity khớp bảng taxonomy; không risk thiếu clause; thêm `offset_unit` | `INTERNAL_ERROR` |
 
@@ -534,8 +535,8 @@ Startup (fail-fast): config → taxonomy/rubric (bảng severity theo `basis_typ
 ## 12. Evaluation harness (TDD §18)
 
 ```bash
-python -m ai_pipeline.evaluation.runner --dataset T1 --config configs/eval.yaml --output evaluation/runs/run_001/
-python -m ai_pipeline.evaluation.runner --dataset T2 --metric M8 --graph-enabled true|false
+python -m ai_pipeline.eval.runner --dataset T1 --config configs/eval.yaml --output evaluation/runs/run_001/
+python -m ai_pipeline.eval.runner --dataset T2 --metric M8 --graph-enabled true|false
 ```
 
 | Hàm / module [Đề xuất] | Việc | Ghi chú |
@@ -559,11 +560,11 @@ python -m ai_pipeline.evaluation.runner --dataset T2 --metric M8 --graph-enabled
 
 ## 13. Chưa có trong tài liệu / cần chốt khi code (đừng tự quyết ngầm)
 
-1. **Chữ ký hàm ở §5 là đề xuất** — nhóm review một lần ở tuần 1–2 rồi khóa.
+1. **Chữ ký hàm ở §5 là đề xuất** — dự kiến khóa chữ ký hàm và schema vào 05/11/2026, sau khi taxonomy freeze; sau mốc này đổi chữ ký cần PR có lý do và báo cả nhóm.
 2. **12 nhãn clause taxonomy**: semantics nguồn ở data repo `docs/clause_taxonomy_v03.md`, code ở `taxonomy.py` (`TAXONOMY_VERSION=v04`; BRD/SRS chỉ nói "12 nhãn"); topic bảo mật/không cạnh tranh và giải quyết tranh chấp chưa có nhãn chốt; risk taxonomy v0.1 (21 nhãn) đã có ở `docs/RISK_TAXONOMY_v0.1.md` và `app/risk/taxonomy.py`, chờ đóng băng ở MS-1 (BRD OI-01).
 3. Hard byte cap khi upload (§3 ghi chú) — cách hiện thực chưa chốt.
 4. `GET /status` trả `progress.completed_units/total_units` — đơn vị (batch? clause?) TDD chưa định nghĩa; đề xuất: đơn vị = clause đã xong ở stage hiện tại.
 5. Mã `retry` trả về 200 hay 202 — TDD chưa nêu rõ.
 6. API-state code (TDD §5.8) chưa backport vào SRS 6.2 (TDD O-09); SDD thiếu mũi tên `VALIDATING → FAILED` (TDD O-11).
-7. Nếu muốn `related_clause_ids` trong RiskResult sản phẩm → **sửa SRS trước**; hiện chỉ có `ContextResolutionTrace` dev/eval.
-8. Quy đổi gold dataset (single-label, tách clause theo ngữ nghĩa, bỏ heading) ↔ clause pipeline (partition, 1–3 nhãn) khi tính M2/M7 — chưa có chính sách (SRS OI-10); đề xuất chờ N1+N2 chốt cùng guideline, đừng tự quyết ngầm.
+7. `related_clause_ids` nằm trong RiskResult sản phẩm theo SRS 1.5 (FR-32); `ContextResolutionTrace` vẫn chỉ dev/eval.
+8. Quy đổi gold ↔ clause pipeline (M2, M2b, M7) đã chốt ở BRD 8.3: ghép tham lam theo span với IoU ≥ 0.5, clause dự đoán thừa hưởng nhãn gold khớp, gold nằm trong tập dự đoán thì tính trúng; mã đặt ở `ai_pipeline/eval/`.

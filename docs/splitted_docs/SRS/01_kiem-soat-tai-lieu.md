@@ -1,4 +1,4 @@
-<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_1_4.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.4) > Kiểm soát tài liệu | 9331 ký tự | trước: 00_srs-ai-labor-contract-risk-analyzer-phien-ban-1-4.md | sau: 02_1-gioi-thieu.md -->
+<!-- nguồn: SRS_AI_Labor_Contract_Risk_Analyzer_v1.5.md | mục: SRS: AI Labor Contract Risk Analyzer (phiên bản 1.5) > Kiểm soát tài liệu | 10891 ký tự | trước: 00_srs-ai-labor-contract-risk-analyzer-phien-ban-1-5.md | sau: 02_1-gioi-thieu.md -->
 
 ## Kiểm soát tài liệu
 
@@ -8,6 +8,15 @@
 | 1.2 | 12/10/2026 | Xem danh sách bên dưới | Review BRD 0.3 và SRS 1.1 ngày 12/10/2026; BRD 0.4; Decision Log | Chủ sở hữu SRS (chờ duyệt) |
 | 1.3 | 12/10/2026 | Xem danh sách bên dưới | Yêu cầu của giảng viên (Data Graph, Clause Graph); đối chiếu codebase hiện tại; BRD 0.5 | Chủ sở hữu SRS (chờ duyệt) |
 | 1.4 | 13/10/2026 | Xem danh sách bên dưới | Backport review kỹ thuật và TDD 0.2; sửa lifecycle upload/retry, graph evidence, offset và evaluation | Chủ sở hữu SRS (chờ duyệt) |
+| 1.5 | 03/11/2026 | Xem danh sách bên dưới | Audit tài liệu ngày 03/11/2026 sau BRD 0.6; tách các điều chỉnh ngày 23/10/2026 (basis_type, risk taxonomy v0.1) thành phiên bản riêng | Chủ sở hữu SRS (chờ duyệt) |
+
+Thay đổi chính trong 1.5:
+
+* Cơ sở chỉ còn BRD 0.6; không chuyển nội dung cơ chế cài đặt sang TDD. Các điều chỉnh ngày 23/10/2026 (basis_type, risk taxonomy v0.1) nằm trong phiên bản này.
+* 2.3 và 5: bảng trong risk taxonomy là nguồn duy nhất của severity (rubric chỉ để đọc); INSUFFICIENT_EVIDENCE áp dụng cho cả ba loại căn cứ; LLM khai evidence_status, backend hạ xuống khi không còn citation hợp lệ.
+* FR-03 (một lệnh Create/Upload; bỏ mã lỗi SESSION_NOT_ACCEPTING_UPLOAD), FR-10 và NFR-SEC-01 (danh sách che theo BRD 7.2, không lặp số), FR-13 và FR-18 (quy tắc prompt, bản ghi "cần xem xét"), FR-21 và NFR-REL-03 (resume chỉ ở giai đoạn AI), NFR-PERF-01 (đếm mọi phiên).
+* Thêm FR-32 (mâu thuẫn qua related_clause_ids), FR-33 (context chung JOB_INFO và CONTRACT_TERM_TYPE); EV-02, EV-05, EV-11; M2b, M9, M10.
+* 6.1: End Session từ VALIDATING và PROCESSING sang EXPIRED. Sơ đồ pipeline ở 2.2 cần vẽ lại theo bộ sơ đồ master (docs/diagrams).
 
 Thay đổi chính trong 1.4:
 
@@ -60,7 +69,7 @@ Thay đổi chính trong 1.2:
 | DEC-14 | 8 tuần kể cả tuần 12/10/2026, hạn demo 06/12/2026 | 12/10/2026 | Nhóm | BRD 9 |
 | DEC-15 | Không dùng mật khẩu demo; chống lạm dụng bằng trần call mỗi ngày và giới hạn tần suất theo IP | 12/10/2026 | Nhóm | FR-27 |
 | DEC-16 | Nội dung hợp đồng của phiên không lưu ở cơ sở dữ liệu hay kho bền vững; chỉ ở bộ nhớ tiến trình hoặc kho tạm bị xóa theo FR-23. Bỏ PostgreSQL, SQLAlchemy, Alembic cho dữ liệu hợp đồng | 12/10/2026 | Nhóm | NFR-DATA-04, Phụ lục C |
-| DEC-17 | Clause chỉ có clause_labels (1 đến 3 nhãn); bỏ type_scores, tier rủi ro theo nhãn, review_zone | 12/10/2026 | Không duyệt | FR-11, 4.1, Phụ lục C |
+| DEC-17 | Clause chỉ có clause_labels (1 đến 3 nhãn); bỏ type_scores, tier rủi ro theo nhãn, review_zone | 12/10/2026 | Cả nhóm | FR-11, 4.1, Phụ lục C |
 | DEC-18 | Tách điều khoản mặc định bằng luật cấu trúc kèm fallback paragraph; bỏ bộ định tuyến theo tỉ lệ dòng tiêu đề | 12/10/2026 | Nhóm | FR-09, Phụ lục C |
 | DEC-19 | Demo và đánh giá dùng Gemini Flash gói trả phí; gói miễn phí dùng API Flash không trả phí | 12/10/2026 | Nhóm | NFR-SEC-06, FR-29 |
 | DEC-20 | Danh sách nhãn clause có một nguồn duy nhất trong code; enum của JSON Schema sinh từ đó hoặc có test đối chiếu | 12/10/2026 | Nhóm | NFR-MAINT-02 |

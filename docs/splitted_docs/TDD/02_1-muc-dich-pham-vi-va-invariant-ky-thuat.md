@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 1. Mục đích, phạm vi và invariant kỹ thuật | 1676 ký tự | trước: 01_kiem-soat-tai-lieu.md | sau: 03_2-cac-quyet-dinh-ky-thuat-tdd.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 1. Mục đích, phạm vi và invariant kỹ thuật | 1676 ký tự | trước: 01_kiem-soat-tai-lieu.md | sau: 03_2-cac-quyet-dinh-ky-thuat-tdd.md -->
 
 # 1. Mục đích, phạm vi và invariant kỹ thuật
 
