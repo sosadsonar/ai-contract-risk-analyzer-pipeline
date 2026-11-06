@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 20. Traceability và kế hoạch migration codebase | 1958 ký tự | trước: 20_19-test-strategy.md | sau: 22_21-open-items-gioi-han-da-biet.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 20. Traceability và kế hoạch migration codebase | 1958 ký tự | trước: 20_19-test-strategy.md | sau: 22_21-open-items-gioi-han-da-biet.md -->
 
 # 20. Traceability và kế hoạch migration codebase
 

@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: Phụ lục D. Checklist trước khi khóa demo | 1411 ký tự | trước: 25_phu-luc-c-prompt-contract.md | sau: 27_phu-luc-e-catalog-thong-bao-ui-toi-thieu.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: Phụ lục D. Checklist trước khi khóa demo | 1438 ký tự | trước: 25_phu-luc-c-prompt-contract.md | sau: 27_phu-luc-e-catalog-thong-bao-ui-toi-thieu.md -->
 
 # Phụ lục D. Checklist trước khi khóa demo
 

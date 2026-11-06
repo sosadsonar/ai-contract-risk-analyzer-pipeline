@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 13. Clause Classification LLM | 1983 ký tự | trước: 13_12-clause-graph-va-context-resolver.md | sau: 15_14-legal-corpus-baseline-retrieval-va-data-graph.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 13. Clause Classification LLM | 1983 ký tự | trước: 13_12-clause-graph-va-context-resolver.md | sau: 15_14-legal-corpus-baseline-retrieval-va-data-graph.md -->
 
 # 13. Clause Classification LLM
 

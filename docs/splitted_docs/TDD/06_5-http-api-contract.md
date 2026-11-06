@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 5. HTTP API Contract | 7110 ký tự | trước: 05_4-configuration-secret-va-startup.md | sau: 07_6-domain-model-va-json-schema.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 5. HTTP API Contract | 7351 ký tự | trước: 05_4-configuration-secret-va-startup.md | sau: 07_6-domain-model-va-json-schema.md -->
 
 # 5. HTTP API Contract
 
@@ -82,11 +82,12 @@ Chỉ COMPLETED trả 200. Các state khác dùng API-state code ở §5.8.
      "risk_labels":["PROBATION"],
      "risk_basis":[{"label":"PROBATION","basis_type":"LEGAL_VIOLATION"}],
      "severity":"HIGH","explanation":"...","evidence_status":"SUPPORTED",
-     "citation_ids":["BLLD2019:art26"]}
+     "citation_ids":["BLLD2019:art26"],
+      "related_clause_ids":["cl_0007"]}
   ],
   "citations": [
     {"citation_id":"BLLD2019:art26","document_name":"Bộ luật Lao động 2019",
-     "article":"26","content":"..."}
+     "article":"26","clause":"1","content":"..."}
   ],
   "disclaimer": "...",
   "data_notice": "...",
@@ -94,7 +95,7 @@ Chỉ COMPLETED trả 200. Các state khác dùng API-state code ở §5.8.
 }
 ```
 
-`risk_basis` do backend dựng từ `basis_type` của LLM và `risk_labels` sau khi validate (label, basis_type, vai trò) theo risk taxonomy; `severity` do backend tra bảng.
+`risk_basis` do backend dựng từ `basis_type` của LLM và `risk_labels` sau khi validate (label, basis_type, vai trò) theo risk taxonomy; `severity` do backend tra bảng. `related_clause_ids` (tùy chọn, FR-32) là tập con của context đã cấp; `clause` trong citation (tùy chọn) là số khoản khi nút là Khoản; thẻ citation hiển thị nguyên văn Khoản.
 
 ## 5.5 POST /api/v1/sessions/{session_id}/retry
 

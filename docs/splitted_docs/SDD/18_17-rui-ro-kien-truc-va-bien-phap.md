@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 17. Rủi ro kiến trúc và biện pháp | 850 ký tự | trước: 17_16-cac-diem-de-tdd-chot.md | sau: 19_18-ket-luan-thiet-ke.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 17. Rủi ro kiến trúc và biện pháp | 850 ký tự | trước: 17_16-cac-diem-de-tdd-chot.md | sau: 19_18-ket-luan-thiet-ke.md -->
 
 # 17. Rủi ro kiến trúc và biện pháp
 

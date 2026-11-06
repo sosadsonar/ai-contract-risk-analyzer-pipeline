@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 5. Thiết kế Data Graph | 1592 ký tự | trước: 05_4-pipeline-xu-ly-end-to-end.md | sau: 07_6-thiet-ke-clause-graph.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 5. Thiết kế Data Graph | 1602 ký tự | trước: 05_4-pipeline-xu-ly-end-to-end.md | sau: 07_6-thiet-ke-clause-graph.md -->
 
 # 5. Thiết kế Data Graph
 

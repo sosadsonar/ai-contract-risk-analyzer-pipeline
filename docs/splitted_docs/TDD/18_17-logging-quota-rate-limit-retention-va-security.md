@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 17. Logging, quota, rate limit, retention và security | 3380 ký tự | trước: 17_16-export-report.md | sau: 19_18-evaluation-harness-va-gold-format.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 17. Logging, quota, rate limit, retention và security | 3887 ký tự | trước: 17_16-export-report.md | sau: 19_18-evaluation-harness-va-gold-format.md -->
 
 # 17. Logging, quota, rate limit, retention và security
 
@@ -26,7 +26,7 @@ Không raw filename nếu có PII; persistent log chỉ extension/size. Không p
 
 ## 17.2 Daily quota và admission reservation
 
-Mỗi actual provider request, kể cả retry, tăng daily counter atomically trước call. Phiên đang chạy không bị dừng khi counter vượt do retry; upload mới sau đó bị chặn, đúng BR-16.
+Mỗi actual provider request, kể cả retry, tăng daily counter atomically trước call. Phiên đang chạy không bị dừng khi counter vượt do retry; upload mới sau đó bị chặn, đúng BR-16. Bộ đếm quota phải lưu bền (SQLite metadata, không chứa nội dung) để khởi động lại không reset trần ngày.
 
 TDD 0.2 bỏ “reserve 4 calls”. Trước demo, D1 phải đo `planned_calls = ceil(n_clause/CLAUSE_BATCH_SIZE) + ceil(n_clause/RISK_BATCH_SIZE)` cho từng contract. `SESSION_CALL_RESERVE` được cấu hình bằng p95 planned calls (hoặc conservative value nhóm chốt). Admission cho session mới chỉ pass khi:
 
@@ -58,6 +58,8 @@ Sliding window: tối đa 5 Create requests/10 phút/IP mặc định. Persisten
 NFR-PERF-01 chỉ áp dụng PDF <=15 trang hoặc DOCX <=50.000 chars; **không cam kết 120s cho input max 150 clause**. Trước MS-2 chạy D1 benchmark và ghi p50/p90 cho: local preprocessing, LLM #1, retrieval/graphs, LLM #2, assembly. Batch size/parallelism chỉ được khóa sau số đo này.
 
 Timeout 30s + one retry có thể làm một call gần 60s; vì vậy benchmark phải có cả case provider latency injection. Nếu p90 >120s, ưu tiên giảm payload token, tăng batch hợp lý hoặc giảm context trước khi thay invariant.
+
+Thang xử lý, kích hoạt khi p90 trên hợp đồng 15 trang của D1 vượt 100 giây: (1) tăng song song từ 2 lên 4 (kiểm giới hạn rate của tier); (2) giảm context hoặc candidate, rồi tăng batch rủi ro từ 6 lên 8, mỗi bước chạy lại M2 trên D1 và chỉ nhận nếu F1 không giảm quá 2 điểm; (3) hạ trần clause từ 150 xuống 100 hoặc xin chủ BRD nới ngưỡng thời gian cho hợp đồng dài. Không cắt Risk stage trên clause.
 
 ## 17.7 Security checklist
 

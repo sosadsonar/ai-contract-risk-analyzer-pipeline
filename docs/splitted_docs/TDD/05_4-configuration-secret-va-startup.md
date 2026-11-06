@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 4. Configuration, secret và startup | 3174 ký tự | trước: 04_3-stack-trien-khai-va-cau-truc-repository.md | sau: 06_5-http-api-contract.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 4. Configuration, secret và startup | 3207 ký tự | trước: 04_3-stack-trien-khai-va-cau-truc-repository.md | sau: 06_5-http-api-contract.md -->
 
 # 4. Configuration, secret và startup
 

@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 2. System Context | 743 ký tự | trước: 02_1-muc-dich-va-nguyen-tac-thiet-ke.md | sau: 04_3-kien-truc-tong-the.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 2. System Context | 748 ký tự | trước: 02_1-muc-dich-va-nguyen-tac-thiet-ke.md | sau: 04_3-kien-truc-tong-the.md -->
 
 # 2. System Context
 

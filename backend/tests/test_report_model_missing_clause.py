@@ -1,7 +1,6 @@
 """build_report_model: risk trỏ tới clause không tồn tại phải báo lỗi, không bỏ qua im lặng."""
 
 import pytest
-
 from app.result.report_model import build_report_model
 
 

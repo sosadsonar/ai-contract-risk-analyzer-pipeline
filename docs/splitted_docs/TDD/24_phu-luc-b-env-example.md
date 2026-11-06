@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: Phụ lục B. .env.example | 937 ký tự | trước: 23_phu-luc-a-json-schema-mau.md | sau: 25_phu-luc-c-prompt-contract.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: Phụ lục B. .env.example | 937 ký tự | trước: 23_phu-luc-a-json-schema-mau.md | sau: 25_phu-luc-c-prompt-contract.md -->
 
 # Phụ lục B. .env.example
 

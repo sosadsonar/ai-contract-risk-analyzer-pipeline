@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 15. Traceability: SRS -> Component | 898 ký tự | trước: 15_14-evaluation-architecture.md | sau: 17_16-cac-diem-de-tdd-chot.md -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 15. Traceability: SRS -> Component | 989 ký tự | trước: 15_14-evaluation-architecture.md | sau: 17_16-cac-diem-de-tdd-chot.md -->
 
 # 15. Traceability: SRS -> Component
 
@@ -8,9 +8,9 @@
 | FR-07..10 | Document Processing, PII Masker, Clause Segmenter |
 | FR-11, FR-28..29 | Clause Classification Adapter, LLM Client, Orchestrator |
 | FR-12, FR-15..16, FR-24, FR-30 | Legal Corpus Manager, Baseline Retriever, Data Graph Service, Citation Validator |
-| FR-13..18 | Risk Analysis Adapter, Clause Graph Context Resolver, Citation Validator |
+| FR-13..18 | Risk Analysis Adapter, Clause Graph Context Resolver, Citation Validator, Taxonomy Validator, Severity Resolver, Advice Linter |
 | FR-19..20, FR-22, FR-25 | Result Assembler, Web Frontend, Report Exporter |
 | FR-21, FR-23 | Orchestrator, Session Store, Cleanup Scheduler |
-| FR-31 | Clause Graph Builder + Context Resolver |
+| FR-31, FR-32, FR-33 | Clause Graph Builder + Context Resolver, Risk Analysis Adapter |
 | NFR-SEC / DATA / REL / COST | Cross-cutting: Session Store, LLM Client, RunLog, Config, Deployment |
 | EV-01..08 | Evaluation Harness + shared pipeline modules |

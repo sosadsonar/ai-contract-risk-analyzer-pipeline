@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: Phụ lục A. JSON Schema mẫu | 2142 ký tự | trước: 22_21-open-items-gioi-han-da-biet.md | sau: 24_phu-luc-b-env-example.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: Phụ lục A. JSON Schema mẫu | 2495 ký tự | trước: 22_21-open-items-gioi-han-da-biet.md | sau: 24_phu-luc-b-env-example.md -->
 
 # Phụ lục A. JSON Schema mẫu
 
@@ -50,7 +50,8 @@ Enum label phải sinh từ source-of-truth taxonomy hoặc có test đối chi�
           "items":{"type":"string","enum":"<generated from risk taxonomy source>"}},
         "citation_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
         "evidence_status":{"enum":["SUPPORTED","INSUFFICIENT_EVIDENCE"]},
-        "explanation":{"type":"string","minLength":10}
+        "explanation":{"type":"string","minLength":10},
+    "related_clause_ids":{"type":"array","uniqueItems":true,"items":{"type":"string","pattern":"^cl_[0-9]{4}$"}}
       }
     }}
   }

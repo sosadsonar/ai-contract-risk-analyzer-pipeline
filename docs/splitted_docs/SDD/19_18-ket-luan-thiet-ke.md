@@ -1,4 +1,4 @@
-<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.1.md | mục: 18. Kết luận thiết kế | 341 ký tự | trước: 18_17-rui-ro-kien-truc-va-bien-phap.md | sau: - -->
+<!-- nguồn: SDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 18. Kết luận thiết kế | 341 ký tự | trước: 18_17-rui-ro-kien-truc-va-bien-phap.md | sau: - -->
 
 # 18. Kết luận thiết kế
 

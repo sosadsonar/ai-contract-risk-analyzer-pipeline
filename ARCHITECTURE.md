@@ -19,27 +19,154 @@
 ## 2. Bối cảnh hệ thống & trust boundary
 
 ```mermaid
-flowchart LR
-  U["Người dùng (NLĐ/NSDLĐ)<br/>Browser"] -- "HTTPS: file + role (có PII)" --> BE
-  subgraph TB["Trusted Backend (1 process)"]
-    BE["FastAPI + Orchestrator<br/>Extraction · Scope · PII mask · Segmentation<br/>Clause Graph · Retrieval · Data Graph · Assembly · Export"]
-    MEM[("Session Store<br/>RAM, TTL 60')")]
-    SQL[("SQLite metadata<br/>RunLog · quota · rate · tombstone")]
-    COR[("Legal corpus<br/>JSONL/YAML (data/)")]
-    BE --- MEM
-    BE --- SQL
-    BE --- COR
+---
+config:
+  layout: elk
+---
+%%{init: {"flowchart": {"nodeSpacing": 60, "rankSpacing": 70}}}%%
+flowchart TB
+  U["Người dùng<br/>Trình duyệt"]
+
+  subgraph BE["Backend tin cậy (1 process, 1 worker)"]
+    SHELL["Vỏ web (Web shell)<br/>API, phiên, quota, xuất DOCX"]
+    CORE["Lõi phân tích (Analysis core)<br/>che PII, cắt điều khoản,<br/>truy xuất luật, 2 lượt AI, lắp ráp"]
+    GATE{{"Cổng gọi LLM duy nhất<br/>chỉ nhận văn bản đã che"}}
+    MEM[("Phiên và kết quả<br/>RAM, 60 phút")]
+    SQL[("SQLite metadata<br/>không chứa nội dung hợp đồng")]
+    COR[("Kho căn cứ pháp lý<br/>chỉ đọc, nạp vào RAM")]
   end
-  BE -- "chỉ MASKED text + metadata" --> G["Gemini Flash (paid)<br/>LLM #1 classify · LLM #2 risk"]
-  EV["Evaluation Harness (offline)"] -. "gọi pipeline như thư viện" .-> BE
-  EV -. "dữ liệu đã de-identify" .-> J["Claude judge (offline)"]
+
+  G["Gemini<br/>(LLM bên ngoài)"]
+  EV["Evaluation harness<br/>(ngoại tuyến)"]
+  J["Claude judge<br/>(ngoại tuyến)"]
+
+  U -->|"file + vai trò"| SHELL
+  SHELL -->|"kết quả cuối + DOCX"| U
+  SHELL -->|"giao việc"| CORE
+  CORE -->|"final_result đã kiểm tra"| SHELL
+  CORE -->|"văn bản đã che"| GATE
+  GATE -->|"JSON có cấu trúc từ LLM"| CORE
+  GATE <-->|"Lần 1: phân loại"| G
+  GATE <-->|"Lần 2: rủi ro"| G
+  SHELL <--> MEM
+  SHELL <--> SQL
+  COR -->|"đọc"| CORE
+  EV -.-> CORE
+  EV -.-> J
+
+  linkStyle 0,1,2,3 stroke:#c0392b,stroke-width:2px
+  linkStyle 4,5,6,7 stroke:#2e7d32,stroke-width:2px
+
+  classDef gate stroke:#2e7d32,stroke-width:3px
+  classDef ext stroke:#1565c0
+  classDef store stroke:#f9a825
+  classDef offline stroke:#6a1b9a,stroke-dasharray:5 5
+  class GATE gate
+  class G ext
+  class MEM,SQL,COR store
+  class EV,J offline
 ```
+
+Chú giải: đường đỏ là dữ liệu gốc (có PII), đường xanh là dữ liệu đã che, nét đứt là ngoại tuyến. Giao diện tạm được phục vụ từ chính backend (cùng origin); hosting chưa chọn.
+
+| Lượt gọi Gemini | Gửi (đã che) | Nhận |
+|---|---|---|
+| Lần 1: phân loại điều khoản | Các điều khoản theo lô, kèm `clause_id`, không gửi vai trò | 1 đến 3 nhãn clause cho mỗi điều |
+| Lần 2: phân tích rủi ro | Điều đích, các điều liên quan, điều luật ứng viên, vai trò | Loại căn cứ, nhãn rủi ro, giải thích, `citation_id`, trạng thái căn cứ, `related_clause_ids` (mức độ do backend tra bảng, không lấy từ LLM) |
 
 | Ranh giới | Được phép đi qua |
 |---|---|
 | Browser → Backend | File gốc (có PII), qua HTTPS. |
 | Backend → Gemini | **Chỉ** masked text + `clause_id` + metadata cần thiết. Không canonical/original/start/end. Không gửi role ở bước classification. |
 | Eval → Claude judge | Chỉ dữ liệu đã che/de-identify; judge không nằm trong sản phẩm. |
+
+### 2.1 Pipeline chi tiết (cho dev)
+
+```mermaid
+---
+config:
+  layout: elk
+---
+%%{init: {"flowchart": {"nodeSpacing": 50, "rankSpacing": 50}}}%%
+flowchart TB
+  IN["Request: file + vai trò<br/>(sau cổng nhận: khóa xử lý, quota, tần suất)"]
+
+  subgraph LOC["Giai đoạn cục bộ: VALIDATING"]
+    S1["1. UPLOAD<br/>kiểm loại file, dung lượng, số trang<br/>vượt giới hạn: REJECTED"]
+    S2["2. EXTRACTION<br/>PDF/DOCX thành canonical_text<br/>NFC, offset theo code point<br/>không đọc được: REJECTED"]
+    S3["3. SCOPE_PRECHECK<br/>có phải hợp đồng lao động?<br/>không phải: REJECTED"]
+    S4["4. PII_MASKING<br/>che PII, giữ nguyên độ dài<br/>ra: masked_text + pii_spans<br/>lỗi thì dừng"]
+    S5["5. SEGMENTATION<br/>cắt điều khoản cục bộ<br/>ra: clauses (id, span, text đã che)<br/>quá 150 điều: REJECTED"]
+    S6["6. CLAUSE_GRAPH<br/>cạnh NEXT, PARENT_OF, REFERS_TO"]
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+  end
+
+  subgraph AI["Giai đoạn AI: PROCESSING"]
+    S7["7. CLAUSE_CLASSIFICATION<br/>LLM lần 1, lô 20 điều<br/>ra: 1 đến 3 nhãn clause mỗi điều"]
+    S8["8. LEGAL_RETRIEVAL<br/>label_map + BM25 chọn seed<br/>mở rộng Data Graph 1 hop<br/>ra: 8 ứng viên mỗi điều"]
+    S9["9. RISK_ANALYSIS<br/>gom điều liên quan (Clause Graph)<br/>LLM lần 2, lô 6 điều, theo vai trò<br/>ra: loại căn cứ, nhãn, giải thích, citation"]
+    S10["10. CITATION_VALIDATION<br/>citation phải thuộc ứng viên và corpus<br/>hết citation hợp lệ: hạ INSUFFICIENT<br/>kiểm nhãn, loại căn cứ, vai trò<br/>sai: retry 1 lần, vẫn sai: thẻ cần xem xét<br/>tra severity, lọc lời khuyên"]
+    S11["11. ASSEMBLY<br/>trích dẫn từ canonical_text, offset highlight<br/>ra: final_result"]
+    S7 --> S8 --> S9 --> S10 --> S11
+  end
+
+  OUT["COMPLETED<br/>final_result lưu trong phiên (RAM)"]
+  EXPORT["EXPORT (theo yêu cầu)<br/>final_result thành DOCX"]
+
+  GW{{"Cổng gọi LLM duy nhất<br/>chỉ nhận văn bản đã che"}}
+  GEM["Gemini"]
+  COR[("Kho căn cứ pháp lý<br/>chỉ đọc")]
+  TAX[("Bảng taxonomy trong mã<br/>nhãn, loại căn cứ, vai trò thành severity")]
+
+  REJ["REJECTED<br/>kết thúc, phải tạo phiên mới"]
+  FL["FAILED cục bộ<br/>retry tối đa 2 lần, chạy lại từ EXTRACTION"]
+  FA["FAILED AI<br/>retry tối đa 2 lần, resume từ bước AI lỗi"]
+
+  IN --> S1
+  S6 --> S7
+  S11 --> OUT
+  OUT --> EXPORT
+
+  S7 --> GW
+  S9 --> GW
+  GW <--> GEM
+  COR --> S8
+  TAX --> S10
+
+  S1 -.-> REJ
+  S2 -.-> REJ
+  S3 -.-> REJ
+  S5 -.-> REJ
+  LOC -.->|"lỗi nội bộ"| FL
+  AI -.->|"AI_TIMEOUT, AI_PROVIDER_ERROR, AI_OUTPUT_INVALID"| FA
+  FL -.->|"retry"| LOC
+  FA -.->|"retry"| AI
+
+  classDef raw stroke:#c0392b
+  classDef cut stroke:#b8860b
+  classDef masked stroke:#2e7d32
+  classDef gate stroke:#2e7d32,stroke-width:3px
+  classDef store stroke:#f9a825
+  classDef ext stroke:#1565c0
+  classDef term stroke:#616161
+  class S1,S2,S3,S11 raw
+  class S4 cut
+  class S5,S6,S7,S8,S9,S10 masked
+  class GW gate
+  class GEM ext
+  class COR,TAX store
+  class REJ,FL,FA,OUT,EXPORT term
+```
+
+Chú giải: đỏ nhạt là bước làm việc trên văn bản gốc, vàng là bước chuyển (che PII), xanh là bước trên văn bản đã che. Bước 11 màu đỏ vì dựng trích dẫn từ canonical text.
+
+### 2.2 Vì sao corpus là file có cấu trúc, không phải vector DB
+
+- Đơn vị lưu là điều luật (nút Khoản, cha là Điều) để citation chính xác đến Điều, Khoản; backend kiểm mọi `citation_id` LLM trả về có nằm trong ứng viên và trong corpus. Cắt đoạn theo cửa sổ cố định sẽ phá khả năng trích dẫn đúng.
+- Có phần quan hệ mà vector DB không thay được: hiệu lực theo thời gian (trùng hiệu lực thì dừng khởi động), cạnh REFERS_TO và GUIDES do người phụ trách dữ liệu xác minh tay, PARENT_OF suy từ đường dẫn.
+- Dữ liệu nhỏ, chỉ đọc, nạp vào RAM lúc khởi động; BM25 và Data Graph dựng trong RAM từ chính các file này. Không thêm dịch vụ nào cần hosting.
+- Tái lập: file text so sánh được trong git, có checksum trong manifest và khóa phiên bản vào kết quả (FR-29).
+- Embedding đang tắt (SDD-03). Chỉ cân nhắc khi M8 recall@5 trên D2 không đạt; khi đó giữ JSONL làm nguồn sự thật và thêm một chỉ mục vector dẫn xuất dựng lúc khởi động.
 
 ## 3. Thành phần (component)
 
@@ -58,13 +185,13 @@ flowchart LR
 | Legal Corpus Manager | `legal/corpus_loader.py`, `corpus_validator.py` | Load/validate, hiệu lực, fail-fast `LEGAL_CORPUS_CONFLICT`. | Không |
 | Baseline Retriever | `legal/baseline_retriever.py` | label_map + BM25 (`0.70*label + 0.30*bm25`). | Không |
 | Data Graph Service | `legal/data_graph.py` | Mở rộng 1 hop quanh top-3 seed, cap, ranking seed-first; có thể tắt/fallback. | Không |
-| Risk Analysis Adapter | `ai/risk_adapter.py` | Risk label, severity, explanation, chọn citation trong candidate; nhận related context. | **LLM #2** |
+| Risk Analysis Adapter | `ai/risk_adapter.py` | Risk label, basis_type, explanation, chọn citation trong candidate, related_clause_ids; nhận related context; không trả severity (backend tra bảng). | **LLM #2** |
 | Citation Validator | `legal/citation_validator.py` | Candidate ⊂ corpus ⊂ hiệu lực; log số bị loại. | Không |
 | Result Assembler | `result/assembler.py` | Join `clause_id`; dựng `risk_basis` từ `basis_type`, tra severity; publish nguyên tử. | Không |
 | Report Exporter | `result/exporter.py` | DOCX (bắt buộc), PDF (cut item 4); cùng `ReportModel`. | Không |
 | LLM Client | `ai/provider.py`, `gemini_client.py` | `LLMProvider`; timeout 30s; retry matrix; ghi call/token/cost; key qua header. | — |
 | Ops | `ops/` | RunLog, daily quota + session reserve, IP rate limit (HMAC), metadata SQLite. | — |
-| Evaluation Harness | `ai_pipeline/evaluation/` | M1–M8, privacy, kappa, BL-1; M8 graph on/off; context trace; eval ledger. | Gọi Gemini (pipeline) + Claude (judge) offline |
+| Evaluation Harness | `ai_pipeline/eval/` | M1–M8, privacy, kappa, BL-1; M8 graph on/off; context trace; eval ledger. | Gọi Gemini (pipeline) + Claude (judge) offline |
 
 ## 4. Pipeline & state
 
@@ -75,22 +202,35 @@ UPLOAD → EXTRACTION → SCOPE_PRECHECK → PII_MASKING → SEGMENTATION → CL
 ```
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 stateDiagram-v2
-  [*] --> UPLOADED
+  [*] --> UPLOADED: Create/Upload được nhận
   UPLOADED --> VALIDATING
-  VALIDATING --> REJECTED: input/phạm vi sai (cuối)
-  VALIDATING --> FAILED: lỗi local
-  VALIDATING --> PROCESSING
+  VALIDATING --> PROCESSING: qua kiểm tra cục bộ
+  VALIDATING --> REJECTED: file, phạm vi hoặc giới hạn không đạt
+  VALIDATING --> FAILED: lỗi nội bộ cục bộ
   PROCESSING --> COMPLETED
-  PROCESSING --> FAILED
-  FAILED --> VALIDATING: retry, failed_stage local
-  FAILED --> PROCESSING: retry, failed_stage processing
-  COMPLETED --> EXPIRED
+  PROCESSING --> FAILED: lỗi AI
+  FAILED --> VALIDATING: retry thủ công tối đa 2 lần, lỗi cục bộ
+  FAILED --> PROCESSING: retry thủ công tối đa 2 lần, lỗi AI
+  VALIDATING --> EXPIRED: End Session, hủy tác vụ, giải phóng slot
+  PROCESSING --> EXPIRED: End Session, hủy tác vụ, giải phóng slot
+  COMPLETED --> EXPIRED: hết 60 phút hoặc End Session
   FAILED --> EXPIRED
   REJECTED --> EXPIRED
+  EXPIRED --> [*]
+  note right of REJECTED
+    Kết thúc. Phải tạo phiên mới.
+  end note
+  note right of FAILED
+    Không giữ slot xử lý.
+  end note
 ```
 
-- Retry: `try_acquire(lease)` → mới `manual_retry_count += 1`; bận → `409 SYSTEM_BUSY`, không tăng counter. Resume theo **fingerprint** SHA-256 (upstream hashes + role + analysis_date + version pins + config version); cut item 2 → chạy lại từ đầu nhưng vẫn giới hạn 2 lần.
+- Retry: `try_acquire(lease)` → mới `manual_retry_count += 1`; bận → `409 SYSTEM_BUSY`, không tăng counter. Resume chỉ ở giai đoạn AI, so khớp bộ version pin lưu trong phiên (giai đoạn VALIDATING luôn chạy lại từ EXTRACTION); cut item 2 → chạy lại giai đoạn PROCESSING từ đầu nhưng vẫn giới hạn 2 lần.
 - Data Graph lỗi runtime → fallback baseline (`graph_fallback=true` trong RunLog), **không** fail phiên.
 - Graph không thêm LLM call. Số call/hợp đồng ≈ `ceil(n/20) + ceil(n/6)` trước retry (40–60 clause ≈ 9–13 call).
 
@@ -102,7 +242,7 @@ stateDiagram-v2
 | canonical/masked text, clauses, Clause Graph, AI output, `pii_spans` (start/end/type) | `InMemorySessionStore` | TTL 60' không hoạt động hoặc End Session; restart = mất |
 | RunLog, usage/quota, rate counter (key IP = HMAC-SHA256 có salt), EXPIRED tombstone (24h) | SQLite (`sqlite3`) | Metadata thuần, **cấm** nội dung/PII |
 | Legal corpus + edges + label_map + taxonomy/rubric | `data/` (file versioned, **[Đề xuất theo quyết định nhóm]** repo riêng của Người 2, gắn bằng git submodule) | Load lúc startup; cập nhật không sửa code |
-| Eval artifacts (gold, run output, `eval_cost_ledger`) | `ai_pipeline/evaluation/` | Không bị session cleanup xóa; dữ liệu đã de-identify |
+| Eval artifacts (gold, run output, `eval_cost_ledger`) | `ai_pipeline/eval/` | Không bị session cleanup xóa; dữ liệu đã de-identify |
 | Polling Get Status | không cập nhật `last_activity_at` | Result/Retry/Export/End/Create thì có |
 
 ## 6. Hai đồ thị
@@ -134,7 +274,7 @@ Loại trừ dẫn chiếu pháp luật khỏi `REFERS_TO` (Clause Graph): khôn
 - **1 Uvicorn worker**, không autoscale/serverless (session + lease là process-local). Smoke test fail nếu demo profile cấu hình >1 worker.
 - CPU nặng (PyMuPDF, DOCX/OOXML, regex) trong threadpool có giới hạn; `GET status` vẫn ≤2s.
 - Startup (fail-fast): load config → taxonomy/rubric → corpus + validate (overlap hiệu lực, endpoint cạnh, PARENT_OF acyclic) → BM25 + label_map + Data Graph → SQLite → Session store + lease + cleanup → threadpool → `readiness=true`.
-- Hosting: 1 web frontend + 1 backend service, có HTTPS, temp storage, đọc được corpus. Chưa chọn nhà cung cấp (SDD không khóa).
+- Hosting: 1 web frontend + 1 backend service, có HTTPS, temp storage, đọc được corpus. Hiện chạy localhost, chưa chọn nhà cung cấp hosting (SDD không khóa); giao diện tạm phục vụ từ chính backend (cùng origin).
 - Hiệu năng mục tiêu: 90% run (PDF ≤15 trang hoặc DOCX ≤50.000 ký tự) ≤120s; UI thấy VALIDATING/PROCESSING ≤2s. Không cam kết 120s cho input tối đa 150 clause. Benchmark D1 (p50/p90 từng stage) trước MS-2.
 - Chi phí: $20 = $5 vận hành + $15 đánh giá; `DAILY_LLM_CALL_QUOTA`, `SESSION_CALL_RESERVE` (= p95 planned calls) chốt từ đo D1; IP limit mặc định 5 upload/10'.
 
@@ -160,17 +300,17 @@ HTTPS · session_id UUIDv4 opaque, tra cứu chính xác (có test âm) · hard 
 | Export | python-docx (DOCX trước); PDF renderer tùy môi trường | font hỗ trợ tiếng Việt |
 | Test | pytest + pytest-asyncio | unit/contract/integration/E2E mock/provider smoke/eval |
 | Eval | Python CLI + JSON/CSV | `python -m ai_pipeline.evaluation.runner …` |
-| Frontend | **Chưa khóa** (TDD §3.2). **[Đề xuất]** React + TypeScript + Vite, desktop (Chrome/Edge/Firefox) | Contract bắt buộc ở TDD §5.9 (polling, code point→UTF-16, catalog thông báo) |
+| Frontend | React + TypeScript + Vite (đã có trong `frontend/`), desktop (Chrome/Edge/Firefox) | Contract bắt buộc ở TDD §5.9 (polling, code point→UTF-16, catalog thông báo) |
 | Loại bỏ | PostgreSQL/SQLAlchemy/Alembic (cho nội dung hợp đồng), Qwen/Ollama ở product path, Gemini free ở demo/eval | DEC-16, DEC-19 |
 
 ## 11. Cấu trúc repository đích
 
 ```text
-backend/app/{main.py, api/, core/, domain/, session/, document/, privacy/, clause/, ai/, legal/, result/, ops/}
-ai_pipeline/{schemas/, evaluation/{runner.py, metrics/, gold/}}
-data/{legal_corpus/{manifest.yaml, provisions.jsonl, edges.jsonl, edge_suggestions.jsonl, label_map.yaml},
+backend/app/{main.py, pipeline.py (analyze(): chuỗi stage dùng chung cho orchestrator và harness), api/, core/, domain/, session/, document/, privacy/, clause/, ai/, legal/, result/, ops/, integrations/ (risk_assembler.py)}
+ai_pipeline/{schemas/, eval/ (runner, metrics, gold), services/ (legacy, xóa khi C-01 xong), data/ (submodule dữ liệu và corpus)}
+ai_pipeline/data/{legal_corpus/{manifest.yaml, provisions.jsonl, edges.jsonl, edge_suggestions.jsonl, label_map.yaml},
       docs/{clause_taxonomy/, risk_taxonomy/, severity_rubric/}}
-frontend/                      # [Đề xuất]
+frontend/
 tests/{unit/, integration/, contract/, fixtures/}
 docs/                          # BRD, SRS, SDD, TDD (gốc)  →  docs/splitted_docs/ (sinh bằng scripts/split_doc.py)
 scripts/split_doc.py           # tách tài liệu cho AI đọc đỡ token

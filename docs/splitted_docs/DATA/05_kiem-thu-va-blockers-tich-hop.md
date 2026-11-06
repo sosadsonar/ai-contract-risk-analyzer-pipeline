@@ -11,7 +11,7 @@ python scripts/audit_data_lead.py --output docs/data_lead_span_audit.json
 ```
 
 10 test Data Lead pass; audit 9/9 pass. Submodule được pin cụ thể vào main
-data c325b43; không dùng `submodule update --remote` và không sửa file data
+data a086606; không dùng `submodule update --remote` và không sửa file data
 từ repo pipeline.
 
 Report lưu cả hash file taxonomy thực tế đọc và hash Git blob canonical.

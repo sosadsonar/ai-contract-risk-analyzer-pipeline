@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 6. Domain model và JSON Schema | 5296 ký tự | trước: 06_5-http-api-contract.md | sau: 08_7-analysis-orchestrator-state-machine-va-retry-res.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 6. Domain model và JSON Schema | 5680 ký tự | trước: 06_5-http-api-contract.md | sau: 08_7-analysis-orchestrator-state-machine-va-retry-res.md -->
 
 # 6. Domain model và JSON Schema
 

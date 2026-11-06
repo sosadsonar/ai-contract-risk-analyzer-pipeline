@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 8. Document Processing và canonical text | 3185 ký tự | trước: 08_7-analysis-orchestrator-state-machine-va-retry-res.md | sau: 10_9-scope-precheck.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 8. Document Processing và canonical text | 3185 ký tự | trước: 08_7-analysis-orchestrator-state-machine-va-retry-res.md | sau: 10_9-scope-precheck.md -->
 
 # 8. Document Processing và canonical text
 

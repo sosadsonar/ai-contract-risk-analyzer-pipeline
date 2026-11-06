@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: Phụ lục E. Catalog thông báo UI tối thiểu | 1518 ký tự | trước: 26_phu-luc-d-checklist-truoc-khi-khoa-demo.md | sau: 28_nguon-tai-lieu-dung-cho-tdd.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: Phụ lục E. Catalog thông báo UI tối thiểu | 1518 ký tự | trước: 26_phu-luc-d-checklist-truoc-khi-khoa-demo.md | sau: 28_nguon-tai-lieu-dung-cho-tdd.md -->
 
 # Phụ lục E. Catalog thông báo UI tối thiểu
 

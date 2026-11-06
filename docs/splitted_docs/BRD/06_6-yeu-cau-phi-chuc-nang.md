@@ -1,4 +1,4 @@
-<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_0_5.md | mục: BRD: AI Labor Contract Risk Analyzer > 6. Yêu cầu phi chức năng | 970 ký tự | trước: 05_5-yeu-cau-nghiep-vu.md | sau: 07_7-du-lieu-ca-nhan-va-bao-mat.md -->
+<!-- nguồn: BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md | mục: BRD: AI Labor Contract Risk Analyzer > 6. Yêu cầu phi chức năng | 970 ký tự | trước: 05_5-yeu-cau-nghiep-vu.md | sau: 07_7-du-lieu-ca-nhan-va-bao-mat.md -->
 
 ## 6. Yêu cầu phi chức năng
 

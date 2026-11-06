@@ -1,4 +1,4 @@
-<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.2.md | mục: 3. Stack triển khai và cấu trúc repository | 2974 ký tự | trước: 03_2-cac-quyet-dinh-ky-thuat-tdd.md | sau: 05_4-configuration-secret-va-startup.md -->
+<!-- nguồn: TDD_AI_Labor_Contract_Risk_Analyzer_v0.3.md | mục: 3. Stack triển khai và cấu trúc repository | 2974 ký tự | trước: 03_2-cac-quyet-dinh-ky-thuat-tdd.md | sau: 05_4-configuration-secret-va-startup.md -->
 
 # 3. Stack triển khai và cấu trúc repository
 
