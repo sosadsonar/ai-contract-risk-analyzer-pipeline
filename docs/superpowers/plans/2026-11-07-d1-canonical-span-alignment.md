@@ -63,17 +63,28 @@ canonicalization-policy mismatch.
 `scripts/build_d1_pipeline_canonical_candidate.py` created an ignored, private
 candidate at `data/intake/private/D1_m1_pipeline_canonical_candidate_v01/`
 in the Data repository. It preserves all 329 Gold segment IDs and rebases their
-coordinates to the pipeline canonical text. All 329 rebased intervals are valid
-with zero overlaps; 328 preserve their segment quote after whitespace
-normalization. `HDLD002_CONTEXT_040` is the sole exception and is explicitly
-listed for manual review. The candidate retains status
-`AI_CANDIDATE_NEEDS_REVIEW`; the existing adjudicated Gold remains unchanged.
-The same script optionally rebases the saved 198 prediction offsets, storing
-only IDs and coordinates in the private candidate folder. Of 198 rebased
-prediction quotes, 197 are whitespace-equivalent to the pipeline source;
-`HDLD002/cl_0047` shares the tail-region exception. On the 174 EXACT Gold
-spans, the rebased geometry yields 112 matches at IoU 0.50, versus 111 on
-the original NFC source. This is candidate geometry only, not a new M7 score.
+coordinates to the pipeline canonical text. The initial SequenceMatcher anchor
+mapping mislocated the repeated HDLD002 tail, producing apparent exceptions
+`HDLD002_CONTEXT_040` and `HDLD002/cl_0047`. The final content-rank
+mapping verifies that the non-whitespace character sequence is identical and
+maps each span by its first and last content character. All 329 Gold intervals
+are valid, non-overlapping, and quote-equivalent after whitespace normalization;
+all 198 rebased predictions are quote-equivalent too. On the 174 EXACT Gold
+spans, rebased geometry still yields 111 matches at IoU 0.50. The two apparent
+exceptions are resolved as an offset-mapper defect, not Gold content edits.
+The candidate retains status `AI_CANDIDATE_NEEDS_REVIEW`; the existing
+adjudicated Gold remains unchanged. This is candidate geometry only, not a
+new M7 score.
+
+The M7 diagnostic utility now reports both the unchanged one-to-one greedy
+IoU matching and a separate many-to-one containment view at
+`intersection / Gold length >= 0.80`. On the saved D1 spans it finds 111
+greedy matches and 173 containment matches out of 174 EXACT Gold spans.
+These are geometric diagnostics, not classification F1. Optional source-based
+`clause_scope` and blank/heading filters return excluded prediction indices;
+the official M7 metric does not use these filters. Signature boundaries must
+be provided from a source parser or reviewed scope, never silently inferred
+from Gold labels.
 
 ## Task 1 — Freeze the shared coordinate system (Data owner)
 

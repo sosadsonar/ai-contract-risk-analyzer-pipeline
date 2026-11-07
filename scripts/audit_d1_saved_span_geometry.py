@@ -12,7 +12,7 @@ from pathlib import Path
 
 from app.document.canonicalizer import canonicalize
 
-from ai_pipeline.evaluation.metrics.alignment import greedy_align_spans
+from ai_pipeline.evaluation.metrics.alignment import diagnose_span_alignment, greedy_align_spans
 
 DOCUMENTS = ("HDLD001", "HDLD002", "HDLD003", "HDLD004")
 
@@ -43,6 +43,7 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
     matched_support: Counter[str] = Counter()
     total_exact_quotes = total_whitespace_only = 0
     total_gold = total_predicted = total_matches = 0
+    total_containment_matches = total_filtered_greedy = total_excluded = 0
     source_parity_count = 0
     for document in DOCUMENTS:
         canonical_path = restricted / "D1_m1_runtime_predictions_v01" / f"{document}.canonical_nfc.txt"
@@ -117,6 +118,11 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
             [(row["start_char"], row["end_char"]) for row in gold],
             [(row["start_char"], row["end_char"]) for row in predicted],
         )
+        diagnostics = diagnose_span_alignment(
+            [(row["start_char"], row["end_char"]) for row in gold],
+            [(row["start_char"], row["end_char"]) for row in predicted],
+            text=canonical,
+        )
         matched_gold = {index for index, _ in pairs}
         for index, row in enumerate(gold):
             label_values = labels[row["gold_clause_ref"]]
@@ -149,7 +155,13 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
             "predicted_unmatched": len(predicted) - len(pairs),
             "prediction_quote_exact": exact_quotes,
             "prediction_quote_whitespace_only": whitespace_only,
+            "diagnostic_containment_matches": len(diagnostics["containment_pairs"]),
+            "diagnostic_greedy_after_blank_heading_filter": len(diagnostics["greedy_iou_pairs"]),
+            "diagnostic_excluded_blank_heading_predictions": len(diagnostics["excluded_prediction_indices"]),
         })
+        total_containment_matches += len(diagnostics["containment_pairs"])
+        total_filtered_greedy += len(diagnostics["greedy_iou_pairs"])
+        total_excluded += len(diagnostics["excluded_prediction_indices"])
         total_exact_quotes += exact_quotes
         total_whitespace_only += whitespace_only
         total_gold += len(gold)
@@ -196,6 +208,9 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
             "unmatched_list_exactly_reproduced": True,
             "unmatched_geometry": dict(sorted(geometry.items())),
             "current_canonicalizer_source_parity_documents": source_parity_count,
+            "diagnostic_containment_matches": total_containment_matches,
+            "diagnostic_greedy_after_blank_heading_filter": total_filtered_greedy,
+            "diagnostic_excluded_blank_heading_predictions": total_excluded,
         },
         "optimistic_m7_macro_f1_ceiling_ignoring_false_positives": (
             sum(ceiling_by_label.values()) / len(ceiling_by_label)

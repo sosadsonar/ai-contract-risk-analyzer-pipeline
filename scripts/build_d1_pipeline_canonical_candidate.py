@@ -1,6 +1,7 @@
 """Rebase adjudicated D1 M1 coordinates into pipeline canonical text as a private candidate."""
 
 import argparse
+import bisect
 import csv
 import hashlib
 import json
@@ -10,7 +11,6 @@ from pathlib import Path
 
 from app.document.canonicalizer import canonicalize
 
-from ai_pipeline.evaluation.d1_clause_run import offset_mapper
 from ai_pipeline.evaluation.metrics.alignment import greedy_align_spans
 
 DOCUMENTS = ("HDLD001", "HDLD002", "HDLD003", "HDLD004")
@@ -22,6 +22,29 @@ def digest(data: bytes) -> str:
 
 def normalized_quote(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
+
+
+class ContentRankMapper:
+    """Map content-bearing spans when canonicalization changes whitespace only."""
+
+    def __init__(self, source: str, target: str):
+        self.source_positions = [index for index, char in enumerate(source) if not char.isspace()]
+        self.target_positions = [index for index, char in enumerate(target) if not char.isspace()]
+        if (
+            len(self.source_positions) != len(self.target_positions)
+            or "".join(source[index] for index in self.source_positions)
+            != "".join(target[index] for index in self.target_positions)
+        ):
+            raise ValueError("canonicalization changed non-whitespace content")
+
+    def span(self, start: int, end: int) -> tuple[int, int]:
+        if not 0 <= start < end:
+            raise ValueError("source span must be non-empty")
+        first = bisect.bisect_left(self.source_positions, start)
+        after_last = bisect.bisect_left(self.source_positions, end)
+        if first == after_last:
+            raise ValueError("source span contains no content-bearing character")
+        return self.target_positions[first], self.target_positions[after_last - 1] + 1
 
 
 def build(data_root: Path, output: Path, predictions_path: Path | None = None) -> dict:
@@ -42,13 +65,13 @@ def build(data_root: Path, output: Path, predictions_path: Path | None = None) -
         gold = json.loads(gold_path.read_text(encoding="utf-8"))
         if digest(old_canonical.encode("utf-8")) != gold["source_sha256"]:
             raise ValueError(f"Gold source is not NFC raw text: {document}")
-        mapping = offset_mapper(old_canonical, new_canonical)
+        mapping = ContentRankMapper(old_canonical, new_canonical)
         candidate_segments = []
         review_refs = []
         exact_count = 0
         for segment in gold["segments"]:
             start, end = segment["start_char"], segment["end_char"]
-            new_start, new_end = mapping(start), mapping(end)
+            new_start, new_end = mapping.span(start, end)
             if not 0 <= new_start < new_end <= len(new_canonical):
                 raise ValueError(f"invalid rebased span: {document}/{segment['gold_clause_ref']}")
             equivalent = normalized_quote(old_canonical[start:end]) == normalized_quote(
@@ -88,8 +111,7 @@ def build(data_root: Path, output: Path, predictions_path: Path | None = None) -
             rebased_predictions = []
             prediction_review_refs = []
             for prediction in document_predictions:
-                start = mapping(prediction["start_char"])
-                end = mapping(prediction["end_char"])
+                start, end = mapping.span(prediction["start_char"], prediction["end_char"])
                 if not 0 <= start < end <= len(new_canonical):
                     raise ValueError(f"invalid rebased prediction: {document}/{prediction['clause_id']}")
                 if normalized_quote(prediction["text"]) != normalized_quote(new_canonical[start:end]):

@@ -25,7 +25,10 @@
       "gold_unmatched": 15,
       "predicted_unmatched": 20,
       "prediction_quote_exact": 31,
-      "prediction_quote_whitespace_only": 12
+      "prediction_quote_whitespace_only": 12,
+      "diagnostic_containment_matches": 38,
+      "diagnostic_greedy_after_blank_heading_filter": 23,
+      "diagnostic_excluded_blank_heading_predictions": 0
     },
     {
       "document_id": "HDLD002",
@@ -45,7 +48,10 @@
       "gold_unmatched": 15,
       "predicted_unmatched": 22,
       "prediction_quote_exact": 38,
-      "prediction_quote_whitespace_only": 9
+      "prediction_quote_whitespace_only": 9,
+      "diagnostic_containment_matches": 40,
+      "diagnostic_greedy_after_blank_heading_filter": 25,
+      "diagnostic_excluded_blank_heading_predictions": 0
     },
     {
       "document_id": "HDLD003",
@@ -65,7 +71,10 @@
       "gold_unmatched": 29,
       "predicted_unmatched": 10,
       "prediction_quote_exact": 35,
-      "prediction_quote_whitespace_only": 5
+      "prediction_quote_whitespace_only": 5,
+      "diagnostic_containment_matches": 58,
+      "diagnostic_greedy_after_blank_heading_filter": 30,
+      "diagnostic_excluded_blank_heading_predictions": 0
     },
     {
       "document_id": "HDLD004",
@@ -85,7 +94,10 @@
       "gold_unmatched": 4,
       "predicted_unmatched": 35,
       "prediction_quote_exact": 68,
-      "prediction_quote_whitespace_only": 0
+      "prediction_quote_whitespace_only": 0,
+      "diagnostic_containment_matches": 37,
+      "diagnostic_greedy_after_blank_heading_filter": 33,
+      "diagnostic_excluded_blank_heading_predictions": 0
     }
   ],
   "totals": {
@@ -101,7 +113,10 @@
       "gold_inside_prediction": 62,
       "partial_crossing": 1
     },
-    "current_canonicalizer_source_parity_documents": 1
+    "current_canonicalizer_source_parity_documents": 1,
+    "diagnostic_containment_matches": 173,
+    "diagnostic_greedy_after_blank_heading_filter": 111,
+    "diagnostic_excluded_blank_heading_predictions": 0
   },
   "optimistic_m7_macro_f1_ceiling_ignoring_false_positives": 0.743124174831492,
   "ceiling_note": "Assumes every matched prediction has the correct label and ignores all false positives; not an achieved M7 score.",
