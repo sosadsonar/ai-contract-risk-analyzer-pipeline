@@ -68,6 +68,12 @@ with zero overlaps; 328 preserve their segment quote after whitespace
 normalization. `HDLD002_CONTEXT_040` is the sole exception and is explicitly
 listed for manual review. The candidate retains status
 `AI_CANDIDATE_NEEDS_REVIEW`; the existing adjudicated Gold remains unchanged.
+The same script optionally rebases the saved 198 prediction offsets, storing
+only IDs and coordinates in the private candidate folder. Of 198 rebased
+prediction quotes, 197 are whitespace-equivalent to the pipeline source;
+`HDLD002/cl_0047` shares the tail-region exception. On the 174 EXACT Gold
+spans, the rebased geometry yields 112 matches at IoU 0.50, versus 111 on
+the original NFC source. This is candidate geometry only, not a new M7 score.
 
 ## Task 1 — Freeze the shared coordinate system (Data owner)
 
