@@ -4,14 +4,15 @@ Quy tắc: chạy trên TOÀN BỘ canonical_text trước segmentation; placeho
 point; không có bảng ánh xạ placeholder về giá trị gốc; không NER hoặc LLM; từ chỉ vai trò
 (NLĐ, NSDLĐ, "Công ty" dùng như đại từ) không bị mask, chỉ mask phần giá trị sau anchor.
 
-boundary_guard và adjust_boundary đặt ở đây tạm thời; SKELETON §5.6 đặt chúng ở
-clause/segmenter.py, chuyển khi làm C-01 (b).
+boundary_guard và adjust_boundary đã chuyển về clause/segmenter.py (X-20, W4, SKELETON §5.6);
+re-export ở đây để giữ tương thích import.
 """
 
 from __future__ import annotations
 
+from app.clause.segmenter import adjust_boundary, boundary_guard  # noqa: F401  (X-20: gốc ở segmenter)
 from app.privacy.detector import detect
-from app.privacy.pii_types import TYPE_SHORT_CODE, TYPE_TAG, MaskResult, PiiSpan, PiiType
+from app.privacy.pii_types import TYPE_SHORT_CODE, TYPE_TAG, MaskResult, PiiType
 
 PII_MASKING_VERSION = "pii_draft_0.3"
 
@@ -44,16 +45,3 @@ def mask(canonical_text: str) -> MaskResult:
     if len(masked) != len(canonical_text):  # không dùng assert: -O sẽ bỏ qua
         raise RuntimeError("Vi phạm INV-01: độ dài masked_text khác canonical_text")
     return MaskResult(masked_text=masked, pii_spans=spans)
-
-
-def boundary_guard(pos: int, pii_spans: list[PiiSpan]) -> bool:
-    """TDD §10.3: False nếu start < pos < end của span nào đó (biên rơi vào trong placeholder)."""
-    return not any(span.start < pos < span.end for span in pii_spans)
-
-
-def adjust_boundary(pos: int, pii_spans: list[PiiSpan]) -> int:
-    """Dời biên ra đầu/cuối span nếu rơi vào trong placeholder (hòa thì về đầu)."""
-    for span in pii_spans:
-        if span.start < pos < span.end:
-            return span.start if pos - span.start <= span.end - pos else span.end
-    return pos
