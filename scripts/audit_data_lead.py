@@ -91,7 +91,8 @@ def audit(data_root):
                       'source_reference_verified':True,'exact_span_eligible':False,
                       'legal_risk_ground_truth':None})
     spec = importlib.util.spec_from_file_location('audit_taxonomy', ROOT / 'backend/app/clause/taxonomy.py')
-    taxonomy = importlib.util.module_from_spec(spec); spec.loader.exec_module(taxonomy)
+    taxonomy = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(taxonomy)
     labels = {r['clause_type'] for r in rows}
     if labels != set(taxonomy.CLAUSE_LABELS):
         raise ValueError('Pipeline/data label vocabulary mismatch')
@@ -100,18 +101,27 @@ def audit(data_root):
     clean = None
     taxonomy_blob_hash = None
     try:
-        top = subprocess.check_output(['git','-C',str(data_root),'rev-parse','--show-toplevel'],text=True,stderr=subprocess.DEVNULL).strip()
+        top = subprocess.check_output(
+            ['git', '-C', str(data_root), 'rev-parse', '--show-toplevel'],
+            text=True, stderr=subprocess.DEVNULL,
+        ).strip()
         if Path(top).resolve() == data_root.resolve():
             revision = subprocess.check_output(['git','-C',str(data_root),'rev-parse','HEAD'],text=True).strip()
-            clean = not subprocess.check_output(['git','-C',str(data_root),'status','--porcelain','--untracked-files=no'],text=True).strip()
-            taxonomy_blob = subprocess.check_output(['git','-C',str(data_root),'show',revision+':docs/clause_taxonomy_v03.md'])
+            clean = not subprocess.check_output(
+                ['git', '-C', str(data_root), 'status', '--porcelain', '--untracked-files=no'], text=True,
+            ).strip()
+            taxonomy_blob = subprocess.check_output(
+                ['git', '-C', str(data_root), 'show', revision + ':docs/clause_taxonomy_v03.md']
+            )
             taxonomy_blob_hash = hashlib.sha256(taxonomy_blob).hexdigest()
     except (OSError, subprocess.CalledProcessError):
         pass  # An unpacked release can still be audited by its recorded file hashes.
     return {'source_data_commit':revision,'source_worktree_clean':clean,
             'dataset':'clauses_v06.csv','dataset_sha256':hashlib.sha256(dataset.read_bytes()).hexdigest(),
             'prompt_definition_version':taxonomy.TAXONOMY_VERSION,'data_taxonomy_version':'v03',
-            'taxonomy_source_sha256':hashlib.sha256((data_root / 'docs/clause_taxonomy_v03.md').read_bytes()).hexdigest(),
+            'taxonomy_source_sha256':hashlib.sha256(
+                (data_root / 'docs/clause_taxonomy_v03.md').read_bytes()
+            ).hexdigest(),
             'taxonomy_source_git_blob_sha256':taxonomy_blob_hash,
             'context_anchor_script_sha256':hashlib.sha256(anchor_script.read_bytes()).hexdigest(),
             'clause_count':len(rows),'offset_quality_counts':dict(Counter(r['offset_quality'] for r in rows)),

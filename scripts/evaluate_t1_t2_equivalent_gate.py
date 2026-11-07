@@ -28,7 +28,7 @@ from ai_pipeline.evaluation.metrics.citation_validity import (
     CitationCheck,
     evaluate_citation_validity,
 )
-from ai_pipeline.evaluation.metrics.clause_classification import (
+from ai_pipeline.evaluation.metrics.clause_classification_cases import (
     ClauseClassificationCase,
     evaluate_clause_classification,
 )
