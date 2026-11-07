@@ -1,0 +1,681 @@
+{
+  "status": "PARTIAL_TECHNICAL_EVALUATION_T1_M4_NO_RISK_OUTPUTS",
+  "equivalent_gate": "T1_EQUIVALENT_GATE_V1",
+  "original_brd_gate": "NOT_ACCEPTED",
+  "slice_documents": {
+    "slice_unique_8": [
+      "HDLD005",
+      "HDLD007",
+      "HDLD008",
+      "HDLD009",
+      "HDLD010",
+      "HDLD011",
+      "HDLD012",
+      "HDLD013"
+    ],
+    "slice_t1_real_9": [
+      "HDLD005",
+      "HDLD006",
+      "HDLD007",
+      "HDLD008",
+      "HDLD009",
+      "HDLD010",
+      "HDLD011",
+      "HDLD012",
+      "HDLD013"
+    ],
+    "slice_composite_10": [
+      "HDLD005",
+      "HDLD006",
+      "HDLD007",
+      "HDLD008",
+      "HDLD009",
+      "HDLD010",
+      "HDLD011",
+      "HDLD012",
+      "HDLD013",
+      "HDLD014"
+    ],
+    "T2": [
+      "HDLD005",
+      "HDLD006",
+      "HDLD007",
+      "HDLD008",
+      "HDLD009",
+      "HDLD010",
+      "HDLD011",
+      "HDLD012",
+      "HDLD013"
+    ]
+  },
+  "metrics": {
+    "slice_unique_8": {
+      "M1": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.36827195467422097,
+        "gold_spans": 719,
+        "predicted_spans": 340,
+        "ci95": {
+          "low": 0.20547263783074451,
+          "high": 0.5621276429687013,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 8,
+          "valid_replicates": 1000
+        }
+      },
+      "PRIVACY": {
+        "status": "TECHNICAL_SCORE",
+        "counts": {
+          "high_gold": 3,
+          "high_masked": 3,
+          "standard_gold": 18,
+          "standard_masked": 18,
+          "preserve_gold": 56,
+          "preserved": 55
+        },
+        "high_sensitivity_recall": {
+          "score": 1.0,
+          "ci95": {
+            "low": 1.0,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 896
+          }
+        },
+        "standard_sensitivity_recall": {
+          "score": 1.0,
+          "ci95": {
+            "low": 1.0,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 897
+          }
+        },
+        "preserve_rate": {
+          "score": 0.9821428571428571,
+          "ci95": {
+            "low": 0.9464285714285714,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 1000
+          }
+        }
+      },
+      "M4": {
+        "status": "NO_EMITTED_RISK_OUTPUTS",
+        "valid": 0,
+        "total": 0,
+        "score": null,
+        "ci95": {
+          "low": null,
+          "high": null,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 0,
+          "valid_replicates": 0
+        },
+        "limitation": "Exact quote/offset invariant on emitted Dev-rule risk candidates only; it does not measure missed risks."
+      },
+      "M3a": {
+        "status": "TECHNICAL_SCORE",
+        "total": 630,
+        "valid": 630,
+        "score": 1.0,
+        "ci95": {
+          "low": 1.0,
+          "high": 1.0,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 8,
+          "valid_replicates": 1000
+        },
+        "limitation": "Citation membership/effectivity for emitted top-1 retrieval candidates; not citation relevance or risk accuracy."
+      },
+      "gold_scope": {
+        "documents": 8,
+        "full_label_rows": 630,
+        "genuine_clause_rows": 281,
+        "synthetic_control_rows": 0
+      },
+      "M7_full": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.3347516881635668,
+        "rows": 630,
+        "macro_class_count": 12,
+        "ci95": {
+          "low": 0.24238700810788344,
+          "high": 0.5363584424619032,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 8,
+          "valid_replicates": 1000
+        },
+        "prediction_module": "app.clause.dev_tfidf_baseline.DevTfidfBaseline",
+        "training_scope": "D1 Gold, HDLD001-004, 183 clauses, fixed character ngram TF-IDF 1-NN"
+      },
+      "M7_genuine": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.5579745240097932,
+        "rows": 281,
+        "macro_class_count": 12,
+        "ci95": {
+          "low": 0.4682901808825858,
+          "high": 0.6515626520412967,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 8,
+          "valid_replicates": 1000
+        },
+        "prediction_module": "app.clause.dev_tfidf_baseline.DevTfidfBaseline",
+        "training_scope": "D1 Gold, HDLD001-004, 183 clauses, fixed character ngram TF-IDF 1-NN"
+      },
+      "M7": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.3347516881635668,
+        "rows": 630,
+        "macro_class_count": 12,
+        "ci95": {
+          "low": 0.24238700810788344,
+          "high": 0.5363584424619032,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 8,
+          "valid_replicates": 1000
+        },
+        "prediction_module": "app.clause.dev_tfidf_baseline.DevTfidfBaseline",
+        "training_scope": "D1 Gold, HDLD001-004, 183 clauses, fixed character ngram TF-IDF 1-NN"
+      },
+      "M5": {
+        "status": "NOT_APPLICABLE",
+        "reason": "Injected-error recall and paired retrieval are measured on T2 cases."
+      },
+      "M8": {
+        "status": "NOT_APPLICABLE",
+        "reason": "Injected-error recall and paired retrieval are measured on T2 cases."
+      }
+    },
+    "slice_t1_real_9": {
+      "M1": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.3713355048859935,
+        "gold_spans": 842,
+        "predicted_spans": 386,
+        "ci95": {
+          "low": 0.21978230908340557,
+          "high": 0.5460245365793658,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 9,
+          "valid_replicates": 1000
+        }
+      },
+      "PRIVACY": {
+        "status": "TECHNICAL_SCORE",
+        "counts": {
+          "high_gold": 3,
+          "high_masked": 3,
+          "standard_gold": 18,
+          "standard_masked": 18,
+          "preserve_gold": 63,
+          "preserved": 62
+        },
+        "high_sensitivity_recall": {
+          "score": 1.0,
+          "ci95": {
+            "low": 1.0,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 887
+          }
+        },
+        "standard_sensitivity_recall": {
+          "score": 1.0,
+          "ci95": {
+            "low": 1.0,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 895
+          }
+        },
+        "preserve_rate": {
+          "score": 0.9841269841269841,
+          "ci95": {
+            "low": 0.9523809523809523,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 1000
+          }
+        }
+      },
+      "M4": {
+        "status": "NO_EMITTED_RISK_OUTPUTS",
+        "valid": 0,
+        "total": 0,
+        "score": null,
+        "ci95": {
+          "low": null,
+          "high": null,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 0,
+          "valid_replicates": 0
+        },
+        "limitation": "Exact quote/offset invariant on emitted Dev-rule risk candidates only; it does not measure missed risks."
+      },
+      "M3a": {
+        "status": "TECHNICAL_SCORE",
+        "total": 747,
+        "valid": 747,
+        "score": 1.0,
+        "ci95": {
+          "low": 1.0,
+          "high": 1.0,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 9,
+          "valid_replicates": 1000
+        },
+        "limitation": "Citation membership/effectivity for emitted top-1 retrieval candidates; not citation relevance or risk accuracy."
+      },
+      "gold_scope": {
+        "documents": 9,
+        "full_label_rows": 747,
+        "genuine_clause_rows": 340,
+        "synthetic_control_rows": 0
+      },
+      "M7_full": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.3377499882150517,
+        "rows": 747,
+        "macro_class_count": 12,
+        "ci95": {
+          "low": 0.24759992147328,
+          "high": 0.5153538177312451,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 9,
+          "valid_replicates": 1000
+        },
+        "prediction_module": "app.clause.dev_tfidf_baseline.DevTfidfBaseline",
+        "training_scope": "D1 Gold, HDLD001-004, 183 clauses, fixed character ngram TF-IDF 1-NN"
+      },
+      "M7_genuine": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.5441575448535162,
+        "rows": 340,
+        "macro_class_count": 12,
+        "ci95": {
+          "low": 0.4642041876746398,
+          "high": 0.630778129877535,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 9,
+          "valid_replicates": 1000
+        },
+        "prediction_module": "app.clause.dev_tfidf_baseline.DevTfidfBaseline",
+        "training_scope": "D1 Gold, HDLD001-004, 183 clauses, fixed character ngram TF-IDF 1-NN"
+      },
+      "M7": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.3377499882150517,
+        "rows": 747,
+        "macro_class_count": 12,
+        "ci95": {
+          "low": 0.24759992147328,
+          "high": 0.5153538177312451,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 9,
+          "valid_replicates": 1000
+        },
+        "prediction_module": "app.clause.dev_tfidf_baseline.DevTfidfBaseline",
+        "training_scope": "D1 Gold, HDLD001-004, 183 clauses, fixed character ngram TF-IDF 1-NN"
+      },
+      "M5": {
+        "status": "NOT_APPLICABLE",
+        "reason": "Injected-error recall and paired retrieval are measured on T2 cases."
+      },
+      "M8": {
+        "status": "NOT_APPLICABLE",
+        "reason": "Injected-error recall and paired retrieval are measured on T2 cases."
+      }
+    },
+    "slice_composite_10": {
+      "M1": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.38049560351718625,
+        "gold_spans": 853,
+        "predicted_spans": 398,
+        "ci95": {
+          "low": 0.2303068439344831,
+          "high": 0.551304347826087,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 10,
+          "valid_replicates": 1000
+        }
+      },
+      "PRIVACY": {
+        "status": "TECHNICAL_SCORE",
+        "counts": {
+          "high_gold": 3,
+          "high_masked": 3,
+          "standard_gold": 18,
+          "standard_masked": 18,
+          "preserve_gold": 70,
+          "preserved": 69
+        },
+        "high_sensitivity_recall": {
+          "score": 1.0,
+          "ci95": {
+            "low": 1.0,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 885
+          }
+        },
+        "standard_sensitivity_recall": {
+          "score": 1.0,
+          "ci95": {
+            "low": 1.0,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 893
+          }
+        },
+        "preserve_rate": {
+          "score": 0.9857142857142858,
+          "ci95": {
+            "low": 0.9571428571428572,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 1000
+          }
+        }
+      },
+      "M4": {
+        "status": "NO_EMITTED_RISK_OUTPUTS",
+        "valid": 0,
+        "total": 0,
+        "score": null,
+        "ci95": {
+          "low": null,
+          "high": null,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 0,
+          "valid_replicates": 0
+        },
+        "limitation": "Exact quote/offset invariant on emitted Dev-rule risk candidates only; it does not measure missed risks."
+      },
+      "M3a": {
+        "status": "TECHNICAL_SCORE",
+        "total": 757,
+        "valid": 757,
+        "score": 1.0,
+        "ci95": {
+          "low": 1.0,
+          "high": 1.0,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 10,
+          "valid_replicates": 1000
+        },
+        "limitation": "Citation membership/effectivity for emitted top-1 retrieval candidates; not citation relevance or risk accuracy."
+      },
+      "gold_scope": {
+        "documents": 10,
+        "full_label_rows": 757,
+        "genuine_clause_rows": 350,
+        "synthetic_control_rows": 10
+      },
+      "M7_full": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.3495688367604603,
+        "rows": 757,
+        "macro_class_count": 12,
+        "ci95": {
+          "low": 0.2559767216419381,
+          "high": 0.5310915313744835,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 10,
+          "valid_replicates": 1000
+        },
+        "prediction_module": "app.clause.dev_tfidf_baseline.DevTfidfBaseline",
+        "training_scope": "D1 Gold, HDLD001-004, 183 clauses, fixed character ngram TF-IDF 1-NN"
+      },
+      "M7_genuine": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.5577232497693198,
+        "rows": 350,
+        "macro_class_count": 12,
+        "ci95": {
+          "low": 0.4810370695356881,
+          "high": 0.6424317908098052,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 10,
+          "valid_replicates": 1000
+        },
+        "prediction_module": "app.clause.dev_tfidf_baseline.DevTfidfBaseline",
+        "training_scope": "D1 Gold, HDLD001-004, 183 clauses, fixed character ngram TF-IDF 1-NN"
+      },
+      "M7": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.3495688367604603,
+        "rows": 757,
+        "macro_class_count": 12,
+        "ci95": {
+          "low": 0.2559767216419381,
+          "high": 0.5310915313744835,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 10,
+          "valid_replicates": 1000
+        },
+        "prediction_module": "app.clause.dev_tfidf_baseline.DevTfidfBaseline",
+        "training_scope": "D1 Gold, HDLD001-004, 183 clauses, fixed character ngram TF-IDF 1-NN"
+      },
+      "M5": {
+        "status": "NOT_APPLICABLE",
+        "reason": "Injected-error recall and paired retrieval are measured on T2 cases."
+      },
+      "M8": {
+        "status": "NOT_APPLICABLE",
+        "reason": "Injected-error recall and paired retrieval are measured on T2 cases."
+      }
+    },
+    "T2": {
+      "M1": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.3431294678316124,
+        "gold_spans": 872,
+        "predicted_spans": 387,
+        "ci95": {
+          "low": 0.2042838096601586,
+          "high": 0.4934903690663828,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 9,
+          "valid_replicates": 1000
+        }
+      },
+      "M5": {
+        "status": "TECHNICAL_SCORE",
+        "score": 0.4,
+        "hits": 12,
+        "total": 30,
+        "ci95": {
+          "low": 0.26666666666666666,
+          "high": 0.5333333333333333,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 9,
+          "valid_replicates": 1000
+        },
+        "prediction_module": "app.risk.dev_injection_baseline.detect_dev_risks",
+        "alignment_rule": "Predicted segment covers at least 80% of injection span; role and risk label match.",
+        "limitation": "This is the frozen Dev Article 17 OR rule, not the full W7 composite 27/30 predictor."
+      },
+      "PRIVACY": {
+        "status": "TECHNICAL_SCORE_DERIVED_REFERENCE",
+        "counts": {
+          "high_gold": 3,
+          "high_masked": 3,
+          "standard_gold": 18,
+          "standard_masked": 18,
+          "preserve_gold": 63,
+          "preserved": 62
+        },
+        "reference_status": "DERIVED_FROM_T1_ADJUDICATED_AND_T2_INJECTIONS_NOT_SEPARATELY_ADJUDICATED",
+        "high_sensitivity_recall": {
+          "score": 1.0,
+          "ci95": {
+            "low": 1.0,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 887
+          }
+        },
+        "standard_sensitivity_recall": {
+          "score": 1.0,
+          "ci95": {
+            "low": 1.0,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 895
+          }
+        },
+        "preserve_rate": {
+          "score": 0.9841269841269841,
+          "ci95": {
+            "low": 0.9523809523809523,
+            "high": 1.0,
+            "iterations": 1000,
+            "seed": 0,
+            "valid_replicates": 1000
+          }
+        }
+      },
+      "M8": {
+        "status": "TECHNICAL_SCORE",
+        "total": 30,
+        "graph_off": {
+          "hits": 15,
+          "score": 0.5,
+          "ci95": [
+            0.32142857142857145,
+            0.6774193548387096
+          ]
+        },
+        "graph_on": {
+          "hits": 14,
+          "score": 0.4666666666666667,
+          "ci95": [
+            0.2857142857142857,
+            0.6363636363636364
+          ]
+        },
+        "bootstrap": {
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 9
+        },
+        "unlocalized_injection_count": 0,
+        "final_k": 8,
+        "k": 5,
+        "prediction_modules": [
+          "app.clause.dev_tfidf_baseline.DevTfidfBaseline",
+          "app.legal.baseline_retriever.BaselineRetriever",
+          "app.legal.data_graph.get_candidates"
+        ]
+      },
+      "M4": {
+        "status": "TECHNICAL_SCORE",
+        "valid": 19,
+        "total": 19,
+        "score": 1.0,
+        "ci95": {
+          "low": 1.0,
+          "high": 1.0,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 8,
+          "valid_replicates": 1000
+        },
+        "limitation": "Exact quote/offset invariant on emitted Dev-rule risk candidates only; it does not measure missed risks."
+      },
+      "M3a": {
+        "status": "TECHNICAL_SCORE",
+        "total": 387,
+        "valid": 387,
+        "score": 1.0,
+        "ci95": {
+          "low": 1.0,
+          "high": 1.0,
+          "iterations": 1000,
+          "seed": 0,
+          "cluster_count": 9,
+          "valid_replicates": 1000
+        },
+        "limitation": "Citation membership/effectivity for emitted top-1 retrieval candidates; not citation relevance or risk accuracy."
+      },
+      "gold_scope": {
+        "documents": 9,
+        "segmentation_spans": 872,
+        "injected_cases": 30
+      },
+      "M7": {
+        "status": "NOT_APPLICABLE",
+        "reason": "T2 has injection and segmentation Gold, but no independent clause-label Gold."
+      }
+    }
+  },
+  "prediction_module": "app.clause.segmenter.segment",
+  "segmenter_version": "rules_v1.1",
+  "gold_access_order": "D1 Dev Gold used to fit M7; T1 clean reference coordinates read as input. T1/T2 Test labels and citations opened only after predictions; restricted prediction artifact saved after scoring.",
+  "bootstrap": {
+    "iterations": 1000,
+    "seed": 0,
+    "cluster_unit": "document"
+  },
+  "limitation": "HDLD014 is synthetic. M7 uses a new fixed D1-only 1-NN baseline rather than a pre-existing W5 classifier. T1 M4 has no emitted risk outputs to score. T2 privacy reference is derived and not independently adjudicated. Technical scores do not establish original BRD or MS-4 acceptance.",
+  "versions": {
+    "corpus_version": "legal_corpus_draft_2026-10-28",
+    "data_graph_version": "data_graph_draft_2026-10-28"
+  },
+  "input_sha256": {
+    "equivalent_gate_receipt": "8323f973e9487f2c8fa6e06b78bca56d5d13725d63aeeb00f123aafd88257e22",
+    "T1_segmentation_gold": "52354df20f42be9489242cb0a9646ccf17c50a25d72a600c6e3260c01309a36f",
+    "T1_clause_label_gold": "e00cec445f0ff2b1ee11062c8fc3985b0cc9fefa68bd81e55762052504b860d2",
+    "T1_privacy_gold": "5baf6f56f50615b1bf1c9cac9cb9055925b731807ab71572767d2996b65d5270",
+    "T2_segmentation_gold": "6842e4640237b058f8c3320ab2f580c3efee12800672366a82524a2afed15e94",
+    "T2_injection_gold": "78212e6bca90517b41f528b92d4557b8873935692b21c11d79a314ee76e82116",
+    "synthetic_control_gold": "47f2ef54b2800ef34ece01c198e7a958f5703f7f4c3e6e03cff78b1ef4817128",
+    "corpus_manifest": "41d5de09af48915c57ad58f5f5ff16eeaed41902782cf94fd18da590fc6a5d0d",
+    "data_graph": "a2355b0cb70035a49b2df8cb2931eaf9ee65cb693c1d8bf152561c7db3229b98",
+    "evaluation_script": "11e4681e452fee7e6c91fe610d977b8099ce993df1a1add4a8fd17c909e5b5da",
+    "m5_dev_rule_module": "dc93516d026d7eedf64598467b21789914fbc700ccca77c58fbe4a8ba2fc98fd",
+    "m5_dev_rule_source": "6d844cd69d1fe6faaf088023b76d8846d0fa95153a91aeb469c107d6f29df3e0",
+    "m7_dev_training_clauses": "c5318ebb59195536eac2a83fd223044b33a6ba3d086891d737dd5c2edc49667d",
+    "m7_dev_training_gold": "7c542e603c113eb635f3f0b104e72a5dcb458192c3bf50cdc72b1af06c0a2146",
+    "m7_dev_model_module": "981a5f421d4cf478a8a80bb6b425ea5feb49a3ff566b5507051e212e3f9fd0bc",
+    "m7_genuine_reference_spans": "3d9cd1c0bd696af81c18dd10858d82d13724723c3d583296ac815bfeaa8d9422",
+    "m4_quote_metric_module": "fe628cad89f821a4191426496feccf1510e06184e9dfc91452da25f2fd12aa53",
+    "T2_privacy_derived_reference": "e6e6df450449cc0a2b55c2cbf72a4182eda5d73210ba07784a942f209c24eb05"
+  },
+  "predictions_sha256": "7aedfed5125830364d4ab739edce961cb698a5ce34b7537ead7f87bc7b697256"
+}

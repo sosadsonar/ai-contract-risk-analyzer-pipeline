@@ -16,6 +16,7 @@ from ai_pipeline.evaluation.metrics.quote_span import (
     QuoteSpanResult,
     evaluate_quote_spans,
 )
+from ai_pipeline.evaluation.metrics.segmentation import evaluate_segmentation
 
 __all__ = [
     "CitationCheck",
@@ -28,4 +29,5 @@ __all__ = [
     "evaluate_citation_validity",
     "evaluate_injected_recall",
     "evaluate_quote_spans",
+    "evaluate_segmentation",
 ]

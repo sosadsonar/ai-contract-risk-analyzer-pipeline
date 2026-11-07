@@ -1,7 +1,7 @@
 corpus_version: legal_corpus_draft_2026-10-28
 graph_version: data_graph_draft_2026-10-28
 timezone: Asia/Ho_Chi_Minh
-release_status: DRAFT
+release_status: APPROVED
 checksums:
   provisions.jsonl: f8a3b6b5bd34d0352da1dad05e156b246cd78e470386c5634732073151dfb44b
   edges.jsonl: a2355b0cb70035a49b2df8cb2931eaf9ee65cb693c1d8bf152561c7db3229b98

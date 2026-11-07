@@ -1,6 +1,7 @@
 """C-12b: same final_k pool with or without graph, effective dates, lexical weights."""
 
 import shutil
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 
@@ -66,7 +67,7 @@ def test_effective_date_filters_and_versions_are_deduped(valid_dir):
 
 
 def test_draft_corpus_retriever_is_blocked_by_default():
-    draft = load_corpus(DATA, allow_draft=True)
+    draft = replace(load_corpus(DATA), release_status="DRAFT")
     with pytest.raises(LegalCorpusConflict, match="awaits Data/Legal reviewer"):
         BaselineRetriever(draft)
     assert BaselineRetriever(draft, allow_draft=True).retrieve(

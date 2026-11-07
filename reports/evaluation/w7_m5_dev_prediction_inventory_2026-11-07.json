@@ -1,0 +1,47 @@
+{
+  "source_sha256": "889dd4ef6014cc7fcd167252080e2c2710cb95d2a350f750cc3472f94a524b31",
+  "document_count": 4,
+  "prediction_count": 52,
+  "role_label_counts": {
+    "EMPLOYEE|DEPOSIT_DOCUMENT_HELD": 17,
+    "EMPLOYEE|EMPLOYEE_OBLIGATIONS_DISCIPLINE": 10,
+    "EMPLOYER|DEPOSIT_DOCUMENT_HELD": 16,
+    "EMPLOYER|EMPLOYEE_OBLIGATIONS_DISCIPLINE": 9
+  },
+  "fields": [
+    "clause_id",
+    "risk_label",
+    "role"
+  ],
+  "dev_gold_overlap_diagnostic": [
+    {
+      "document_id": "HDLD001",
+      "gold_count": 8,
+      "prediction_count": 16,
+      "exact_tuple_overlap": 8,
+      "gold_clause_overlap": 8
+    },
+    {
+      "document_id": "HDLD002",
+      "gold_count": 8,
+      "prediction_count": 11,
+      "exact_tuple_overlap": 7,
+      "gold_clause_overlap": 7
+    },
+    {
+      "document_id": "HDLD003",
+      "gold_count": 7,
+      "prediction_count": 12,
+      "exact_tuple_overlap": 6,
+      "gold_clause_overlap": 7
+    },
+    {
+      "document_id": "HDLD004",
+      "gold_count": 7,
+      "prediction_count": 13,
+      "exact_tuple_overlap": 6,
+      "gold_clause_overlap": 7
+    }
+  ],
+  "interpretation": "The 27/30 overlap is a Dev-set diagnostic, not proof of an independently callable text predictor or T2 performance."
+}

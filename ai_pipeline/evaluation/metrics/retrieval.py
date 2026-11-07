@@ -3,6 +3,8 @@
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
+from ai_pipeline.evaluation.metrics.bootstrap import bootstrap_cluster_interval
+
 
 @dataclass(frozen=True)
 class RetrievalCase:
@@ -12,6 +14,7 @@ class RetrievalCase:
     gold_citation_id: str
     baseline_candidate_ids: Sequence[str]
     graph_candidate_ids: Sequence[str]
+    source_document_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -19,6 +22,9 @@ class RecallSummary:
     hits: int
     total: int
     recall: float
+    ci95_low: float | None = None
+    ci95_high: float | None = None
+    valid_replicate_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -28,6 +34,9 @@ class RetrievalMetricResult:
     graph_off: RecallSummary
     graph_on: RecallSummary
     graph_added_candidate_count: int
+    graph_fallback_case_ids: tuple[str, ...] = ()
+    bootstrap_cluster_count: int = 0
+    bootstrap_iterations: int = 1000
 
 
 def _validate_candidate_ids(values: Sequence[str], *, final_k: int) -> tuple[str, ...]:
@@ -56,6 +65,7 @@ def evaluate_retrieval(
         raise ValueError("retrieval evaluation requires at least one case")
 
     seen: set[str] = set()
+    clusters: dict[str, list[RetrievalCase]] = {}
     off_hits = on_hits = added = 0
     for case in rows:
         if not isinstance(case, RetrievalCase):
@@ -65,6 +75,8 @@ def evaluate_retrieval(
         if case.case_id in seen:
             raise ValueError("case_id values must be unique")
         seen.add(case.case_id)
+        cluster_id = case.source_document_id or "__unspecified__"
+        clusters.setdefault(cluster_id, []).append(case)
         if not isinstance(case.gold_citation_id, str) or not case.gold_citation_id.strip():
             raise ValueError("gold citation ID must be non-empty")
         off = _validate_candidate_ids(case.baseline_candidate_ids, final_k=final_k)
@@ -74,7 +86,30 @@ def evaluate_retrieval(
         added += len(set(on) - set(off))
 
     total = len(rows)
+    cluster_rows = {key: (tuple(value),) for key, value in clusters.items()}
+
+    def sampled_recall(sampled, *, graph_on: bool):
+        sampled_cases = [case for cases_in_document in sampled for case in cases_in_document]
+        if not sampled_cases:
+            return None
+        hits = sum(
+            case.gold_citation_id
+            in (case.graph_candidate_ids if graph_on else case.baseline_candidate_ids)[:k]
+            for case in sampled_cases
+        )
+        return hits / len(sampled_cases)
+
+    off_interval = bootstrap_cluster_interval(
+        cluster_rows, lambda sampled: sampled_recall(sampled, graph_on=False)
+    )
+    on_interval = bootstrap_cluster_interval(
+        cluster_rows, lambda sampled: sampled_recall(sampled, graph_on=True)
+    )
     return RetrievalMetricResult(
-        k, final_k, RecallSummary(off_hits, total, off_hits / total),
-        RecallSummary(on_hits, total, on_hits / total), added,
+        k, final_k,
+        RecallSummary(off_hits, total, off_hits / total, off_interval.low, off_interval.high,
+                      off_interval.valid_replicate_count),
+        RecallSummary(on_hits, total, on_hits / total, on_interval.low, on_interval.high,
+                      on_interval.valid_replicate_count),
+        added, (), off_interval.cluster_count, off_interval.iterations,
     )

@@ -52,13 +52,11 @@ def test_valid_corpus_and_deterministic_ids(valid_dir):
     assert corpus.label_map["JOB_INFO"]["TESTLAW:art21:cl1:ptc"] == 0.9
 
 
-def test_draft_is_blocked_and_real_corpus_remains_draft():
-    with pytest.raises(LegalCorpusConflict, match="awaits Data/Legal reviewer"):
-        load_corpus(DATA)
-    draft = load_corpus(DATA, allow_draft=True)
-    assert draft.release_status == "DRAFT"
-    assert len(draft.provisions) >= 5
-    assert len(draft.edges) == 1
+def test_approved_real_corpus_loads_with_pinned_content():
+    corpus = load_corpus(DATA)
+    assert corpus.release_status == "APPROVED"
+    assert len(corpus.provisions) == 16
+    assert len(corpus.edges) == 1
 
 
 def test_real_draft_corpus_has_verified_article14_self_reference_edge():

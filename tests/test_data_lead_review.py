@@ -49,7 +49,9 @@ class ContextAuditTests(unittest.TestCase):
             raise unittest.SkipTest('Private data submodule is unavailable')
         with (cls.data_root / 'data/processed/clauses_v06.csv').open(encoding='utf-8-sig', newline='') as f:
             cls.context = next(r for r in csv.DictReader(f) if r['offset_quality'] == 'CONTEXT')
-        cls.raw = (cls.data_root / 'data/processed/raw_text' / (cls.context['contract_id'] + '.txt')).read_text(encoding='utf-8')
+        cls.raw = (
+            cls.data_root / 'data/processed/raw_text' / (cls.context['contract_id'] + '.txt')
+        ).read_text(encoding='utf-8')
 
     def test_audit_covers_all_nine_without_exact_gold_or_legal_labels(self):
         report = auditor.audit(self.data_root)

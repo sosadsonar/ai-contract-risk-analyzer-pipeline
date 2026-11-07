@@ -66,7 +66,7 @@ def test_expired_neighbor_not_traversed(fake_corpus):
 
 
 def test_draft_requires_opt_in_and_only_curated_edges_enter_graph(fake_corpus):
-    draft = load_corpus(DATA, allow_draft=True)
+    draft = replace(load_corpus(DATA), release_status="DRAFT")
     with pytest.raises(LegalCorpusConflict, match="awaits Data/Legal reviewer"):
         DataGraph(draft)
     assert DataGraph(draft, allow_draft=True).relations == (
