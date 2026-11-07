@@ -12,5 +12,36 @@
     "clause_id",
     "risk_label",
     "role"
-  ]
+  ],
+  "dev_gold_overlap_diagnostic": [
+    {
+      "document_id": "HDLD001",
+      "gold_count": 8,
+      "prediction_count": 16,
+      "exact_tuple_overlap": 8,
+      "gold_clause_overlap": 8
+    },
+    {
+      "document_id": "HDLD002",
+      "gold_count": 8,
+      "prediction_count": 11,
+      "exact_tuple_overlap": 7,
+      "gold_clause_overlap": 7
+    },
+    {
+      "document_id": "HDLD003",
+      "gold_count": 7,
+      "prediction_count": 12,
+      "exact_tuple_overlap": 6,
+      "gold_clause_overlap": 7
+    },
+    {
+      "document_id": "HDLD004",
+      "gold_count": 7,
+      "prediction_count": 13,
+      "exact_tuple_overlap": 6,
+      "gold_clause_overlap": 7
+    }
+  ],
+  "interpretation": "The 27/30 overlap is a Dev-set diagnostic, not proof of an independently callable text predictor or T2 performance."
 }
