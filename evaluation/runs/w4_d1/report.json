@@ -1,0 +1,206 @@
+{
+  "schema_version": "d1_clause_run_v1",
+  "mode": "MEASUREMENT_PRELIMINARY_D1",
+  "per_contract": [
+    {
+      "contract_id": "HDLD001",
+      "canonical_chars": 7213,
+      "pii_spans": 0,
+      "clauses": 43,
+      "segmentation_warnings": 0,
+      "gold_exact_spans": 38,
+      "graph_next": 42,
+      "graph_parent_of": 28,
+      "graph_diagnostics": []
+    },
+    {
+      "contract_id": "HDLD002",
+      "canonical_chars": 6822,
+      "pii_spans": 0,
+      "clauses": 47,
+      "segmentation_warnings": 0,
+      "gold_exact_spans": 40,
+      "graph_next": 46,
+      "graph_parent_of": 29,
+      "graph_diagnostics": []
+    },
+    {
+      "contract_id": "HDLD003",
+      "canonical_chars": 9004,
+      "pii_spans": 0,
+      "clauses": 40,
+      "segmentation_warnings": 0,
+      "gold_exact_spans": 59,
+      "graph_next": 39,
+      "graph_parent_of": 31,
+      "graph_diagnostics": []
+    },
+    {
+      "contract_id": "HDLD004",
+      "canonical_chars": 10991,
+      "pii_spans": 0,
+      "clauses": 68,
+      "segmentation_warnings": 0,
+      "gold_exact_spans": 37,
+      "graph_next": 67,
+      "graph_parent_of": 52,
+      "graph_diagnostics": []
+    }
+  ],
+  "m1_proxy_iou_0_80": {
+    "precision": 0.5,
+    "recall": 0.569,
+    "f1": 0.5323,
+    "tp": 99,
+    "fp": 99,
+    "fn": 75
+  },
+  "m1_proxy_note": "So với span NHÃN của dataset (không phải gold segmentation) — KHÔNG phải M1.",
+  "m7_preliminary": {
+    "macro_f1": 0.4974,
+    "macro_labels": [
+      "COMPENSATION_BENEFITS",
+      "CONTRACT_TERM",
+      "EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "EMPLOYER_RIGHTS_OBLIGATIONS",
+      "INSURANCE_SAFETY",
+      "JOB_INFO",
+      "LEAVE",
+      "OTHER",
+      "TERMINATION",
+      "TRAINING",
+      "WORKING_CONDITIONS",
+      "WORKING_TIME"
+    ],
+    "labels_below_min_support": [],
+    "gold_total": 174,
+    "pred_total": 198,
+    "aligned": 111,
+    "gold_unmatched": 63,
+    "pred_unmatched": 87,
+    "per_label": {
+      "COMPENSATION_BENEFITS": {
+        "support": 32,
+        "tp": 31,
+        "fp": 11,
+        "fn": 1,
+        "precision": 0.7381,
+        "recall": 0.9688,
+        "f1": 0.8378
+      },
+      "CONTRACT_TERM": {
+        "support": 6,
+        "tp": 4,
+        "fp": 10,
+        "fn": 2,
+        "precision": 0.2857,
+        "recall": 0.6667,
+        "f1": 0.4
+      },
+      "EMPLOYEE_OBLIGATIONS_DISCIPLINE": {
+        "support": 25,
+        "tp": 5,
+        "fp": 16,
+        "fn": 20,
+        "precision": 0.2381,
+        "recall": 0.2,
+        "f1": 0.2174
+      },
+      "EMPLOYER_RIGHTS_OBLIGATIONS": {
+        "support": 21,
+        "tp": 20,
+        "fp": 15,
+        "fn": 1,
+        "precision": 0.5714,
+        "recall": 0.9524,
+        "f1": 0.7143
+      },
+      "INSURANCE_SAFETY": {
+        "support": 8,
+        "tp": 7,
+        "fp": 5,
+        "fn": 1,
+        "precision": 0.5833,
+        "recall": 0.875,
+        "f1": 0.7
+      },
+      "JOB_INFO": {
+        "support": 17,
+        "tp": 9,
+        "fp": 17,
+        "fn": 8,
+        "precision": 0.3462,
+        "recall": 0.5294,
+        "f1": 0.4186
+      },
+      "LEAVE": {
+        "support": 12,
+        "tp": 6,
+        "fp": 6,
+        "fn": 6,
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5
+      },
+      "OTHER": {
+        "support": 13,
+        "tp": 5,
+        "fp": 38,
+        "fn": 8,
+        "precision": 0.1163,
+        "recall": 0.3846,
+        "f1": 0.1786
+      },
+      "TERMINATION": {
+        "support": 16,
+        "tp": 10,
+        "fp": 8,
+        "fn": 6,
+        "precision": 0.5556,
+        "recall": 0.625,
+        "f1": 0.5882
+      },
+      "TRAINING": {
+        "support": 11,
+        "tp": 4,
+        "fp": 6,
+        "fn": 7,
+        "precision": 0.4,
+        "recall": 0.3636,
+        "f1": 0.381
+      },
+      "WORKING_CONDITIONS": {
+        "support": 5,
+        "tp": 4,
+        "fp": 6,
+        "fn": 1,
+        "precision": 0.4,
+        "recall": 0.8,
+        "f1": 0.5333
+      },
+      "WORKING_TIME": {
+        "support": 8,
+        "tp": 5,
+        "fp": 7,
+        "fn": 3,
+        "precision": 0.4167,
+        "recall": 0.625,
+        "f1": 0.5
+      }
+    },
+    "alignment_iou": 0.5
+  },
+  "cost": {
+    "calls": 12,
+    "in_tokens": 22411,
+    "out_tokens": 7518,
+    "cost": 0.0,
+    "errors": []
+  },
+  "version_pins": {
+    "model_id": "gemini-3.5-flash-lite",
+    "prompt_version": "clause_prompt_v1+v04+28987a13",
+    "taxonomy_version": "clause_taxonomy_v03",
+    "schema_version": "clause_output_v3"
+  }
+}

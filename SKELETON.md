@@ -282,7 +282,8 @@ def parse_structure(masked_text: str, boundary_guard: Callable[[int], bool] = ..
 #   5 pattern: Điều n | n.n | n) | a) | gạch đầu dòng; gán level/number/parent; boundary rơi vào placeholder thì **bỏ** (đã chọn bỏ, không dời — 25/10)
 
 # clause/segmenter.py
-def boundary_guard(pos: int, pii_spans: list[PiiSpan]) -> bool       # [TDD] False nếu start < pos < end của bất kỳ span; HIỆN re-export từ privacy/masker.py (N3)
+def boundary_guard(pos: int, pii_spans: list[PiiSpan]) -> bool       # [TDD] False nếu start < pos < end của bất kỳ span; GỐC ở segmenter (X-20, W4), privacy/masker.py re-export
+def adjust_boundary(pos: int, pii_spans: list[PiiSpan]) -> int      # dời biên ra mép span (hòa → đầu)
 def segment(canonical_text, masked_text, pii_spans, *, max_clauses=150) -> SegmentationResult
 #   XONG 25/10 (C-01 a): SegmentationResult(clauses: list[SegmentedClause], warnings, segmentation_version).to_dict() = `segmentation_v1`
 #   SegmentedClause(clause_id, original_text, start_char, end_char, structure=ClauseStructure(level, number, parent_clause_id))
@@ -292,7 +293,8 @@ def segment(canonical_text, masked_text, pii_spans, *, max_clauses=150) -> Segme
 #   clause >4000 ký tự giữ nguyên + warning; >150 clause ⇒ ValidationReject(TOO_MANY_CLAUSES)
 
 # clause/graph_builder.py
-def build_clause_graph(clauses, structure, masked_text) -> tuple[ClauseGraph, list[Diagnostic]]
+def build_clause_graph(clauses: Sequence[SegmentedClause], masked_text=None) -> tuple[ClauseGraph, list[Diagnostic]]
+#   W4 (C-14 a): NEXT + PARENT_OF; `structure` đã nằm trong clause.structure nên không còn tham số riêng; masked_text dành cho REFERS_TO (W5)
 #   NEXT (i→i+1), PARENT_OF (level cha < con, không chu trình), REFERS_TO (resolve duy nhất trong cùng hợp đồng)
 #   LOẠI TRỪ dẫn chiếu pháp luật ("Điều 26 (của) Bộ luật…", Luật, Nghị định, Thông tư); mơ hồ ⇒ bỏ cạnh + diagnostic
 # clause/context_resolver.py

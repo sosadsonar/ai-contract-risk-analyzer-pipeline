@@ -185,3 +185,50 @@ def test_missing_model_id_and_empty_input_and_duplicate_ids():
     dup = [ClauseMasked("cl_0001", "a"), ClauseMasked("cl_0001", "b")]
     with pytest.raises(ValueError):
         asyncio.run(classify_clauses(dup, Echo(), InMemoryLedger(), CFG))
+
+
+# ---- W4: hoàn thiện C-01 (b) ----------------------------------------------------------------
+
+
+def test_late_cancel_after_provider_returns_discards_result():
+    """End trong lúc đang gọi: kết quả muộn bị bỏ, không ghi nhãn (callback muộn)."""
+    state = {"ended": False}
+
+    class EndsDuringCall(Echo):
+        async def generate_structured(self, **kw):
+            r = await super().generate_structured(**kw)
+            state["ended"] = True  # người dùng bấm End trong lúc provider trả lời
+            return r
+
+    with pytest.raises(StageCancelled):
+        run(2, EndsDuringCall(), cancel=lambda: state["ended"])
+
+
+def test_works_with_real_settings_defaults_batch20_parallel2():
+    from app.core.config import Settings
+
+    cfg = Settings(GEMINI_MODEL_ID="m-1", _env_file=None)
+    assert (cfg.CLAUSE_BATCH_SIZE, cfg.LLM_PARALLELISM, cfg.LLM_AUTO_RETRY) == (20, 2, 1)
+    p, ledger = Echo(delay=0.01), InMemoryLedger()
+    out = asyncio.run(classify_clauses(items(45), p, ledger, cfg))
+    assert len(out.items) == 45 and ledger.calls == 3  # 20 + 20 + 5
+    assert [len(__import__("json").loads(m[1]["content"])["items"]) for m in p.requests] == [20, 20, 5]
+    assert p.peak <= 2
+
+
+def test_retry_exhausted_counts_two_provider_calls_then_ai_output_invalid():
+    p, ledger = Echo(mutate=lambda d, n: {"items": []}), InMemoryLedger()
+    with pytest.raises(AiOutputInvalid) as ei:
+        run(2, p, ledger)
+    assert ei.value.code == "AI_OUTPUT_INVALID" and ledger.calls == 2  # 1 gốc + 1 retry, không hơn
+
+
+def test_masked_items_from_segmentation_uses_masked_text_only():
+    from app.ai.clause_adapter import masked_items_from_segmentation
+    from app.clause.segmenter import segment
+
+    canonical = "Điều 1. Liên hệ\n1.1 Email: a@b.com để nhận thông báo từ công ty\n1.2 Hết hợp đồng thì thanh toán\n"
+    masked = canonical.replace("a@b.com", "<EMAIL>")
+    got = masked_items_from_segmentation(segment(canonical, masked, []), masked)
+    assert got and all("a@b.com" not in m.masked_text for m in got)
+    assert [m.clause_id for m in got] == sorted(m.clause_id for m in got)

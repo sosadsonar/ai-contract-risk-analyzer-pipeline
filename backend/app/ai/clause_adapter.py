@@ -1,6 +1,8 @@
 """Clause Classification adapter — LLM #1 (TDD §13, C-01 (b) khung).
 
-Trạng thái W3: KHUNG chạy được với provider mock/Gemini; chưa chạy trên D1 (T4), chưa nối orchestrator.
+Trạng thái W4: đầy đủ theo C-01 (b) — lô CLAUSE_BATCH_SIZE, song song ≤ LLM_PARALLELISM, kiểm cancel
+trước và sau mỗi lô, validate đúng-1-lần/1–3 nhãn, retry ≤1 → AI_OUTPUT_INVALID. Nhận `Settings` thật.
+Chưa gọi Gemini thật (cần key/mạng — job `llm-live`); chưa nối orchestrator (N4).
 Bất biến:
   INV-04  ra ngoài chỉ có `clause_id` + masked_text (không role, canonical, offset, structure);
   INV-05  response có field lạ / thiếu / trùng / ID lạ / nhãn ngoài taxonomy ⇒ bị từ chối; retry ≤1 ⇒ AiOutputInvalid;
@@ -59,6 +61,15 @@ class ClauseOutput:
         }
 
 
+def masked_items_from_segmentation(segmentation, masked_text: str) -> list[ClauseMasked]:
+    """Cầu nối segmentation → classification: lấy text ĐÃ CHE của từng clause theo span (INV-04).
+
+    Chỉ trả `clause_id` + masked_text; không role, canonical, offset hay structure. Span tính trên
+    canonical nhưng masked_text cùng độ dài (INV-01) nên cắt trực tiếp được.
+    """
+    return [ClauseMasked(c.clause_id, masked_text[c.start_char : c.end_char]) for c in segmentation.clauses]
+
+
 def make_batches(items: list, size: int) -> list[list]:
     if size <= 0:
         raise ValueError("batch size phải > 0")
@@ -104,7 +115,8 @@ async def classify_clauses(
     cfg,
     cancel: Optional[Callable[[], bool]] = None,
 ) -> ClauseOutput:
-    """Phân loại theo lô (CLAUSE_BATCH_SIZE), song song ≤ LLM_PARALLELISM, kiểm cancel TRƯỚC mỗi lô.
+    """Phân loại theo lô (CLAUSE_BATCH_SIZE), song song ≤ LLM_PARALLELISM, kiểm cancel TRƯỚC mỗi lô
+    và SAU khi lô trả về (callback muộn sau End không được ghi kết quả).
 
     `cancel()` trả True ⇒ raise StageCancelled (orchestrator quyết định state, ví dụ End).
     Lô lỗi ⇒ các lô còn lại bị hủy ngay; lỗi mang mã AI_* của lô đầu tiên thất bại.
@@ -138,6 +150,8 @@ async def classify_clauses(
                 validate=lambda data, e=expected: validate_batch_response(data, e),
                 max_retries=cfg.LLM_AUTO_RETRY,
             )
+            if cancel is not None and cancel():  # End trong lúc đang gọi: bỏ kết quả muộn, không ghi nhãn
+                raise StageCancelled()
             labels.update(parsed)
             resp_model[idx] = resp.model_id
 
