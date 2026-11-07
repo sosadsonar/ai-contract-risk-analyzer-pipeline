@@ -1,0 +1,16 @@
+{
+  "source_sha256": "889dd4ef6014cc7fcd167252080e2c2710cb95d2a350f750cc3472f94a524b31",
+  "document_count": 4,
+  "prediction_count": 52,
+  "role_label_counts": {
+    "EMPLOYEE|DEPOSIT_DOCUMENT_HELD": 17,
+    "EMPLOYEE|EMPLOYEE_OBLIGATIONS_DISCIPLINE": 10,
+    "EMPLOYER|DEPOSIT_DOCUMENT_HELD": 16,
+    "EMPLOYER|EMPLOYEE_OBLIGATIONS_DISCIPLINE": 9
+  },
+  "fields": [
+    "clause_id",
+    "risk_label",
+    "role"
+  ]
+}
