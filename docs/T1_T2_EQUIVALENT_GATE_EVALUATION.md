@@ -64,6 +64,16 @@ M2, M3b, and M6 are not run in this report. See `acceptance_readout.md` next to
 the JSON for thresholds and confidence intervals. The failing and undefined
 measurements remain open work; no T1/T2 tuning is authorized by this report.
 
+### Rejected M5 Dev experiment
+
+`reports/evaluation/m5_dev_leave_one_document_out_2026-11-07.json` records a
+four-fold, leave-one-document-out experiment on D2 Dev only. A character
+TF-IDF nearest-segment classifier copied the positive/role/label tuple from
+the closest segment in the other three Dev documents. It matched only 5 of
+30 injected Gold tuples. This experiment was not run on T2 and was not used
+to alter the frozen T2 result. The W7 27/30 result is tied to a stored Dev
+prediction artifact; it is not a callable independent predictor for T2.
+
 ## Maintainer checks
 
 Run `python -m pytest -q`, `ruff check` on tracked Python files, and

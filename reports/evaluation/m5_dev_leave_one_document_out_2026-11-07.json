@@ -1,0 +1,32 @@
+{
+  "method": "char TF-IDF 2-5, nearest segment, positive/role/label copied from nearest D2 Dev segment",
+  "evaluation": "leave-one-document-out on D2 Dev only; no T1/T2 data read",
+  "documents": [
+    {
+      "held_out_doc": "HDLD001",
+      "gold_positive": 8,
+      "predicted_positive": 7,
+      "exact_hits": 2
+    },
+    {
+      "held_out_doc": "HDLD002",
+      "gold_positive": 8,
+      "predicted_positive": 7,
+      "exact_hits": 1
+    },
+    {
+      "held_out_doc": "HDLD003",
+      "gold_positive": 7,
+      "predicted_positive": 8,
+      "exact_hits": 0
+    },
+    {
+      "held_out_doc": "HDLD004",
+      "gold_positive": 7,
+      "predicted_positive": 9,
+      "exact_hits": 2
+    }
+  ],
+  "total_gold": 30,
+  "total_hits": 5
+}
