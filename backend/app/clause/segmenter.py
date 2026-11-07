@@ -34,7 +34,6 @@ from typing import Optional
 
 from app.clause.structure_parser import HeadingMark, parse_structure
 from app.domain.errors import ValidationReject
-from app.privacy.masker import boundary_guard as _pii_boundary_guard
 from app.privacy.pii_types import PiiSpan
 
 SEGMENTATION_VERSION = "rules_v1.1"
@@ -49,12 +48,20 @@ _BLANK_LINE = re.compile(r"\n[ \t]*\n")
 
 
 def boundary_guard(pos: int, pii_spans: list[PiiSpan]) -> bool:
-    """[TDD §10.3] False nếu start < pos < end của bất kỳ span PII.
+    """[TDD §10.3] False nếu start < pos < end của bất kỳ span PII (biên rơi vào trong placeholder).
 
-    Cài đặt gốc vẫn ở `app.privacy.masker` (Người 3, C-09); dùng lại ở đây để khỏi nhân đôi logic,
-    re-export theo SKELETON §5.6. Chuyển hẳn về file này nếu N3 đồng ý (tránh sửa test của họ).
+    X-20 (N1, W4): cài đặt gốc nằm ở đây theo SKELETON §5.6. `app.privacy.masker` re-export lại
+    để test/mã của N3 không phải đổi import. Hàm thuần, chỉ cần danh sách span viết tay để test.
     """
-    return _pii_boundary_guard(pos, pii_spans)
+    return not any(span.start < pos < span.end for span in pii_spans)
+
+
+def adjust_boundary(pos: int, pii_spans: list[PiiSpan]) -> int:
+    """Dời biên ra đầu/cuối span nếu rơi vào trong placeholder (hòa thì về đầu)."""
+    for span in pii_spans:
+        if span.start < pos < span.end:
+            return span.start if pos - span.start <= span.end - pos else span.end
+    return pos
 
 
 @dataclass(frozen=True)

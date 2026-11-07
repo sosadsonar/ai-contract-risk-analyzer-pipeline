@@ -288,7 +288,7 @@ Ngoài phạm vi: không đo false positive riêng. Precision nằm trong F1 c�
 | Tập | Nội dung | Dùng cho |
 | :---- | :---- | :---- |
 | D1 | HDLD001–004: 4 hợp đồng Dev, 183 điều khoản đã REVIEWED; HDLD005 không thuộc D1 | Phát triển, tuning prompt, few-shot; kiểm tra theo nhóm mẫu giống nhau khi cần; không báo số nghiệm thu |
-| D2 | 9 tài liệu Dev, 30 lỗi chèn đã duyệt, tách khỏi T2; câu chữ và quy định không dùng chung với T2 | Phát triển và đo lỗi chèn Dev |
+| D2 | 4 tài liệu Dev HDLD001–004, 236 span phân đoạn và 30 lỗi chèn đã duyệt (8 + 8 + 7 + 7), tách khỏi T2 | Phát triển và đo lỗi chèn Dev |
 | D3 | Bản sao hợp đồng D1 cài tối thiểu 10 cặp điều khoản mâu thuẫn (cặp có cạnh trong Clause Graph) và 10 cặp đối chứng nhất quán | M10 |
 | T1 | Cổng tương đương `T1_EQUIVALENT_GATE_V1`: HDLD005–014, gồm 4 tài liệu thực/nội bộ hạn chế truy cập, 5 biểu mẫu công khai và 1 đối chứng tổng hợp; HDLD005 luôn thuộc T1 | M1, M2, M3a, M4, M7; M3b/M6 và các chỉ số mở rộng khi có gói đánh giá tương ứng |
 | T2 | 9 tài liệu phát sinh từ T1 thực/mẫu HDLD005–013, 872 span và 30 lỗi chèn (8.4); HDLD014 không nằm trong T2 hiện hành | M3a, M4, M5, M8 |
