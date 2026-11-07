@@ -16,6 +16,30 @@
 - `d1_198_clauses.json` contains boundaries and text, **not predicted labels**. `report.json` contains aggregate M7 scores, **not per-clause labels**. A fresh M7 score cannot be reproduced from these three files alone.
 - Version pins supplied by teammate: commit `8c382c8` (PR #21 on main), extraction schema `extraction_v1`, segmenter `rules_v1.1`, model `gemini-3.5-flash-lite`, prompt `clause_prompt_v1+v04+28987a13`, output schema `clause_output_v3`.
 
+## Reproduced geometry audit (2026-11-07)
+
+`scripts/audit_d1_saved_span_geometry.py` consumes the three saved artifacts and the
+locally restricted D1 canonical/Gold files. Its text-free output is
+`reports/evaluation/d1_saved_span_geometry_2026-11-07.json`. It independently
+reproduces 174 eligible Gold spans, 198 predictions, 111 matches, 63 unmatched
+Gold spans and 87 unmatched predictions at IoU 0.50. The recomputed set of 63
+unmatched coordinates equals the teammate's list exactly. Predicted offsets are
+in bounds: 172 quoted strings equal the canonical slice exactly, and 26 differ
+only in whitespace.
+
+Of the 63 unmatched Gold spans, 62 sit wholly inside a larger predicted span;
+one crosses a prediction boundary. This is primarily a segmentation granularity
+issue. Under the present one-to-one matching rule, an optimistic macro-F1 ceiling
+is 0.7431: it assumes perfect labels on all 111 matches and ignores all false
+positive predictions. **This is a ceiling, not a measured M7 score.** The
+current geometry alone prevents meeting the 0.80 M7 threshold. Releasing a
+different Gold boundary policy requires an explicit review decision and a
+versioned comparison; the audit does not silently change Gold.
+
+The three supplied files contain no per-clause predicted labels, so an offline
+M7 rescore remains impossible. The previously reported 0.4974 is retained as
+the teammate's preliminary score, with its original evaluation conditions.
+
 ## Task 1 — Freeze the shared coordinate system (Data owner)
 
 - [ ] Inspect `backend/app/document/canonicalizer.py` at the exact source commit and pin its file SHA-256 plus each D1 canonical-text SHA-256 in a private manifest. Verify NFC, LF, NBSP-to-space and the function's additional trim/join behavior.

@@ -1,0 +1,74 @@
+{
+  "scope": "D1 HDLD001-004; geometric audit only, no Gemini inference or M7 rescore",
+  "input_sha256": {
+    "saved_198_clauses": "58f8e0b2567f53b80cbe6788ce6a297a43e88bc981b3e7020bae68056b78db2b",
+    "saved_63_unmatched": "1b666236bcb626d2fe217c8e741e20bab4045b8c29ac5d05aa6dacce5f07256b",
+    "saved_report": "fe565a5e2e9414eaee73fa1daab43473122d6d0a892c1993e1f3841b360d73d7",
+    "clauses_v06": "c5318ebb59195536eac2a83fd223044b33a6ba3d086891d737dd5c2edc49667d"
+  },
+  "per_document": [
+    {
+      "document_id": "HDLD001",
+      "canonical_sha256": "b22f92b5e92ee3663922e6a1465b02fee89b243431bce8fdc6f682747777f925",
+      "gold_exact_spans": 38,
+      "predicted_spans": 43,
+      "matched": 23,
+      "gold_unmatched": 15,
+      "predicted_unmatched": 20,
+      "prediction_quote_exact": 31,
+      "prediction_quote_whitespace_only": 12
+    },
+    {
+      "document_id": "HDLD002",
+      "canonical_sha256": "b43a8e46839ee35125e709301c2558044f863304c6f9714d43386e33bac2758d",
+      "gold_exact_spans": 40,
+      "predicted_spans": 47,
+      "matched": 25,
+      "gold_unmatched": 15,
+      "predicted_unmatched": 22,
+      "prediction_quote_exact": 38,
+      "prediction_quote_whitespace_only": 9
+    },
+    {
+      "document_id": "HDLD003",
+      "canonical_sha256": "f76195cc5da1c65aad45debe3ca44c7dd4df5c077f29b1660555b604197e60f7",
+      "gold_exact_spans": 59,
+      "predicted_spans": 40,
+      "matched": 30,
+      "gold_unmatched": 29,
+      "predicted_unmatched": 10,
+      "prediction_quote_exact": 35,
+      "prediction_quote_whitespace_only": 5
+    },
+    {
+      "document_id": "HDLD004",
+      "canonical_sha256": "32f363a4e50ff056c6bc062a123fe8d16699055ca7be596175173381cb07afea",
+      "gold_exact_spans": 37,
+      "predicted_spans": 68,
+      "matched": 33,
+      "gold_unmatched": 4,
+      "predicted_unmatched": 35,
+      "prediction_quote_exact": 68,
+      "prediction_quote_whitespace_only": 0
+    }
+  ],
+  "totals": {
+    "gold_exact_spans": 174,
+    "predicted_spans": 198,
+    "matched": 111,
+    "gold_unmatched": 63,
+    "predicted_unmatched": 87,
+    "prediction_quote_exact": 172,
+    "prediction_quote_whitespace_only": 26,
+    "unmatched_list_exactly_reproduced": true,
+    "unmatched_geometry": {
+      "gold_inside_prediction": 62,
+      "partial_crossing": 1
+    }
+  },
+  "optimistic_m7_macro_f1_ceiling_ignoring_false_positives": 0.743124174831492,
+  "ceiling_note": "Assumes every matched prediction has the correct label and ignores all false positives; not an achieved M7 score.",
+  "reported_preliminary_m7": 0.4974,
+  "new_m7_score": null,
+  "new_m7_score_reason": "The supplied 198-clause artifact has no per-clause predicted labels."
+}
