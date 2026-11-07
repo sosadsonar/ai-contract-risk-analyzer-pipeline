@@ -86,6 +86,15 @@ the official M7 metric does not use these filters. Signature boundaries must
 be provided from a source parser or reviewed scope, never silently inferred
 from Gold labels.
 
+`scripts/score_d1_saved_labels_offline.py` is ready for the missing saved
+per-clause labels. It requires exactly the 198 existing D1
+`(contract_id, clause_id)` keys and one to three labels per record, fails
+closed on missing or duplicate IDs, scores the adjudicated 174 EXACT Gold
+spans with the unchanged official M7 rule, and computes a 1,000-resample,
+seed-0 document-cluster bootstrap CI. It writes only metric counts and input
+hashes. The script has not produced a project M7 score because the supplied
+three files have no per-clause prediction labels.
+
 ## Task 1 — Freeze the shared coordinate system (Data owner)
 
 - [ ] Inspect `backend/app/document/canonicalizer.py` at the exact source commit and pin its file SHA-256 plus each D1 canonical-text SHA-256 in a private manifest. Verify NFC, LF, NBSP-to-space and the function's additional trim/join behavior.
