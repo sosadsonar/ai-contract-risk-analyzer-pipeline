@@ -23,3 +23,4 @@ data/raw/
 *.egg
 build/
 dist/
+**/ops_metadata.sqlite3
