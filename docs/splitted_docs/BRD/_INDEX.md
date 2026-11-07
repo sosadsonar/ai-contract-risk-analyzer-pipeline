@@ -1,6 +1,6 @@
 # Mục lục BRD (BRD_AI_Labor_Contract_Risk_Analyzer_v0.6.md)
 
-Tách ở heading mức 2. Gốc 49,889 ký tự -> sau làm sạch 49,224 ký tự (~16,408 token).
+Tách ở heading mức 2. Gốc 49,894 ký tự -> sau làm sạch 49,229 ký tự (~16,410 token).
 
 | File | Mục | Ký tự | ID hàng bảng |
 |---|---|---|---|
@@ -14,7 +14,7 @@ Tách ở heading mức 2. Gốc 49,889 ký tự -> sau làm sạch 49,224 ký t
 | [07_7-du-lieu-ca-nhan-va-bao-mat.md](07_7-du-lieu-ca-nhan-va-bao-mat.md) | BRD: AI Labor Contract Risk Analyzer > 7. Dữ liệu cá nhân và bảo mật | 3,072 |  |
 | [08_8-do-luong-chat-luong-va-nghiem-thu.md](08_8-do-luong-chat-luong-va-nghiem-thu.md) | BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu | 125 |  |
 | [09_8-1-nguyen-tac-va-gioi-han.md](09_8-1-nguyen-tac-va-gioi-han.md) | BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.1 Nguyên tắc và giới hạn | 770 |  |
-| [10_8-2-du-lieu-danh-gia.md](10_8-2-du-lieu-danh-gia.md) | BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.2 Dữ liệu đánh giá | 4,155 | D1, D2, D3, T1, T2 |
+| [10_8-2-du-lieu-danh-gia.md](10_8-2-du-lieu-danh-gia.md) | BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.2 Dữ liệu đánh giá | 4,160 | D1, D2, D3, T1, T2 |
 | [11_8-3-cac-chi-so.md](11_8-3-cac-chi-so.md) | BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.3 Các chỉ số | 4,338 | M1, M2, M3a, M3b, M4, M5, M6, M7, M8, M2b ... |
 | [12_8-4-danh-gia-false-negative-bang-loi-chen.md](12_8-4-danh-gia-false-negative-bang-loi-chen.md) | BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.4 Đánh giá false negative bằng lỗi chèn | 1,315 |  |
 | [13_8-5-llm-as-a-judge-va-m6.md](13_8-5-llm-as-a-judge-va-m6.md) | BRD: AI Labor Contract Risk Analyzer > 8. Đo lường chất lượng và nghiệm thu > 8.5 LLM-as-a-judge và M6 | 1,089 |  |

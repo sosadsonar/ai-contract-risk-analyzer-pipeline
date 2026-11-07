@@ -6,7 +6,7 @@
 
 ## 1. Quyết định cần nhớ
 
-`D1 = HDLD001–004`, gồm 4 hợp đồng và 183 điều khoản đã REVIEWED. HDLD005 thuộc T1 trong mọi bước: không đưa vào few-shot, train hay tuning Dev. D2 là 9 tài liệu Dev với 30 lỗi chèn riêng. Không sử dụng Gold T1/T2 làm đầu vào dự đoán hoặc để điều chỉnh mô hình.
+`D1 = HDLD001–004`, gồm 4 hợp đồng và 183 điều khoản đã REVIEWED. HDLD005 thuộc T1 trong mọi bước: không đưa vào few-shot, train hay tuning Dev. D2 gồm 4 tài liệu Dev HDLD001–004, 236 span phân đoạn và 30 lỗi chèn riêng (8 + 8 + 7 + 7). T2 mới gồm 9 tài liệu HDLD005–013, 872 span và 30 lỗi chèn. Không sử dụng Gold T1/T2 làm đầu vào dự đoán hoặc để điều chỉnh mô hình.
 
 T1 được tiếp nhận theo `T1_EQUIVALENT_GATE_V1`, gồm 10 **tài liệu**, không phải 10 hợp đồng đã ký độc lập. Đây là quyết định nghiệm thu nội bộ của nhóm để có một tập đánh giá khả dụng trong điều kiện dữ liệu hợp đồng đã ký chứa PII cần hạn chế truy cập. Kết quả phải công bố cấu trúc mẫu và giới hạn của nó; không suy ra quyền công bố dữ liệu từ việc cổng đã đạt.
 
