@@ -53,6 +53,22 @@ both source hashes per document without publishing contract text. Do not treat
 the saved Gold offsets as offsets against freshly canonicalized raw text until
 the source discrepancy has been resolved and the affected spans reviewed.
 
+The provenance is now identified: **all four pinned Gold source files equal
+NFC(raw_text)**, and the source hashes in the restricted prediction manifest
+equal the current raw files. The pipeline's `canonicalize()` additionally
+normalizes whitespace, so the two coordinate systems have different bytes for
+HDLD001–003. The source files themselves are accounted for; this is a
+canonicalization-policy mismatch.
+
+`scripts/build_d1_pipeline_canonical_candidate.py` created an ignored, private
+candidate at `data/intake/private/D1_m1_pipeline_canonical_candidate_v01/`
+in the Data repository. It preserves all 329 Gold segment IDs and rebases their
+coordinates to the pipeline canonical text. All 329 rebased intervals are valid
+with zero overlaps; 328 preserve their segment quote after whitespace
+normalization. `HDLD002_CONTEXT_040` is the sole exception and is explicitly
+listed for manual review. The candidate retains status
+`AI_CANDIDATE_NEEDS_REVIEW`; the existing adjudicated Gold remains unchanged.
+
 ## Task 1 — Freeze the shared coordinate system (Data owner)
 
 - [ ] Inspect `backend/app/document/canonicalizer.py` at the exact source commit and pin its file SHA-256 plus each D1 canonical-text SHA-256 in a private manifest. Verify NFC, LF, NBSP-to-space and the function's additional trim/join behavior.

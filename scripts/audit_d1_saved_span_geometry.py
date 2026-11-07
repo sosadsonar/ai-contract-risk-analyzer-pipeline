@@ -6,6 +6,7 @@ import difflib
 import hashlib
 import json
 import re
+import unicodedata
 from collections import Counter
 from pathlib import Path
 
@@ -32,6 +33,7 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
     predictions = _load(predictions_path)
     claimed_unmatched = _load(unmatched_path)
     original_report = _load(report_path)
+    prediction_manifest = _load(restricted / "D1_m1_runtime_predictions_v01" / "manifest.json")
     if not isinstance(predictions, list) or not isinstance(claimed_unmatched, list):
         raise ValueError("prediction and unmatched artifacts must be arrays")
 
@@ -46,7 +48,16 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
         canonical_path = restricted / "D1_m1_runtime_predictions_v01" / f"{document}.canonical_nfc.txt"
         canonical = canonical_path.read_text(encoding="utf-8")
         raw_path = data_root / "data/processed/raw_text" / f"{document}.txt"
-        recomputed_canonical = canonicalize([raw_path.read_text(encoding="utf-8")])
+        raw = raw_path.read_text(encoding="utf-8")
+        pinned_source_is_nfc_raw = canonical == unicodedata.normalize("NFC", raw)
+        if not pinned_source_is_nfc_raw:
+            raise ValueError(f"pinned Gold source is not NFC raw text: {document}")
+        manifest_source = prediction_manifest["documents"][document]
+        if _sha256(raw_path) != manifest_source["source_sha256"]:
+            raise ValueError(f"raw source hash differs from prediction manifest: {document}")
+        if _sha256(canonical_path) != manifest_source["canonical_sha256"]:
+            raise ValueError(f"canonical source hash differs from prediction manifest: {document}")
+        recomputed_canonical = canonicalize([raw])
         source_parity = canonical == recomputed_canonical
         source_parity_count += source_parity
         source_differences = [
@@ -120,6 +131,7 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
         per_document.append({
             "document_id": document,
             "canonical_sha256": _sha256(canonical_path),
+            "pinned_source_equals_nfc_raw_text": pinned_source_is_nfc_raw,
             "current_canonicalizer_from_raw_sha256": hashlib.sha256(
                 recomputed_canonical.encode("utf-8")
             ).hexdigest(),
@@ -196,8 +208,9 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
         "new_m7_score": None,
         "new_m7_score_reason": "The supplied 198-clause artifact has no per-clause predicted labels.",
         "source_parity_note": (
-            "The pinned Gold source hash matches its saved canonical file, but current canonicalize(raw_text) "
-            "must be compared separately before claiming a shared coordinate source."
+            "All pinned Gold source files equal NFC(raw_text) and match their source manifests. "
+            "Pipeline canonicalize(raw_text) additionally changes whitespace in HDLD001-003; "
+            "the coordinate systems must not be conflated."
         ),
     }
     return result
