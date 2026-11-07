@@ -10,6 +10,14 @@
     {
       "document_id": "HDLD001",
       "canonical_sha256": "b22f92b5e92ee3663922e6a1465b02fee89b243431bce8fdc6f682747777f925",
+      "current_canonicalizer_from_raw_sha256": "86ba4d7f89ac128927d59644259fb6976edcd9be0cbd57a291acf22e2f735742",
+      "current_canonicalizer_matches_pinned_source": false,
+      "source_difference_operations": 17,
+      "gold_exact_spans_intersecting_source_differences": 2,
+      "gold_segment_count": 77,
+      "gold_uncovered_whitespace_chars": 2,
+      "gold_uncovered_non_whitespace_chars": 0,
+      "gold_overlap_count": 0,
       "gold_exact_spans": 38,
       "predicted_spans": 43,
       "matched": 23,
@@ -21,6 +29,14 @@
     {
       "document_id": "HDLD002",
       "canonical_sha256": "b43a8e46839ee35125e709301c2558044f863304c6f9714d43386e33bac2758d",
+      "current_canonicalizer_from_raw_sha256": "1e2d3d4ff57d67893a6596222a3017068fa8d33b742ddda2a0b76e05ae870887",
+      "current_canonicalizer_matches_pinned_source": false,
+      "source_difference_operations": 17,
+      "gold_exact_spans_intersecting_source_differences": 3,
+      "gold_segment_count": 80,
+      "gold_uncovered_whitespace_chars": 1,
+      "gold_uncovered_non_whitespace_chars": 0,
+      "gold_overlap_count": 0,
       "gold_exact_spans": 40,
       "predicted_spans": 47,
       "matched": 25,
@@ -32,6 +48,14 @@
     {
       "document_id": "HDLD003",
       "canonical_sha256": "f76195cc5da1c65aad45debe3ca44c7dd4df5c077f29b1660555b604197e60f7",
+      "current_canonicalizer_from_raw_sha256": "c2dd0dd909659c71b843c96ec1f16a5eff37db17f7bdd78e89875f2e55f09353",
+      "current_canonicalizer_matches_pinned_source": false,
+      "source_difference_operations": 8,
+      "gold_exact_spans_intersecting_source_differences": 2,
+      "gold_segment_count": 109,
+      "gold_uncovered_whitespace_chars": 14,
+      "gold_uncovered_non_whitespace_chars": 0,
+      "gold_overlap_count": 0,
       "gold_exact_spans": 59,
       "predicted_spans": 40,
       "matched": 30,
@@ -43,6 +67,14 @@
     {
       "document_id": "HDLD004",
       "canonical_sha256": "32f363a4e50ff056c6bc062a123fe8d16699055ca7be596175173381cb07afea",
+      "current_canonicalizer_from_raw_sha256": "32f363a4e50ff056c6bc062a123fe8d16699055ca7be596175173381cb07afea",
+      "current_canonicalizer_matches_pinned_source": true,
+      "source_difference_operations": 0,
+      "gold_exact_spans_intersecting_source_differences": 0,
+      "gold_segment_count": 63,
+      "gold_uncovered_whitespace_chars": 24,
+      "gold_uncovered_non_whitespace_chars": 0,
+      "gold_overlap_count": 0,
       "gold_exact_spans": 37,
       "predicted_spans": 68,
       "matched": 33,
@@ -64,11 +96,13 @@
     "unmatched_geometry": {
       "gold_inside_prediction": 62,
       "partial_crossing": 1
-    }
+    },
+    "current_canonicalizer_source_parity_documents": 1
   },
   "optimistic_m7_macro_f1_ceiling_ignoring_false_positives": 0.743124174831492,
   "ceiling_note": "Assumes every matched prediction has the correct label and ignores all false positives; not an achieved M7 score.",
   "reported_preliminary_m7": 0.4974,
   "new_m7_score": null,
-  "new_m7_score_reason": "The supplied 198-clause artifact has no per-clause predicted labels."
+  "new_m7_score_reason": "The supplied 198-clause artifact has no per-clause predicted labels.",
+  "source_parity_note": "The pinned Gold source hash matches its saved canonical file, but current canonicalize(raw_text) must be compared separately before claiming a shared coordinate source."
 }

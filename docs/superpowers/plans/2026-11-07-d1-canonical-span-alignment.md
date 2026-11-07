@@ -40,6 +40,19 @@ The three supplied files contain no per-clause predicted labels, so an offline
 M7 rescore remains impossible. The previously reported 0.4974 is retained as
 the teammate's preliminary score, with its original evaluation conditions.
 
+### Canonical source parity finding
+
+The saved Gold source hash agrees with each saved canonical file. Recomputing
+`canonicalize([raw_text])` with the current pipeline code agrees byte-for-byte
+only for HDLD004. HDLD001, HDLD002 and HDLD003 differ in 17, 17 and 8
+sequence-difference operations respectively. Seven EXACT Gold spans intersect
+those differing source regions (2, 3 and 2 by document). The saved Gold
+segments have no overlaps or uncovered non-whitespace characters; they leave
+2, 1, 14 and 24 whitespace characters uncovered respectively. The audit pins
+both source hashes per document without publishing contract text. Do not treat
+the saved Gold offsets as offsets against freshly canonicalized raw text until
+the source discrepancy has been resolved and the affected spans reviewed.
+
 ## Task 1 — Freeze the shared coordinate system (Data owner)
 
 - [ ] Inspect `backend/app/document/canonicalizer.py` at the exact source commit and pin its file SHA-256 plus each D1 canonical-text SHA-256 in a private manifest. Verify NFC, LF, NBSP-to-space and the function's additional trim/join behavior.

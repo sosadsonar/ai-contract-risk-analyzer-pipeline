@@ -2,11 +2,14 @@
 
 import argparse
 import csv
+import difflib
 import hashlib
 import json
 import re
 from collections import Counter
 from pathlib import Path
+
+from app.document.canonicalizer import canonicalize
 
 from ai_pipeline.evaluation.metrics.alignment import greedy_align_spans
 
@@ -38,9 +41,22 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
     matched_support: Counter[str] = Counter()
     total_exact_quotes = total_whitespace_only = 0
     total_gold = total_predicted = total_matches = 0
+    source_parity_count = 0
     for document in DOCUMENTS:
         canonical_path = restricted / "D1_m1_runtime_predictions_v01" / f"{document}.canonical_nfc.txt"
         canonical = canonical_path.read_text(encoding="utf-8")
+        raw_path = data_root / "data/processed/raw_text" / f"{document}.txt"
+        recomputed_canonical = canonicalize([raw_path.read_text(encoding="utf-8")])
+        source_parity = canonical == recomputed_canonical
+        source_parity_count += source_parity
+        source_differences = [
+            (start, end)
+            for tag, start, end, _, _ in difflib.SequenceMatcher(
+                None, canonical, recomputed_canonical, autojunk=False
+            ).get_opcodes()
+            if tag != "equal"
+        ]
+        source_difference_operations = len(source_differences)
         gold_file = restricted / "D1_m1_gold_v01" / f"{document}.gold_segmentation.json"
         gold_json = _load(gold_file)
         if hashlib.sha256(canonical.encode("utf-8")).hexdigest() != gold_json["source_sha256"]:
@@ -51,6 +67,26 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
             row for row in gold_json["segments"]
             if row.get("gold_clause_ref") in exact and row.get("gold_clause_ref") in labels
         ]
+        gold_intersecting_source_differences = sum(
+            any(
+                row["start_char"] < max(start + 1, end)
+                and start < row["end_char"]
+                for start, end in source_differences
+            )
+            for row in gold
+        )
+        all_segments = sorted(gold_json["segments"], key=lambda row: row["start_char"])
+        if all_segments[0]["start_char"] != 0 or all_segments[-1]["end_char"] != len(canonical):
+            raise ValueError(f"Gold does not reach canonical source boundaries: {document}")
+        if any(left["end_char"] > right["start_char"] for left, right in zip(all_segments, all_segments[1:])):
+            raise ValueError(f"overlapping Gold segments: {document}")
+        gap_ranges = [
+            (left["end_char"], right["start_char"])
+            for left, right in zip(all_segments, all_segments[1:])
+            if left["end_char"] < right["start_char"]
+        ]
+        if any(not canonical[start:end].isspace() for start, end in gap_ranges):
+            raise ValueError(f"non-whitespace Gold coverage gap: {document}")
         predicted = [row for row in predictions if row.get("contract_id") == document]
         if len({row["clause_id"] for row in predicted}) != len(predicted):
             raise ValueError(f"duplicate predicted clause ID: {document}")
@@ -84,6 +120,16 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
         per_document.append({
             "document_id": document,
             "canonical_sha256": _sha256(canonical_path),
+            "current_canonicalizer_from_raw_sha256": hashlib.sha256(
+                recomputed_canonical.encode("utf-8")
+            ).hexdigest(),
+            "current_canonicalizer_matches_pinned_source": source_parity,
+            "source_difference_operations": source_difference_operations,
+            "gold_exact_spans_intersecting_source_differences": gold_intersecting_source_differences,
+            "gold_segment_count": len(all_segments),
+            "gold_uncovered_whitespace_chars": sum(end - start for start, end in gap_ranges),
+            "gold_uncovered_non_whitespace_chars": 0,
+            "gold_overlap_count": 0,
             "gold_exact_spans": len(gold),
             "predicted_spans": len(predicted),
             "matched": len(pairs),
@@ -137,6 +183,7 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
             "prediction_quote_whitespace_only": total_whitespace_only,
             "unmatched_list_exactly_reproduced": True,
             "unmatched_geometry": dict(sorted(geometry.items())),
+            "current_canonicalizer_source_parity_documents": source_parity_count,
         },
         "optimistic_m7_macro_f1_ceiling_ignoring_false_positives": (
             sum(ceiling_by_label.values()) / len(ceiling_by_label)
@@ -148,6 +195,10 @@ def audit(data_root: Path, predictions_path: Path, unmatched_path: Path, report_
         "reported_preliminary_m7": original_report["m7_preliminary"]["macro_f1"],
         "new_m7_score": None,
         "new_m7_score_reason": "The supplied 198-clause artifact has no per-clause predicted labels.",
+        "source_parity_note": (
+            "The pinned Gold source hash matches its saved canonical file, but current canonicalize(raw_text) "
+            "must be compared separately before claiming a shared coordinate source."
+        ),
     }
     return result
 
