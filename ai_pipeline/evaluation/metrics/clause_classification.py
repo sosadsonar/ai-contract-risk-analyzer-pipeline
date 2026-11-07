@@ -13,6 +13,8 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Sequence
 
+from ai_pipeline.evaluation.metrics.alignment import greedy_align_spans, span_iou
+
 IOU_ALIGN = 0.5
 MIN_SUPPORT = 5
 
@@ -32,30 +34,16 @@ class PredClause:
 
 
 def iou(a: tuple[int, int], b: tuple[int, int]) -> float:
-    inter = max(0, min(a[1], b[1]) - max(a[0], b[0]))
-    union = max(a[1], b[1]) - min(a[0], b[0])
-    return inter / union if union > 0 else 0.0
+    return span_iou(a, b)
 
 
 def align(gold: Sequence[GoldSpan], pred: Sequence[PredClause], threshold: float = IOU_ALIGN) -> list[tuple[int, int]]:
     """Ghép tham lam theo IoU giảm dần (ổn định theo chỉ số khi hòa). Trả [(gold_idx, pred_idx)]."""
-    cands = []
-    for gi, g in enumerate(gold):
-        for pi, p in enumerate(pred):
-            v = iou((g.start, g.end), (p.start, p.end))
-            if v >= threshold:
-                cands.append((-v, gi, pi))
-    cands.sort()
-    used_g: set[int] = set()
-    used_p: set[int] = set()
-    out = []
-    for _, gi, pi in cands:
-        if gi in used_g or pi in used_p:
-            continue
-        used_g.add(gi)
-        used_p.add(pi)
-        out.append((gi, pi))
-    return out
+    return greedy_align_spans(
+        [(row.start, row.end) for row in gold],
+        [(row.start, row.end) for row in pred],
+        threshold=threshold,
+    )
 
 
 def evaluate_clause_classification(
