@@ -9,8 +9,8 @@ from pathlib import Path
 from zipfile import BadZipFile
 
 from docx import Document
-from docx.oxml.ns import qn
 from docx.opc.exceptions import PackageNotFoundError
+from docx.oxml.ns import qn
 
 from app.domain.errors import ValidationReject
 

@@ -35,3 +35,6 @@ per-stage p50/p90, clause counts, and planned calls; it never calls a provider.
 HDLD001–003 use canonicalized Word text snapshots, not `.doc` upload extraction;
 HDLD004 runs the actual DOCX extractor. Read `docs/D1_LOCAL_BENCHMARK_W4.md`
 for measured results and missing stages before sizing quota or making NFR claims.
+The benchmark's data-independent tests live in `tests/unit/test_benchmark_d1.py`.
+Its D1 receipt and stage tests live in `tests/integration/test_benchmark_d1_data.py`:
+they skip without the pinned submodule, and CI's data job runs them with it.

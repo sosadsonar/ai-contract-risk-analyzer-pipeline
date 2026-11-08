@@ -69,9 +69,11 @@ def benchmark_d1(data_root: Path, *, repeats: int = 5, cfg: Settings | None = No
                     else f"data/processed/raw_text/{name}.txt")
         path = data_root / relative
         expected = receipt["files"][relative]
+        digest = hashlib.sha256()
         with path.open("rb") as source:
-            actual = hashlib.file_digest(source, "sha256").hexdigest()
-        if actual != expected:
+            while chunk := source.read(64 * 1024):
+                digest.update(chunk)
+        if digest.hexdigest() != expected:
             raise ValueError(f"D1 input hash mismatch: {name}")
         files.append((name, kind, path))
 
