@@ -133,6 +133,47 @@ def test_lists_false_positives_do_not_create_boundaries():
     assert all(c.structure.parent_clause_id == r.clauses[1].clause_id for c in r.clauses[2:])
 
 
+def test_repeated_plus_list_items_are_individual_clauses():
+    text = (
+        "Điều 1. Nhiệm vụ\n"
+        "+ Thực hiện công việc được giao.\n"
+        "+ Phối hợp với bộ phận liên quan.\n"
+        "Điều 2. Thời hạn\n"
+    )
+    result = run(text)
+    check_partition(text, result)
+    assert [c.original_text for c in result.clauses] == [
+        "Điều 1. Nhiệm vụ",
+        "+ Thực hiện công việc được giao.",
+        "+ Phối hợp với bộ phận liên quan.",
+        "Điều 2. Thời hạn",
+    ]
+    assert all(c.structure.parent_clause_id == result.clauses[0].clause_id for c in result.clauses[1:3])
+
+
+def test_lone_plus_line_stays_with_parent_clause():
+    text = "Điều 1. Nội dung\n+ Một dòng đơn lẻ.\nĐiều 2. Kết thúc\n"
+    result = run(text)
+    check_partition(text, result)
+    assert len(result.clauses) == 2
+    assert "+ Một dòng đơn lẻ." in result.clauses[0].original_text
+
+
+def test_plus_items_can_be_children_of_a_dash_item():
+    text = (
+        "Điều 1. Nhiệm vụ\n"
+        "- Nhóm công việc thứ nhất:\n"
+        "+ Thực hiện việc A.\n"
+        "+ Thực hiện việc B.\n"
+        "- Nhóm công việc thứ hai.\n"
+    )
+    result = run(text)
+    check_partition(text, result)
+    assert len(result.clauses) == 5
+    dash = result.clauses[1]
+    assert all(c.structure.parent_clause_id == dash.clause_id for c in result.clauses[2:4])
+
+
 # ------------------------------------------------------------------ PII / placeholder
 def test_boundary_not_inside_placeholder_and_len_preserved():
     text = "Điều 1. Các bên\nEmail của người lao động: nguyenvana@example.com\nĐiều 2. Lương\n"
@@ -212,7 +253,7 @@ def test_to_dict_matches_segmentation_v1_shape():
     text = load("nested_article_subclauses.txt")
     d = run(text).to_dict()
     assert d["schema_version"] == SEGMENTATION_SCHEMA_VERSION == "segmentation_v1"
-    assert d["segmentation_version"] == "rules_v1.1" and d["offset_unit"] == "unicode_code_point"
+    assert d["segmentation_version"] == "rules_v1.2" and d["offset_unit"] == "unicode_code_point"
     c0 = d["clauses"][0]
     assert set(c0) == {"clause_id", "original_text", "start_char", "end_char", "structure"}
     assert set(c0["structure"]) == {"level", "number", "parent_clause_id"}

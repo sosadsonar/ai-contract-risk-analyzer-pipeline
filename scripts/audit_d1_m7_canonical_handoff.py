@@ -35,6 +35,7 @@ def audit(data_root: Path, unmatched_path: Path, score_path: Path) -> dict:
     if manifest["status"] != "AI_CANDIDATE_NEEDS_REVIEW":
         raise ValueError("candidate status changed")
     rows = []
+    prediction_rows = []
     expected_unmatched = {(r["contract_id"], r["gold_start"], r["gold_end"]) for r in unmatched}
     if len(expected_unmatched) != len(unmatched):
         raise ValueError("duplicate supplied unmatched span")
@@ -91,9 +92,23 @@ def audit(data_root: Path, unmatched_path: Path, score_path: Path) -> dict:
             [(r["start_char"], r["end_char"]) for r in predictions],
         )
         missed = {i for i in range(len(eligible))} - {i for i, _ in pairs}
+        unmatched_predictions = {i for i in range(len(predictions))} - {i for _, i in pairs}
         score_doc = next(r for r in score["per_document"] if r["document_id"] == document)
         if len(missed) != score_doc["gold_exact"] - score_doc["official_greedy_matches"]:
             raise ValueError(f"official geometry count changed: {document}")
+        context = [r for r in spans if r["gold_clause_ref"] not in exact_refs]
+        for index in sorted(unmatched_predictions):
+            pred = predictions[index]
+            def intersects(row: dict) -> bool:
+                return min(pred["end_char"], row["end_char"]) > max(pred["start_char"], row["start_char"])
+            prediction_rows.append({
+                "document_id": document,
+                "prediction_id": pred["clause_id"],
+                "start_char": pred["start_char"],
+                "end_char": pred["end_char"],
+                "overlaps_exact_gold": any(intersects(row) for row in eligible),
+                "overlaps_context_gold": any(intersects(row) for row in context),
+            })
         for index in sorted(missed):
             gold = eligible[index]
             old = old_by_ref[gold["gold_clause_ref"]]
@@ -141,6 +156,8 @@ def audit(data_root: Path, unmatched_path: Path, score_path: Path) -> dict:
         })
     if len(rows) != 63:
         raise ValueError("unexpected unmatched count")
+    if len(prediction_rows) != 87:
+        raise ValueError("unexpected unmatched prediction count")
     if seen_unmatched != expected_unmatched:
         raise ValueError("supplied unmatched list differs from canonical candidate")
     return {
@@ -151,6 +168,7 @@ def audit(data_root: Path, unmatched_path: Path, score_path: Path) -> dict:
         "documents": documents,
         "unmatched_totals": dict(totals),
         "unmatched_review_rows": rows,
+        "unmatched_prediction_review_rows": prediction_rows,
     }
 
 

@@ -36,7 +36,7 @@ from app.clause.structure_parser import HeadingMark, parse_structure
 from app.domain.errors import ValidationReject
 from app.privacy.pii_types import PiiSpan
 
-SEGMENTATION_VERSION = "rules_v1.1"
+SEGMENTATION_VERSION = "rules_v1.2"
 SEGMENTATION_SCHEMA_VERSION = "segmentation_v1"
 OFFSET_UNIT = "unicode_code_point"
 
