@@ -14,6 +14,13 @@ from app.document.canonicalizer import canonicalize
 from ai_pipeline.evaluation.metrics.alignment import greedy_align_spans
 
 DOCS = ("HDLD001", "HDLD002", "HDLD003", "HDLD004")
+PREDICTION_SHA256 = {
+    "HDLD001": "5221d5ae6bc18bddbffea7b800fd3e9ff9f3f3923b2453a94da712e92efbb338",
+    "HDLD002": "b829292c1bb17c3c3ae179e33301af5d9cfac43604da2440c509da4d011beb70",
+    "HDLD003": "88fad6bad1743ce0e0107f6515bf5f2bc75e9c2347e0e2c25501e65e04429eee",
+    "HDLD004": "bacfc26b0442c1b359bff9814a704483497f5b1435a0b8f34f338c4c1639c31c",
+}
+BOUNDARIES_SHA256 = "58f8e0b2567f53b80cbe6788ce6a297a43e88bc981b3e7020bae68056b78db2b"
 
 
 def sha(path: Path) -> str:
@@ -24,13 +31,22 @@ def read(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def audit(data_root: Path, unmatched_path: Path, score_path: Path) -> dict:
+def normalized_slice(text: str, start: int, end: int) -> str:
+    return re.sub(r"\s+", " ", text[start:end]).strip()
+
+
+def audit(data_root: Path, unmatched_path: Path, score_path: Path, boundaries_path: Path) -> dict:
     candidate_root = data_root / "data/intake/private/D1_m1_pipeline_canonical_candidate_v01"
     gold_root = data_root / "data/intake/restricted/D1_m1_gold_v01"
     with (data_root / "data/processed/clauses_v06.csv").open(encoding="utf-8-sig", newline="") as stream:
         exact_refs = {r["clause_id"] for r in csv.DictReader(stream) if r["offset_quality"] == "EXACT"}
     unmatched = read(unmatched_path)
     score = read(score_path)
+    if sha(boundaries_path) != BOUNDARIES_SHA256:
+        raise ValueError("saved boundary hash mismatch")
+    boundaries = read(boundaries_path)
+    if len(boundaries) != 198:
+        raise ValueError("saved boundary count changed")
     manifest = read(candidate_root / "manifest.json")
     if manifest["status"] != "AI_CANDIDATE_NEEDS_REVIEW":
         raise ValueError("candidate status changed")
@@ -48,13 +64,17 @@ def audit(data_root: Path, unmatched_path: Path, score_path: Path) -> dict:
         candidate_path = candidate_root / f"{document}.candidate_segmentation.json"
         prediction_path = candidate_root / f"{document}.candidate_prediction_offsets.json"
         old_gold_path = gold_root / f"{document}.gold_segmentation.json"
+        old_text_path = (data_root / "data/intake/restricted/D1_m1_runtime_predictions_v01"
+                         / f"{document}.canonical_nfc.txt")
         raw_path = data_root / "data/processed/raw_text" / f"{document}.txt"
         text = text_path.read_text(encoding="utf-8")
         candidate = read(candidate_path)
         predictions = read(prediction_path)
         old_gold = read(old_gold_path)
+        original_prediction_text = old_text_path.read_text(encoding="utf-8")
         raw = raw_path.read_text(encoding="utf-8")
-        if (sha(text_path) != record["pipeline_canonical_sha256"]
+        if (sha(prediction_path) != PREDICTION_SHA256[document]
+                or sha(text_path) != record["pipeline_canonical_sha256"]
                 or sha(candidate_path) != record["candidate_sha256"]
                 or sha(old_gold_path) != record["old_gold_sha256"]
                 or sha(raw_path) != record["source_raw_sha256"]
@@ -77,8 +97,8 @@ def audit(data_root: Path, unmatched_path: Path, score_path: Path) -> dict:
             if not text[start:end].strip():
                 raise ValueError(f"blank segment: {document}")
             old = old_by_ref[span["gold_clause_ref"]]
-            old_text = unicodedata.normalize("NFC", raw)[old["start_char"]:old["end_char"]]
-            if re.sub(r"\s+", " ", old_text).strip() != re.sub(r"\s+", " ", text[start:end]).strip():
+            gold_text = unicodedata.normalize("NFC", raw)[old["start_char"]:old["end_char"]]
+            if re.sub(r"\s+", " ", gold_text).strip() != normalized_slice(text, start, end):
                 raise ValueError(f"rebased quote differs: {document}/{span['gold_clause_ref']}")
         nonwhite_gap = sum(not char.isspace() and not covered[i] for i, char in enumerate(text))
         if nonwhite_gap:
@@ -86,6 +106,18 @@ def audit(data_root: Path, unmatched_path: Path, score_path: Path) -> dict:
         for pred in predictions:
             if not 0 <= pred["start_char"] < pred["end_char"] <= len(text):
                 raise ValueError(f"prediction offset outside canonical text: {document}")
+        source_predictions = [r for r in boundaries if r["contract_id"] == document]
+        if (sha(old_text_path) != old_gold["source_sha256"]
+                or len(source_predictions) != len(predictions)
+                or len({r["clause_id"] for r in predictions}) != len(predictions)):
+            raise ValueError(f"saved prediction source or count mismatch: {document}")
+        for source_pred, pred in zip(source_predictions, predictions):
+            if (source_pred["contract_id"] != pred["contract_id"]
+                    or source_pred["clause_id"] != pred["clause_id"]
+                    or not 0 <= source_pred["start_char"] < source_pred["end_char"] <= len(original_prediction_text)
+                    or normalized_slice(original_prediction_text, source_pred["start_char"], source_pred["end_char"])
+                    != normalized_slice(text, pred["start_char"], pred["end_char"])):
+                raise ValueError(f"saved prediction rebase mismatch: {document}")
         eligible = [r for r in spans if r["gold_clause_ref"] in exact_refs]
         pairs = greedy_align_spans(
             [(r["start_char"], r["end_char"]) for r in eligible],
@@ -147,6 +179,7 @@ def audit(data_root: Path, unmatched_path: Path, score_path: Path) -> dict:
             "document_id": document,
             "canonical_sha256": sha(text_path),
             "candidate_sha256": sha(candidate_path),
+            "prediction_sha256": sha(prediction_path),
             "segments": len(spans),
             "exact_gold": len(eligible),
             "predicted": len(predictions),
@@ -165,6 +198,7 @@ def audit(data_root: Path, unmatched_path: Path, score_path: Path) -> dict:
         "candidate_manifest_sha256": sha(candidate_root / "manifest.json"),
         "unmatched_input_sha256": sha(unmatched_path),
         "score_input_sha256": sha(score_path),
+        "boundaries_input_sha256": sha(boundaries_path),
         "documents": documents,
         "unmatched_totals": dict(totals),
         "unmatched_review_rows": rows,
@@ -177,9 +211,10 @@ def main() -> None:
     parser.add_argument("--data-root", type=Path, required=True)
     parser.add_argument("--unmatched", type=Path, required=True)
     parser.add_argument("--score", type=Path, required=True)
+    parser.add_argument("--boundaries", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    result = audit(args.data_root, args.unmatched, args.score)
+    result = audit(args.data_root, args.unmatched, args.score, args.boundaries)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({

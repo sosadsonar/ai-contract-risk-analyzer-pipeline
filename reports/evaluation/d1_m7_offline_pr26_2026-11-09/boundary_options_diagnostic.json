@@ -208,7 +208,7 @@
         }
       }
     },
-    "plus_list": {
+    "plus_each_line": {
       "diagnostic_macro_f1_with_inherited_labels": 0.5333565152887406,
       "predicted_total": 235,
       "aligned_total": 135,
@@ -309,7 +309,7 @@
         }
       }
     },
-    "plus_list_post_article_only": {
+    "plus_each_line_post_article_only": {
       "diagnostic_macro_f1_with_inherited_labels": 0.5597030083019002,
       "predicted_total": 209,
       "aligned_total": 135,

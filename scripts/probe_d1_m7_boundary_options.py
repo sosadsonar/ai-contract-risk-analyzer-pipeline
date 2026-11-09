@@ -20,8 +20,8 @@ from scripts.score_d1_saved_labels_offline import DOCUMENTS, macro_from_results,
 RULES = {
     "saved": None,
     "saved_post_article_only": None,
-    "plus_list": re.compile(r"(?m)^[ \t]*\+[ \t]+"),
-    "plus_list_post_article_only": re.compile(r"(?m)^[ \t]*\+[ \t]+"),
+    "plus_each_line": re.compile(r"(?m)^[ \t]*\+[ \t]+"),
+    "plus_each_line_post_article_only": re.compile(r"(?m)^[ \t]*\+[ \t]+"),
     "all_list_markers": re.compile(r"(?m)^[ \t]*(?:\+|[-–•]|[a-zA-ZđĐ][.)])[ \t]+"),
     "nonblank_lines": re.compile(r"\n[ \t]*(?=\S)"),
 }

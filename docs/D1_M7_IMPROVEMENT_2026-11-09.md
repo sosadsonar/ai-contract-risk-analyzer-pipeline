@@ -18,12 +18,12 @@ The offline probe splits saved predictions by a source-only rule and temporarily
 |---|---:|---:|---:|
 | Saved `rules_v1.1` output | 198 | 111 | 0.499868 |
 | Saved spans, source-based preamble gate | 172 | 111 | 0.526339 |
-| Repeated `+` list lines | 235 | 135 | 0.533357 |
+| Split at each `+` line (probe, including lone markers) | 235 | 135 | 0.533357 |
 | `+` lines and preamble gate | 209 | 135 | 0.559703 |
 | All list markers | 247 | 143 | 0.521307 |
 | Every nonblank line | 366 | 168 | 0.524293 |
 
-`+` is the best narrow *segmentation* rule tested: it gains 24 matches and scores better than broad list or line splitting. A second source-based experiment excludes predictions wholly before the first accepted `Điều` heading. This removes 26 unmatched predictions on D1, where no eligible `EXACT` Gold lies before that heading, and raises the copied-label diagnostic to 0.559703 when combined with `+`. It could suppress real contract terms in another document. It is a policy question, not part of `rules_v1.2`. The actual `rules_v1.2` parser was then run with the current masker on all four D1 documents. Against locked NFC Gold it produces 231 spans and 135 matches; against the separately rebased pipeline-canonical **candidate** it also produces 135 matches. Counts per document are in `reports/evaluation/d1_m7_offline_pr26_2026-11-09/rules_v12_geometry.json`. Its optimistic ceiling is 0.830927, which assumes perfect labels and ignores false positives; this is not an achieved score.
+The `+` probe gains 24 matches and scores better than broad list or line splitting, but it splits even lone `+` lines. A second source-based experiment excludes predictions wholly before the first accepted `Điều` heading. This removes 26 unmatched predictions on D1, where no eligible `EXACT` Gold lies before that heading, and raises the copied-label diagnostic to 0.559703 when combined with the probe. It could suppress real contract terms in another document. It is a policy question, not part of `rules_v1.2`. The actual `rules_v1.2` parser requires sibling list items and was run with the current masker on all four D1 documents. Against locked NFC Gold it produces 231 spans and 135 matches; against the separately rebased pipeline-canonical **candidate** it also produces 135 matches. Counts per document are in `reports/evaluation/d1_m7_offline_pr26_2026-11-09/rules_v12_geometry.json`. Its optimistic ceiling is 0.830927, which assumes perfect labels and ignores false positives; this is not an achieved score.
 
 ## Chosen change and release gate
 
