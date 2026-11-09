@@ -8,6 +8,8 @@ import re
 from collections import Counter
 from pathlib import Path
 
+from app.clause.structure_parser import parse_structure
+
 from ai_pipeline.evaluation.metrics.clause_classification import (
     GoldSpan,
     PredClause,
@@ -17,7 +19,9 @@ from scripts.score_d1_saved_labels_offline import DOCUMENTS, macro_from_results,
 
 RULES = {
     "saved": None,
+    "saved_post_article_only": None,
     "plus_list": re.compile(r"(?m)^[ \t]*\+[ \t]+"),
+    "plus_list_post_article_only": re.compile(r"(?m)^[ \t]*\+[ \t]+"),
     "all_list_markers": re.compile(r"(?m)^[ \t]*(?:\+|[-–•]|[a-zA-ZđĐ][.)])[ \t]+"),
     "nonblank_lines": re.compile(r"\n[ \t]*(?=\S)"),
 }
@@ -73,9 +77,14 @@ def probe(data_root: Path, boundaries_path: Path, labels_path: Path) -> dict:
             gold_labels = {r["clause_id"]: r["labels"][0] for r in label_artifact["items"]}
             gold = [GoldSpan(r["start_char"], r["end_char"], gold_labels[r["gold_clause_ref"]])
                     for r in seg["segments"] if r["gold_clause_ref"] in exact_ids]
+            article_starts = [mark.start for mark in parse_structure(text) if mark.kind == "article"]
+            first_article = min(article_starts) if article_starts else None
             prediction = []
             for row in boundaries:
                 if row["contract_id"] != doc:
+                    continue
+                if (rule_name.endswith("post_article_only") and first_article is not None
+                        and row["end_char"] <= first_article):
                     continue
                 for start, end in split_span(text, row["start_char"], row["end_char"], rule):
                     prediction.append(PredClause(start, end, by_key[(doc, row["clause_id"])]))

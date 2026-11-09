@@ -107,6 +107,107 @@
         }
       }
     },
+    "saved_post_article_only": {
+      "diagnostic_macro_f1_with_inherited_labels": 0.526338825853666,
+      "predicted_total": 172,
+      "aligned_total": 111,
+      "per_document": [
+        {
+          "document_id": "HDLD001",
+          "predicted": 35,
+          "aligned": 23
+        },
+        {
+          "document_id": "HDLD002",
+          "predicted": 36,
+          "aligned": 25
+        },
+        {
+          "document_id": "HDLD003",
+          "predicted": 38,
+          "aligned": 30
+        },
+        {
+          "document_id": "HDLD004",
+          "predicted": 63,
+          "aligned": 33
+        }
+      ],
+      "per_label_counts": {
+        "COMPENSATION_BENEFITS": {
+          "support": 32,
+          "tp": 31,
+          "fp": 10,
+          "fn": 1
+        },
+        "CONTRACT_TERM": {
+          "support": 6,
+          "tp": 4,
+          "fp": 6,
+          "fn": 2
+        },
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE": {
+          "support": 25,
+          "tp": 5,
+          "fp": 15,
+          "fn": 20
+        },
+        "EMPLOYER_RIGHTS_OBLIGATIONS": {
+          "support": 21,
+          "tp": 20,
+          "fp": 13,
+          "fn": 1
+        },
+        "INSURANCE_SAFETY": {
+          "support": 8,
+          "tp": 7,
+          "fp": 5,
+          "fn": 1
+        },
+        "JOB_INFO": {
+          "support": 17,
+          "tp": 9,
+          "fp": 9,
+          "fn": 8
+        },
+        "LEAVE": {
+          "support": 12,
+          "tp": 6,
+          "fp": 4,
+          "fn": 6
+        },
+        "OTHER": {
+          "support": 13,
+          "tp": 5,
+          "fp": 24,
+          "fn": 8
+        },
+        "TERMINATION": {
+          "support": 16,
+          "tp": 10,
+          "fp": 6,
+          "fn": 6
+        },
+        "TRAINING": {
+          "support": 11,
+          "tp": 4,
+          "fp": 6,
+          "fn": 7
+        },
+        "WORKING_CONDITIONS": {
+          "support": 5,
+          "tp": 4,
+          "fp": 7,
+          "fn": 1
+        },
+        "WORKING_TIME": {
+          "support": 8,
+          "tp": 5,
+          "fp": 7,
+          "fn": 3
+        }
+      }
+    },
     "plus_list": {
       "diagnostic_macro_f1_with_inherited_labels": 0.5333565152887406,
       "predicted_total": 235,
@@ -180,6 +281,107 @@
           "support": 13,
           "tp": 5,
           "fp": 34,
+          "fn": 8
+        },
+        "TERMINATION": {
+          "support": 16,
+          "tp": 10,
+          "fp": 6,
+          "fn": 6
+        },
+        "TRAINING": {
+          "support": 11,
+          "tp": 6,
+          "fp": 20,
+          "fn": 5
+        },
+        "WORKING_CONDITIONS": {
+          "support": 5,
+          "tp": 4,
+          "fp": 7,
+          "fn": 1
+        },
+        "WORKING_TIME": {
+          "support": 8,
+          "tp": 4,
+          "fp": 12,
+          "fn": 4
+        }
+      }
+    },
+    "plus_list_post_article_only": {
+      "diagnostic_macro_f1_with_inherited_labels": 0.5597030083019002,
+      "predicted_total": 209,
+      "aligned_total": 135,
+      "per_document": [
+        {
+          "document_id": "HDLD001",
+          "predicted": 52,
+          "aligned": 34
+        },
+        {
+          "document_id": "HDLD002",
+          "predicted": 53,
+          "aligned": 36
+        },
+        {
+          "document_id": "HDLD003",
+          "predicted": 41,
+          "aligned": 32
+        },
+        {
+          "document_id": "HDLD004",
+          "predicted": 63,
+          "aligned": 33
+        }
+      ],
+      "per_label_counts": {
+        "COMPENSATION_BENEFITS": {
+          "support": 32,
+          "tp": 31,
+          "fp": 10,
+          "fn": 1
+        },
+        "CONTRACT_TERM": {
+          "support": 6,
+          "tp": 4,
+          "fp": 6,
+          "fn": 2
+        },
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE": {
+          "support": 25,
+          "tp": 19,
+          "fp": 20,
+          "fn": 6
+        },
+        "EMPLOYER_RIGHTS_OBLIGATIONS": {
+          "support": 21,
+          "tp": 20,
+          "fp": 13,
+          "fn": 1
+        },
+        "INSURANCE_SAFETY": {
+          "support": 8,
+          "tp": 7,
+          "fp": 5,
+          "fn": 1
+        },
+        "JOB_INFO": {
+          "support": 17,
+          "tp": 14,
+          "fp": 14,
+          "fn": 3
+        },
+        "LEAVE": {
+          "support": 12,
+          "tp": 10,
+          "fp": 7,
+          "fn": 2
+        },
+        "OTHER": {
+          "support": 13,
+          "tp": 5,
+          "fp": 24,
           "fn": 8
         },
         "TERMINATION": {
