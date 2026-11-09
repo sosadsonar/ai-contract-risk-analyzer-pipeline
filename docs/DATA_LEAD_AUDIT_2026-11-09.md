@@ -1,0 +1,57 @@
+# Data Lead audit — 09/11/2026
+
+Status: technical handoff and open-gate inventory; **not Data Lead acceptance**. This updates the working 19-row inventory dated 04/11 without rewriting its historical observations. The BRD 0.6 and TDD 0.3 are the current governing drafts in this checkout. `PROGRESS.md` has 19/19 checked early N2 boxes, which is a roadmap count, not this inventory's completion rate.
+
+## D1 M7 reconciliation
+
+The saved `d1_198_clauses.json`, `d1_63_unmatched_spans.json`, `report.json` and PR #26's `d1_198_clauses_classified.json` were found locally. The saved classifier file has 198/198 matching `(contract_id, clause_id, start_char, end_char)` keys against the boundary file. PR #26 is merged. Its scorer was run again on 09/11 using the `.venv` in `pipeline-d1-review`, with `PYTHONPATH` set to this checkout and its backend. No Gemini call was made.
+
+| Check | Result |
+|---|---|
+| Official BRD 0.6 §8.3/§8.3 alignment | Greedy one-to-one IoU ≥ 0.50: 111/174 Gold `EXACT` spans matched, 63 Gold missed, 87/198 predictions unmatched. |
+| D1 M7, saved output | Macro-F1 **0.4998680744**; document-cluster bootstrap 95% CI **[0.4401515224, 0.5782585215]**, 1,000 resamples, seed 0, four documents. This is a Dev diagnostic below the BRD 0.80 threshold, not T1 acceptance. |
+| Containment diagnostic | 173/174 Gold spans have sufficient containment. This is geometric and many-to-one; it is **not** the official M7 score. |
+| Canonical source | Locked Gold uses NFC of raw text. Pipeline `canonicalize([raw])` also changes whitespace in HDLD001–003; HDLD004 is byte-identical. The old Gold offsets cannot be applied directly to the current pipeline canonical bytes. |
+| Private rebase candidate | `data/intake/private/D1_m1_pipeline_canonical_candidate_v01/` in the Data checkout retains 329 segment IDs. Fresh audit verified raw, original Gold, candidate and canonical hashes; 329 nonblank exact slices are quote-equivalent after whitespace normalization, spans do not overlap, and no non-whitespace character is uncovered. All 198 rebased predictions are in bounds. Geometry remains 111 matches. Status stays `AI_CANDIDATE_NEEDS_REVIEW`; locked Gold is unchanged. |
+| Error table | `reports/evaluation/d1_m7_offline_pr26_2026-11-09/canonical_handoff_audit.json` records 63 text-free rows with IDs, offsets, best prediction, IoU and geometry. 62 Gold spans lie inside a larger prediction; one crosses a prediction boundary. This points to heading plus body and grouped clauses as the main boundary dispute. |
+| Two old HDLD002 exceptions | The earlier SequenceMatcher mapping misplaced a repeated tail (`HDLD002_CONTEXT_040` and `HDLD002/cl_0047`). The content-rank rebase verifies both without changing Gold content; these are resolved mapper exceptions, not approvals to replace the Gold. |
+
+The working boundary proposal is to bind every interval to one explicitly versioned `canonicalize()` output and its SHA-256, use half-open Unicode code-point `[start_char,end_char)` offsets, retain heading/context as separately reviewable spans, and decide whether numbered subclauses or grouped body text are the annotation unit. Reviewers must inspect every changed unit against source before any replacement release. If the group changes Gold unit or M7 alignment, record an ADR and amend BRD §8.3/TDD §18 with a side-by-side score using the same saved predictions. The current IoU rule and 0.80 threshold remain unchanged.
+
+Input pins: boundary SHA-256 `58f8e0b2567f53b80cbe6788ce6a297a43e88bc981b3e7020bae68056b78db2b`; classified SHA-256 `619792e4d662bc78c24c423f83808f91b91b1bc30a8c7a73225ac920e2b18328`. The original report pins model `gemini-3.5-flash-lite`, prompt `clause_prompt_v1+v04+28987a13`, taxonomy `clause_taxonomy_v03`, and schema `clause_output_v3`; the checkout has `rules_v1.1` and the history contains merge `8c382c8` for PR #21. The metric result and error table are metadata-only. Source text and private Gold remain outside Git.
+
+## Current DoD inventory
+
+`Artifact` is existence, `check` is observed technical evidence, and `review/acceptance` is a separate gate. The rows preserve the 04/11 inventory's 19 acceptance outcomes, but reflect 06–09/11 changes. Gold status fields and hash receipts are not signatures. An owner-attested three-person approval is reported as an attestation unless individual decisions are available.
+
+| Deliverable / DoD | Artifact | Check and current state | Review or blocker |
+|---|---|---|---|
+| MS-1: guideline and Tier 1 catalog frozen | Current freeze receipt; 16-provision corpus | Group approval is recorded by owner; corpus manifest says `APPROVED`. | Confirm scope and individual decision evidence for any changed policy. |
+| X-03/C-12: eligible Tier 1 content and loader | Approved manifest, provisions, edges, source receipts | Offline corpus and technical source checks exist. | Effectivity, rights, and source review remain distinct from file hashes; owner/group evidence needed for release claims. |
+| C-12: baseline retrieval | Retriever and tests | Offline implementation exists; T2 equivalent-gate graph-off M8 is 15/30. | M8 0.50 is below 0.90; runtime and relevance review remain. |
+| C-13: Data Graph content | Pinned graph and edges | T2 graph-on M8 is 14/30, below graph-off 15/30. | Review edges and diagnose the regression before claiming graph benefit. |
+| D1 scope, rights, privacy, split | Four-document D1; metadata and split candidate | Scope HDLD001–004 is owner-fixed. | Source rights, complete privacy inspection, and split approval remain separate. |
+| D1 M1 Gold | Four adjudicated-status files; 329 spans | Hash-pinned local artifact; pipeline canonical rebase remains a candidate. | Human decision on canonical policy and boundary units; original Gold retained. |
+| D1 M7 Gold | Four adjudicated-status files; 183 labels | Saved-output offline M7 is 0.499868; 63 missed spans under official alignment. | N1/N2/N3 decision on segmentation unit and source coordinate policy; do not re-label to lift score. |
+| D1 M2 Gold | Four v02 adjudicated-status files; six positives | Artifact present; W7 Dev score reported separately. | Reviewer provenance and citation/coverage limits; this does not establish T1 M2. |
+| D1 privacy Gold | Four local Gold files and review packet | Artifact exists. | Verify human span/retained-field review and rights separately; zero regex hits are insufficient. |
+| D2 injection Dev | Four D2 segmentation and injection Gold files; 30 cases | Local Gold artifacts exist; W7 Dev run recorded. | Distinct reviewers and source-rule decision remain the release evidence. |
+| D1/D2 tuning | Dev-only retrieval comparison and D2 rule record | W5/W7 comparisons recorded; no T1/T2 Gold used for tuning per run record. | Group locks the selected configuration and exceptions. |
+| T1 intake | Equivalent-gate ADR and validator | 10/10 under `T1_EQUIVALENT_GATE_V1`: four restricted, five public templates, one synthetic control. Historical source-only gate is 0/10. | Owner-attested academic exception; verify privacy/rights and always report unique-8, real-9, composite-10 separately. X-10 ownership moved to N5; N2 supports source data. |
+| T1 Gold and judge packet | Nine-document segmentation/label/privacy Gold | 842 segmentation spans, 747 labels, 21 PII and 63 preserved-field references recorded. | 40-output human M6/M3b packet and independent review still needed. |
+| T2 Gold and injected errors | Nine-document segmentation/injection Gold | 872 spans, 30 cases, 15 per role recorded. | Human verification/source anchors and T2 privacy independent adjudication remain. |
+| C-18 evaluation harness | Runner, metrics, hash/CI reporting | Pipeline full suite on 09/11: 0 failed, 16 skipped (private submodule unavailable); data tests with compatible Pipeline review checkout: 141 passed, 2 subtests passed. | Skips leave private-submodule integration unproved; data tests against this PR #26 checkout fail collection because `_validate_privacy_gold` is absent here. Reconcile before a common release. |
+| W7 D1/D2 dry run | W7 v11 result and pins | A completed 7/7 Dev evaluation is recorded. | Dev results do not satisfy T1/T2 acceptance; review score eligibility and config lock. |
+| W8 bug bash and version lock | Planned checklist | Not yet due on 09/11. | N1/N2/N3 and owner lock taxonomy, corpus, graph, prompts and evaluation configuration. |
+| MS-4 final T1/T2 evaluation | Equivalent-gate technical result and acceptance readout | M1, M5, M7, M8 below thresholds; M2/M3b/M6 not run; T1 M4 undefined; T2 M4 19/19 emitted outputs. | Missing risk Gold, 40-output manual/judge packet, accepted metric results and cost ledger. |
+| MS-5 report and defense | Draft evidence across repos | No final report/acceptance evidence. | Depends on MS-4 and group/owner acceptance. |
+
+The expanded `PROGRESS.md` also lists X-24 (paragraph-level corpus), X-25 (specific legal-source checks), X-26 (D1 alignment and leave-one-group-out), X-27 (D3 contradiction data), and X-29 (regional wage provision). These overlap corpus/evaluation work or are phase-two extensions; none is silently counted as a completed 19-row outcome. X-26's alignment code is merged, while its D1 canonical/metric handoff is the open issue above. X-27 is an extension under BRD 0.6 §8.3. The owner should confirm which expanded items are required for Data Lead final acceptance.
+
+## T1 M2 review gate
+
+Data PR #20 remains open with zero submitted GitHub reviews on 09/11. Data PR #19 is also open with zero submitted reviews; its own description says CI must be rerun on the updated head before merge. Pipeline PR #26 is merged with one recorded approval. PR #20's public metadata-only packet has 1,494 rows. The private candidate packet hash matches the local summary (`9d1f2e4744edfbdc904993f24b6a7f41cdb4e202930b85a2404f8d4095bf42b7`). A fresh local check found 1,494 unique IDs across nine documents, 1,494 matching source hashes, valid nonblank `[start_char,end_char)` slices, and zero hash/offset/blank errors. This is structural validation, not risk-label review. Seven rows are marked `RISK_CANDIDATE_NEEDS_REVIEW`, 1,487 remain `UNREVIEWED`, all 1,494 have `NEEDS_REVIEW`, and annotator/reviewer/adjudicator IDs are blank. Four grouped proposals require a unit-mapping decision. Eleven positive cases are proposals; unlisted rows are not verified negatives. `DucAnh_N2`, `argon`, and `Minh_N1` must inspect authorized source text, resolve citation and grouped-unit questions, enter their own decisions, and adjudicate before conversion to T1 M2 Gold. No decisions were invented here.
+
+## Release decision
+
+**Data Lead is not 100% complete.** The canonical rebase is a review candidate; M7 Dev remains below threshold; T1 M2 has no adjudicated Gold; the equivalent-gate technical baseline fails or lacks several required metrics. The next independent action is to reconcile the missing privacy-Gold validator between the Data and Pipeline checkouts, then deliver the metadata-only D1 boundary packet and T1 M2 review packet to the named human reviewers. Keep original Gold and restricted text local until decisions are recorded.
