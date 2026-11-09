@@ -1,0 +1,74 @@
+---
+config:
+  layout: elk
+---
+%%{init: {"flowchart": {"nodeSpacing": 50, "rankSpacing": 50}}}%%
+flowchart TB
+  IN["Request: file + vai trò<br/>(sau cổng nhận: khóa xử lý, quota, tần suất)"]
+
+  subgraph LOC["Giai đoạn cục bộ: VALIDATING"]
+    S1["1. UPLOAD<br/>kiểm loại file, dung lượng, số trang<br/>vượt giới hạn: REJECTED"]
+    S2["2. EXTRACTION<br/>PDF/DOCX thành canonical_text<br/>NFC, offset theo code point<br/>không đọc được: REJECTED"]
+    S3["3. SCOPE_PRECHECK<br/>có phải hợp đồng lao động?<br/>không phải: REJECTED"]
+    S4["4. PII_MASKING<br/>che PII, giữ nguyên độ dài<br/>ra: masked_text + pii_spans<br/>lỗi thì dừng"]
+    S5["5. SEGMENTATION<br/>cắt điều khoản cục bộ<br/>ra: clauses (id, span, text đã che)<br/>quá 150 điều: REJECTED"]
+    S6["6. CLAUSE_GRAPH<br/>cạnh NEXT, PARENT_OF, REFERS_TO"]
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+  end
+
+  subgraph AI["Giai đoạn AI: PROCESSING"]
+    S7["7. CLAUSE_CLASSIFICATION<br/>LLM lần 1, lô 20 điều<br/>ra: 1 đến 3 nhãn clause mỗi điều"]
+    S8["8. LEGAL_RETRIEVAL<br/>label_map + BM25 chọn seed<br/>mở rộng Data Graph 1 hop<br/>ra: 8 ứng viên mỗi điều"]
+    S9["9. RISK_ANALYSIS<br/>gom điều liên quan (Clause Graph)<br/>LLM lần 2, lô 6 điều, theo vai trò<br/>ra: loại căn cứ, nhãn, giải thích, citation"]
+    S10["10. CITATION_VALIDATION<br/>citation phải thuộc ứng viên và corpus<br/>hết citation hợp lệ: hạ INSUFFICIENT<br/>kiểm nhãn, loại căn cứ, vai trò<br/>sai: retry 1 lần, vẫn sai: thẻ cần xem xét<br/>tra severity, lọc lời khuyên"]
+    S11["11. ASSEMBLY<br/>trích dẫn từ canonical_text, offset highlight<br/>ra: final_result"]
+    S7 --> S8 --> S9 --> S10 --> S11
+  end
+
+  OUT["COMPLETED<br/>final_result lưu trong phiên (RAM)"]
+  EXPORT["EXPORT (theo yêu cầu)<br/>final_result thành DOCX"]
+
+  GW{{"Cổng gọi LLM duy nhất<br/>chỉ nhận văn bản đã che"}}
+  GEM["Gemini"]
+  COR[("Kho căn cứ pháp lý<br/>chỉ đọc")]
+  TAX[("Bảng taxonomy trong mã<br/>nhãn, loại căn cứ, vai trò thành severity")]
+
+  REJ["REJECTED<br/>kết thúc, phải tạo phiên mới"]
+  FL["FAILED cục bộ<br/>retry tối đa 2 lần, chạy lại từ EXTRACTION"]
+  FA["FAILED AI<br/>retry tối đa 2 lần, resume từ bước AI lỗi"]
+
+  IN --> S1
+  S6 --> S7
+  S11 --> OUT
+  OUT --> EXPORT
+
+  S7 --> GW
+  S9 --> GW
+  GW <--> GEM
+  COR --> S8
+  TAX --> S10
+
+  S1 -.-> REJ
+  S2 -.-> REJ
+  S3 -.-> REJ
+  S5 -.-> REJ
+  LOC -.->|"lỗi nội bộ"| FL
+  AI -.->|"AI_TIMEOUT, AI_PROVIDER_ERROR, AI_OUTPUT_INVALID"| FA
+  FL -.->|"retry"| LOC
+  FA -.->|"retry"| AI
+
+  classDef raw stroke:#c0392b
+  classDef cut stroke:#b8860b
+  classDef masked stroke:#2e7d32
+  classDef gate stroke:#2e7d32,stroke-width:3px
+  classDef store stroke:#f9a825
+  classDef ext stroke:#1565c0
+  classDef term stroke:#616161
+  class S1,S2,S3,S11 raw
+  class S4 cut
+  class S5,S6,S7,S8,S9,S10 masked
+  class GW gate
+  class GEM ext
+  class COR,TAX store
+  class REJ,FL,FA,OUT,EXPORT term
+

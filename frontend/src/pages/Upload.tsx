@@ -4,7 +4,9 @@ import type { Role } from "../api/types";
 import { DATA_NOTICE, DISCLAIMER } from "../lib/notices";
 import { messageFor } from "../lib/messages";
 
-// Kiểm tra phía client chỉ để báo lỗi sớm. Backend mới là nơi quyết định (REJECTED async, hard byte cap).
+// Kiểm tra phía client chỉ để báo lỗi sớm. Backend mới là nơi quyết định cuối cùng
+// (REJECTED async, hard byte cap). Giá trị này phải khớp với MAX_UPLOAD_MB của backend
+// (backend/app/core/config.py hoặc biến môi trường). Nếu backend đổi, sửa cả hai chỗ.
 const MAX_UPLOAD_MB = 10;
 const ROLES: { value: Role; label: string; hint: string }[] = [
   { value: "EMPLOYEE", label: "Người lao động", hint: "Tìm điều khoản bất lợi cho người đi làm." },

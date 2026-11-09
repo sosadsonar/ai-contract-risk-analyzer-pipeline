@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "render:diagrams": "node ../scripts/render_diagrams.mjs",
+    "smoke:api": "node scripts/smoke_api.mjs"
   },
   "dependencies": {
     "react": "18.3.1",

@@ -51,6 +51,9 @@ export interface RiskResult {
   explanation: string;
   evidence_status: EvidenceStatus;
   citation_ids: string[];
+  // Tùy chọn: X-16/X-21 — tập con clause_id liên quan (backend điền từ context đã cấp cho LLM #2).
+  // Chưa bắt buộc UI dùng; để trống cho đến X-23 (tuần 5).
+  related_clause_ids?: string[];
 }
 
 export interface Citation {
@@ -58,6 +61,8 @@ export interface Citation {
   document_name: string;
   article: string;
   content: string;
+  // Tùy chọn: X-16 — số khoản khi nút là Khoản (thẻ citation hiển thị nguyên văn Khoản, X-23 tuần 5).
+  clause?: string;
 }
 
 /** GET /sessions/{id}/result (chỉ khi COMPLETED) */

@@ -1,5 +1,6 @@
 // Tên hiển thị tiếng Việt cho mã nhãn backend trả về. UI không bao giờ hiện mã thô như PROBATION.
-// Nguồn mã: backend/app/risk/taxonomy.py (21 nhãn, risk_taxonomy_v02) và backend/app/clause/taxonomy.py (12 nhãn).
+// Nguồn mã: backend/app/risk/taxonomy.py (21 nhãn, risk_taxonomy_v01) và backend/app/clause/taxonomy.py (12 nhãn).
+// SỬA: comment cũ ghi "risk_taxonomy_v02" là sai — đã thống nhất risk_taxonomy_v01 từ 25/10 (B3, BACKEND_ISSUES.md).
 // Tên tiếng Việt là ĐỀ XUẤT của frontend (tài liệu chưa có tên hiển thị chính thức), cần nhóm duyệt.
 // Nếu backend thêm nhãn mới mà file này chưa có, labelName() trả về chính mã đó (không vỡ UI).
 
@@ -16,6 +17,8 @@ export const RISK_LABEL_NAMES: Record<string, string> = {
   UNILATERAL_CHANGE: "Đơn phương thay đổi nội dung",
   PENALTY_DEDUCTION_DAMAGES: "Phạt, khấu trừ, bồi thường",
   DISCIPLINE_OBLIGATION: "Kỷ luật và nghĩa vụ",
+  // TODO X-15: N3 sẽ đổi nhãn này → IP_CONFIDENTIALITY_NONCOMPETE trong PR taxonomy.
+  // Không tự đổi ở đây trước khi X-15 merge để tránh lệch với backend/app/risk/taxonomy.py.
   POST_EMPLOYMENT_RESTRICTION: "Ràng buộc sau khi nghỉ việc",
   DEPOSIT_DOCUMENT_HELD: "Đặt cọc, giữ giấy tờ",
   DISCRIMINATION_PROTECTED_GROUPS: "Phân biệt đối xử",
