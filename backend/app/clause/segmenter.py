@@ -36,7 +36,8 @@ from app.clause.structure_parser import HeadingMark, parse_structure
 from app.domain.errors import ValidationReject
 from app.privacy.pii_types import PiiSpan
 
-SEGMENTATION_VERSION = "rules_v1.2"
+SEGMENTATION_VERSION = "rules_v1.1"
+PLUS_SEGMENTATION_VERSION = "rules_v1.2"
 SEGMENTATION_SCHEMA_VERSION = "segmentation_v1"
 OFFSET_UNIT = "unicode_code_point"
 
@@ -190,8 +191,11 @@ def segment(
     pii_spans: list[PiiSpan],
     *,
     max_clauses: int = MAX_CLAUSES,
+    enable_plus_lists: bool = False,
 ) -> SegmentationResult:
     """Cắt hợp đồng thành clause. Chạy trên `masked_text`, span tính trên `canonical_text`.
+
+    `enable_plus_lists` chỉ dùng cho candidate D1 Dev; mặc định giữ rules_v1.1.
 
     Raises:
         ValueError: `len(masked_text) != len(canonical_text)` (vi phạm INV-01 từ bước che PII).
@@ -202,7 +206,7 @@ def segment(
 
     n = len(masked_text)
     guard = lambda pos: boundary_guard(pos, pii_spans)  # noqa: E731
-    marks: list[HeadingMark] = parse_structure(masked_text, guard)
+    marks: list[HeadingMark] = parse_structure(masked_text, guard, allow_plus=enable_plus_lists)
 
     # (start, end, mark_index | None): None = vùng paragraph không thuộc heading nào.
     pieces: list[tuple[int, int, Optional[int]]] = []
@@ -262,7 +266,8 @@ def segment(
         )
 
     _assert_invariants(canonical_text, clauses, pii_spans)
-    return SegmentationResult(clauses=clauses, warnings=warnings)
+    version = PLUS_SEGMENTATION_VERSION if enable_plus_lists else SEGMENTATION_VERSION
+    return SegmentationResult(clauses=clauses, warnings=warnings, segmentation_version=version)
 
 
 def _assert_invariants(text: str, clauses: list[SegmentedClause], pii_spans: list[PiiSpan]) -> None:

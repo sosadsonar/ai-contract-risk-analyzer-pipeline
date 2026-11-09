@@ -7,7 +7,7 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from app.clause.segmenter import SEGMENTATION_VERSION, segment
+from app.clause.segmenter import PLUS_SEGMENTATION_VERSION, segment
 from app.privacy.masker import mask
 
 from ai_pipeline.evaluation.metrics.alignment import greedy_align_spans
@@ -21,7 +21,7 @@ def digest(path: Path) -> str:
 
 def measure(text: str, gold_json: dict, exact_ids: set[str], labels: dict[str, str]) -> dict:
     masked = mask(text)
-    predicted = segment(text, masked.masked_text, masked.pii_spans).clauses
+    predicted = segment(text, masked.masked_text, masked.pii_spans, enable_plus_lists=True).clauses
     gold = [row for row in gold_json["segments"] if row["gold_clause_ref"] in exact_ids]
     pairs = greedy_align_spans(
         [(row["start_char"], row["end_char"]) for row in gold],
@@ -84,7 +84,7 @@ def audit(data_root: Path) -> dict:
     overall_ceiling /= len(eligible_labels)
     return {
         "status": "GEOMETRY_ONLY_NO_M7_SCORE",
-        "segmentation_version": SEGMENTATION_VERSION,
+        "segmentation_version": PLUS_SEGMENTATION_VERSION,
         "documents": documents,
         "locked_nfc_total_matches": sum(row["locked_nfc"]["matched_iou_0_5"] for row in documents),
         "candidate_total_matches": sum(row["pipeline_canonical_candidate"]["matched_iou_0_5"] for row in documents),

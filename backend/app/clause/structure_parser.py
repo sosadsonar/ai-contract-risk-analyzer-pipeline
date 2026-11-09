@@ -75,8 +75,8 @@ def _is_thousands_number(num: str) -> bool:
     return all(len(g) == 3 and g.isdigit() for g in groups[1:])
 
 
-def _candidates(text: str) -> list[tuple[int, str, Optional[str], int]]:
-    """Mọi dòng khớp 1 trong 5 pattern: (start, kind, number, decimal_depth)."""
+def _candidates(text: str, allow_plus: bool = False) -> list[tuple[int, str, Optional[str], int]]:
+    """Candidate headings; the sixth (`+`) pattern is opt-in for Dev evaluation."""
     out: list[tuple[int, str, Optional[str], int]] = []
     for line_start, line in _line_start_iter(text):
         stripped = line.lstrip(" \t")
@@ -104,7 +104,7 @@ def _candidates(text: str) -> list[tuple[int, str, Optional[str], int]]:
         if _DASH.match(line):
             out.append((start, DASH, None, 0))
             continue
-        if _PLUS.match(line):
+        if allow_plus and _PLUS.match(line):
             out.append((start, PLUS, None, 0))
     return out
 
@@ -178,14 +178,15 @@ def _drop_unreliable(cands, assigned) -> set[int]:
 
 
 def parse_structure(
-    masked_text: str, boundary_guard: Callable[[int], bool] = lambda pos: True
+    masked_text: str, boundary_guard: Callable[[int], bool] = lambda pos: True, *, allow_plus: bool = False
 ) -> list[HeadingMark]:
     """Trả danh sách `HeadingMark` đã chấp nhận, sắp theo `start` tăng dần.
 
     `boundary_guard(pos)` (xem `app.privacy.masker.boundary_guard`) phải trả False nếu `pos` nằm
     chặt bên trong một placeholder PII; marker đó bị bỏ.
+    `allow_plus` chỉ bật cho phép thử D1 Dev; mặc định giữ hành vi cũ.
     """
-    cands = [c for c in _candidates(masked_text) if boundary_guard(c[0])]
+    cands = [c for c in _candidates(masked_text, allow_plus=allow_plus) if boundary_guard(c[0])]
 
     # Lặp tới khi ổn định: bỏ nhóm yếu có thể làm đổi cha của các marker còn lại.
     for _ in range(len(cands) + 1):
