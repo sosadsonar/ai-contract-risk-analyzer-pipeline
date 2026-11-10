@@ -1,0 +1,13 @@
+# Data Lead continuation — 10/11/2026
+
+Status: local technical handoff. No Gold approval, merge or deployment is implied. The full 19-row DoD inventory remains in `docs/DATA_LEAD_AUDIT_2026-11-09.md`; this note records the new checks and changed blockers.
+
+| DoD area | Artifact | Technical check | Current status and reviewer/blocker |
+|---|---|---|---|
+| D1 M7 | `docs/D1_M7_IMPROVEMENT_2026-11-09.md` and pinned offline reports | Saved 198 predictions still score Macro-F1 0.499868. Opt-in `rules_v1.2` yields 135/174 geometric matches on 231 new spans. | No independent classification of the 231 spans; no new M7 score. N1/N2 must decide the boundary unit and canonical source policy. |
+| D1/D2 boundary rule | `docs/D1_D2_PLUS_BOUNDARY_REVIEW_2026-11-09.md` and three D2 metadata reports | D2 old and current default: 189/236 matches, 194 predictions. Opt-in `+` candidate: 184/236 matches, 231 predictions. Seven Gold refs become unmatched and two recover. | `+` remains off by default. N1/N2 review source-visible conditions before any global rollout. D2 result is geometry, not M7 classification. |
+| D1/D2 code checks | Local Pipeline branch `codex/d1-m7-handoff-2026-11-09` at `d3744d6` | Full Pipeline suite: 0 failed, 16 skipped for unavailable private data submodule. Ruff, focused parser tests, metadata-only report checks and baseline equivalence passed. | Local branch only; no push or merge requested at this time. Private-submodule integration remains untested. |
+| Privacy Gold schema | Local Pipeline branch `codex/privacy-gold-validator-2026-11-09` at `a152ad3` | Loader now rejects draft/wrong-schema privacy Gold. Pipeline suite: 0 failed, 16 skipped. Data suite against this checkout: 141 passed, 2 subtests passed. Independent code review found no remaining blocker; Codex Security diff scan found 0 issues. | Structural validation only. Human privacy adjudication, source rights and acceptance remain open. PR #29 was closed and its remote branch deleted after the request to keep work local. |
+| T1 M2 Gold | Existing 1,494-row metadata-only candidate packet | Structural checks already recorded in the 09/11 inventory; no human decision was created in this continuation. | `DucAnh_N2`, `argon`, `Minh_N1` must review source, grouped units and citations, then adjudicate before Gold conversion. |
+
+Next technical work after boundary decisions: classify the new D1 spans under the pinned model/prompt/schema on an approved canonical source, then recompute official M7 with CI and per-label counts. Preserve T1/T2 as held-out evaluation data. Keep raw contract text, PII and restricted Gold outside public Git.
