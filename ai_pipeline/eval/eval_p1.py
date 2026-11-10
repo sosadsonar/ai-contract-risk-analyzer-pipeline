@@ -20,9 +20,10 @@ sys.path.insert(0, str(ROOT / "backend"))
 sys.path.insert(0, str(ROOT))
 
 from app.privacy.masker import PII_MASKING_VERSION, mask  # noqa: E402
-from ai_pipeline.evaluation.metrics.privacy import HIGH_SENSITIVITY_TYPES, STANDARD_SENSITIVITY_TYPES  # noqa: E402
+
 from ai_pipeline.eval.p1.build_p1 import D1_RAW, load_d1  # noqa: E402
 from ai_pipeline.eval.p1.generator import REALISTIC, STRESS, _base_docs  # noqa: E402
+from ai_pipeline.evaluation.metrics.privacy import HIGH_SENSITIVITY_TYPES, STANDARD_SENSITIVITY_TYPES  # noqa: E402
 
 THRESH = {"high_sensitivity": 0.99, "standard_sensitivity": 0.90}
 GROUP_KINDS = {"high_sensitivity": HIGH_SENSITIVITY_TYPES, "standard_sensitivity": STANDARD_SENSITIVITY_TYPES}

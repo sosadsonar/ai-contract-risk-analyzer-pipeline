@@ -149,7 +149,7 @@ _PATTERNS_HEURISTIC: list[tuple[PiiType, re.Pattern[str]]] = [
         re.compile(
             r"(?<![\w])(?i:tổng[ \t]+công[ \t]+ty|công[ \t]+ty|tập[ \t]+đoàn)"
             + _ORG_FORM
-            + rf"[ \t]+(?!(?i:tnhh|mtv|cổ[ \t]+phần|trách[ \t]+nhiệm|hợp[ \t]+danh|tư[ \t]+nhân|liên[ \t]+doanh)(?!\w))"
+            + r"[ \t]+(?!(?i:tnhh|mtv|cổ[ \t]+phần|trách[ \t]+nhiệm|hợp[ \t]+danh|tư[ \t]+nhân|liên[ \t]+doanh)(?!\w))"
             + rf"(?P<v>[{_UP}0-9][^\r\n,;:()]{{0,79}}?)"
             + rf"(?=[ \t]*(?:[,;:()\r\n.]|$)|[ \t]+{_ORG_STOP}\b)"
         ),

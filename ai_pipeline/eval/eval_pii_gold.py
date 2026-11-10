@@ -39,6 +39,7 @@ sys.path.insert(0, str(ROOT))
 
 from app.document.canonicalizer import canonicalize  # noqa: E402
 from app.privacy.masker import PII_MASKING_VERSION, mask  # noqa: E402
+
 from ai_pipeline.eval.eval_pii import PRESERVE_THRESHOLD  # noqa: E402
 from ai_pipeline.evaluation.metrics.bootstrap import bootstrap_cluster_interval  # noqa: E402
 from ai_pipeline.evaluation.metrics.privacy import (  # noqa: E402

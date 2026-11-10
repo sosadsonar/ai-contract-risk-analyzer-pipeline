@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "backend"))
 sys.path.insert(0, str(ROOT))
 
-from ai_pipeline.eval.p1.generator import doc_sha256, generate, sample_to_doc  # noqa: E402
+from ai_pipeline.eval.p1.generator import generate, sample_to_doc  # noqa: E402
 
 D1_DOCS = ("HDLD001", "HDLD002", "HDLD003", "HDLD004")
 D1_RAW = ROOT / "ai_pipeline" / "data" / "data" / "processed" / "raw_text"

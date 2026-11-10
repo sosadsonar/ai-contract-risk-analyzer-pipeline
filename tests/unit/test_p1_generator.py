@@ -1,4 +1,8 @@
-"""Q4 (N3, F2): bộ sinh P1 - ranh giới import, tái lập, offset, cỡ mẫu, NFD, biến đổi thật, email ASCII."""
+"""Q4 (N3, F2): bộ sinh P1 - ranh giới import, tái lập, offset, cỡ mẫu, NFD, biến đổi thật, email ASCII.
+
+Chạy được trên CI: văn bản nền là SYNTHETIC (test không kéo submodule). 
+Phần chạy trên D1 thật nằm ở tests/integration/test_p1_real_d1.py (tự skip khi thiếu submodule).
+"""
 
 import ast
 import hashlib
@@ -16,12 +20,23 @@ from ai_pipeline.eval.p1.generator import _base_docs, doc_sha256, generate, samp
 ROOT = Path(__file__).resolve().parents[2]
 GEN = ROOT / "ai_pipeline" / "eval" / "p1" / "generator.py"
 POOLS = ROOT / "ai_pipeline" / "eval" / "p1" / "pools.py"
-D1 = build_p1.D1_RAW
-GOLDEN_SEED17_SMALL_SHA = "56f360ef4aa66914f9eda21fb5fae30f673fcf6fdd9fa025ea229ca00a445168"
+GOLDEN_SEED17_SMALL_SHA = "a3ad4e55a5005507c145c5c0696191bac2ed3013de832d11ee7795c7ea1d946b"
 
 
 def _texts():
-    return build_p1.load_d1(D1)
+    """Nền tổng hợp giống D1: biểu mẫu trống (chỗ điền là "……"), có khối ký cuối. Một tài liệu cố ý không NFC
+    và có khoảng trắng/tab cuối dòng để đi qua canonicalize."""
+    clauses = [f"Điều {i}. Người lao động làm việc theo phân công và nghỉ phép năm theo quy định." for i in range(1, 25)]
+    docs = {}
+    for n in range(1, 5):
+        lines = ["HỢP ĐỒNG LAO ĐỘNG", "Bên A: Công ty ……", "Bên B: Họ và tên: ……", ""] + clauses + ["(Ký, ghi rõ họ tên)"]
+        if n == 2:  # không NFC, trailing space và tab
+            lines[5] += "   "
+            lines[6] += "\t"
+            docs[f"HDLD00{n}"] = unicodedata.normalize("NFD", "\n".join(lines))
+        else:
+            docs[f"HDLD00{n}"] = "\n".join(lines)
+    return docs
 
 
 def test_generator_and_pools_do_not_import_privacy_package():

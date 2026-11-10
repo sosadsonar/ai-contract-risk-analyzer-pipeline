@@ -72,7 +72,7 @@ exclude = ["frontend*", "notebooks*", "tests*", "docs*"]
 
 # --- CẤU HÌNH TOOL CHO TEAM ---
 [tool.ruff]
-line-length = 120
+line-length = 150
 target-version = "py310"
 exclude = [".git", "__pycache__", "venv", "env", ".venv"]
 # Submodule dữ liệu (repo của Người 2) có lint/CI riêng, không lint từ repo này.

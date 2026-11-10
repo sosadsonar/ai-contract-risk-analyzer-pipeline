@@ -1,6 +1,5 @@
 """Nháp label_map (N3, X-17/X-24): cấu trúc, tham chiếu và trạng thái DRAFT. Không nối vào corpus loader."""
 
-import hashlib
 import json
 import re
 from pathlib import Path
