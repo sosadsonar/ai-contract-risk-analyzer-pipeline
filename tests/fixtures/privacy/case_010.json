@@ -1,0 +1,50 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_010",
+  "description": "ID_ISSUE: ngày và nơi cấp có nhãn; dòng biểu mẫu trống không che.",
+  "canonical_text": "Họ và tên: Nguyễn Văn An\nCCCD số: 079203012345\nCấp ngày: 12/03/2019\nTại: Cục Cảnh sát QLHC về trật tự xã hội\nNơi cấp: Công an tỉnh Nghệ An\nHộ chiếu: ……\nCấp ngày: ………\nTại: ………\nNgười lao động có quyền nghỉ phép năm.",
+  "pii_spans": [
+    {
+      "type": "PERSON_NAME",
+      "start": 11,
+      "end": 24,
+      "text": "Nguyễn Văn An"
+    },
+    {
+      "type": "NATIONAL_ID_OR_PASSPORT",
+      "start": 34,
+      "end": 46,
+      "text": "079203012345"
+    },
+    {
+      "type": "ID_ISSUE",
+      "start": 57,
+      "end": 67,
+      "text": "12/03/2019"
+    },
+    {
+      "type": "ID_ISSUE",
+      "start": 73,
+      "end": 108,
+      "text": "Cục Cảnh sát QLHC về trật tự xã hội"
+    },
+    {
+      "type": "ID_ISSUE",
+      "start": 118,
+      "end": 138,
+      "text": "Công an tỉnh Nghệ An"
+    }
+  ],
+  "preserve_spans": [
+    {
+      "start": 175,
+      "end": 189,
+      "text": "Người lao động"
+    },
+    {
+      "start": 149,
+      "end": 151,
+      "text": "……"
+    }
+  ]
+}

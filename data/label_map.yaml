@@ -1,0 +1,78 @@
+# DRAFT (N3, 2026-11-08). Không phải label_map chạy thật; file chạy thật là data/legal_corpus/label_map.yaml (N2).
+# Khóa: nhãn clause (12 nhãn, app/clause/taxonomy.py). Giá trị: {citation_id: trọng số}, 0 < w <= 1.
+# Trọng số: 1.0 cho điều trực tiếp; 0.5 cho điều nguyên tắc chung (Điều 5, Điều 8). Đây là giá trị khởi đầu.
+# ID ở cấp Điều (BLLD2019:artN). Corpus hiện có ID cấp Khoản/Điểm (ví dụ BLLD2019:art21:cl1:ptc) và chỉ 16
+# provisions, nên nháp này KHÔNG nạp được (validate_corpus từ chối ID không có trong provisions).
+# Mở rộng thành mọi Khoản con khi nhập corpus (X-24, N2). Người mở rộng: N2 (Data/Legal).
+# PENDING doc_id (N2), chưa có ID, không đưa vào map:
+#   - BHXH 2024 / NĐ 158/2025, 274/2025, 283/2026 (không dán nhãn INSURANCE_SAFETY)
+#   - Luật ATVSLĐ 2015 (nghĩa vụ an toàn lao động)
+#   - Luật SHTT (bảo mật, sở hữu trí tuệ, cùng nhóm với điều 5 và 21)
+#   - Luật BVDLCN 2025; NĐ 356/2025 (dữ liệu cá nhân)
+#   - NĐ 337/2025 (hình thức hợp đồng, cùng nhóm với điều 14, 118-121)
+#   - mục kỷ luật (Chương VIII, số Điều chưa nêu trong taxonomy)
+# Nhãn rủi ro gốc được mô tả theo nội dung (không ghi tên nhãn trong file này).
+CONTRACT_TERM:
+  BLLD2019:art20: 1.0
+  BLLD2019:art24: 1.0
+  BLLD2019:art25: 1.0
+  BLLD2019:art26: 1.0
+  BLLD2019:art27: 1.0
+COMPENSATION_BENEFITS:
+  BLLD2019:art94: 1.0
+  BLLD2019:art95: 1.0
+  BLLD2019:art96: 1.0
+  BLLD2019:art97: 1.0
+  BLLD2019:art98: 1.0
+  BLLD2019:art104: 1.0
+WORKING_TIME:
+  BLLD2019:art105: 1.0
+  BLLD2019:art107: 1.0
+LEAVE:
+  BLLD2019:art109: 1.0
+  BLLD2019:art110: 1.0
+  BLLD2019:art111: 1.0
+  BLLD2019:art112: 1.0
+  BLLD2019:art113: 1.0
+  BLLD2019:art114: 1.0
+  BLLD2019:art115: 1.0
+JOB_INFO:
+  BLLD2019:art21: 1.0
+  BLLD2019:art29: 1.0
+  BLLD2019:art33: 1.0
+EMPLOYER_RIGHTS_OBLIGATIONS:
+  BLLD2019:art21: 1.0
+  BLLD2019:art29: 1.0
+  BLLD2019:art33: 1.0
+EMPLOYEE_OBLIGATIONS_DISCIPLINE:
+  BLLD2019:art5: 0.5
+  BLLD2019:art21: 1.0
+  BLLD2019:art36: 1.0
+  BLLD2019:art40: 1.0
+  BLLD2019:art101: 1.0
+  BLLD2019:art129: 1.0
+WORKING_CONDITIONS:
+  BLLD2019:art8: 0.5
+  BLLD2019:art17: 1.0
+  BLLD2019:art137: 1.0
+  BLLD2019:art138: 1.0
+TRAINING:
+  BLLD2019:art8: 0.5
+  BLLD2019:art61: 1.0
+  BLLD2019:art62: 1.0
+TERMINATION:
+  BLLD2019:art35: 1.0
+  BLLD2019:art36: 1.0
+  BLLD2019:art41: 1.0
+  BLLD2019:art46: 1.0
+  BLLD2019:art47: 1.0
+  BLLD2019:art48: 1.0
+OTHER:
+  BLLD2019:art5: 0.5
+  BLLD2019:art14: 1.0
+  BLLD2019:art49: 1.0
+  BLLD2019:art118: 1.0
+  BLLD2019:art119: 1.0
+  BLLD2019:art120: 1.0
+  BLLD2019:art121: 1.0
+INSURANCE_SAFETY: {}  # PENDING: chưa có điều BLLD2019 trong cột Căn cứ

@@ -1,0 +1,38 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_009",
+  "description": "Mã số thuế (TAX_ID) có anchor, tên pháp nhân chỉ che phần tên, 'Công ty TNHH có quyền' không che.",
+  "canonical_text": "HỢP ĐỒNG LAO ĐỘNG\nBên A: Công ty TNHH Bình An Việt\nMã số thuế: 0101234567-001\nMST 0312345678\nCông ty TNHH có quyền điều chuyển người lao động theo nhu cầu.",
+  "pii_spans": [
+    {
+      "type": "LEGAL_ENTITY",
+      "start": 38,
+      "end": 50,
+      "text": "Bình An Việt"
+    },
+    {
+      "type": "TAX_ID",
+      "start": 63,
+      "end": 77,
+      "text": "0101234567-001"
+    },
+    {
+      "type": "TAX_ID",
+      "start": 82,
+      "end": 92,
+      "text": "0312345678"
+    }
+  ],
+  "preserve_spans": [
+    {
+      "start": 127,
+      "end": 141,
+      "text": "người lao động"
+    },
+    {
+      "start": 93,
+      "end": 105,
+      "text": "Công ty TNHH"
+    }
+  ]
+}

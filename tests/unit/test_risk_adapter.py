@@ -174,3 +174,40 @@ def test_missing_model_id_is_refused():
     cfg = SimpleNamespace(**{**CFG.__dict__, "GEMINI_MODEL_ID": None})
     with pytest.raises(ValueError, match="model"):
         run(analyze_risks("EMPLOYEE", [item(1)], CANDS, FakeProvider(echo_all), InMemoryLedger(), cfg))
+
+
+def test_related_clause_ids_inside_context_are_kept():
+    items = [item(1, related=[RelatedClause("cl_0002", "REFERS_TO", "x")]), item(2)]
+    p = FakeProvider(lambda n, m: resp([good("cl_0001", related_clause_ids=["cl_0002"])]))
+    out = run(analyze_risks("EMPLOYEE", items, CANDS, p, InMemoryLedger(), CFG))
+    assert out.items[0].related_clause_ids == ["cl_0002"]
+    assert out.to_dict()["items"][0]["related_clause_ids"] == ["cl_0002"]
+
+
+def test_related_clause_id_outside_context_is_rejected():
+    p = FakeProvider(lambda n, m: resp([good("cl_0001", related_clause_ids=["cl_0009"])]))
+    with pytest.raises(AiOutputInvalid):
+        run(analyze_risks("EMPLOYEE", [item(1)], CANDS, p, InMemoryLedger(), CFG))
+
+
+def test_related_clause_self_reference_and_duplicates_are_rejected():
+    ctx = [RelatedClause("cl_0002", "REFERS_TO", "x")]
+    for bad in (["cl_0001"], ["cl_0002", "cl_0002"]):
+        with pytest.raises(ValueError):
+            validate_batch_response(resp([good("cl_0001", related_clause_ids=bad)]), [item(1, related=ctx)])
+
+
+def test_optional_key_does_not_relax_unknown_key_check():
+    with pytest.raises(ValueError):
+        validate_batch_response(resp([good("cl_0001", severity="HIGH")]), [item(1)])
+
+
+def test_absent_or_empty_related_clause_ids_keeps_old_output():
+    out = validate_batch_response(resp([good("cl_0001")]), [item(1)])
+    assert out[0].to_dict() == {
+        "clause_id": "cl_0001", "basis_type": "UNFAVORABLE", "risk_labels": ["PROBATION"],
+        "citation_ids": ["BLLD2019:art26"], "evidence_status": "SUPPORTED",
+        "explanation": "Điều khoản thử việc bất lợi cho người lao động.",
+    }
+    out = validate_batch_response(resp([good("cl_0001", related_clause_ids=[])]), [item(1)])
+    assert "related_clause_ids" not in out[0].to_dict()

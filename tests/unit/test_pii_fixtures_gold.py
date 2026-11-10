@@ -67,12 +67,12 @@ def _types(text):
 @pytest.mark.parametrize(
     "text, expected",
     [
-        ("MST: 0312345678", [(PiiType.LEGAL_ENTITY, "0312345678")]),
-        ("Mã số thuế: 0312345678-001", [(PiiType.LEGAL_ENTITY, "0312345678-001")]),
-        ("MST 0801234567", [(PiiType.LEGAL_ENTITY, "0801234567")]),
+        ("MST: 0312345678", [(PiiType.TAX_ID, "0312345678")]),
+        ("Mã số thuế: 0312345678-001", [(PiiType.TAX_ID, "0312345678-001")]),
+        ("MST 0801234567", [(PiiType.TAX_ID, "0801234567")]),
         ("SĐT 0312345678", [(PiiType.PHONE, "0312345678")]),
         ("Mã số thuế: 0312345678, SĐT 0312345679", [
-            (PiiType.LEGAL_ENTITY, "0312345678"), (PiiType.PHONE, "0312345679")]),
+            (PiiType.TAX_ID, "0312345678"), (PiiType.PHONE, "0312345679")]),
     ],
 )
 def test_tax_code_is_not_mistaken_for_phone(text, expected):

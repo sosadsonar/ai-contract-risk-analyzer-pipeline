@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.app.result.report_model import (
+from app.result.report_model import (
     NO_RISK_MESSAGE,
     ReportModel,
     build_report_model,
@@ -226,7 +226,7 @@ def test_missing_citation_id_marked_not_silent(base_result, caplog):
     """
     data = copy.deepcopy(base_result)
     data["risks"][0]["citation_ids"] = ["GHOST_CITATION_NOT_EXIST"]
-    with caplog.at_level(logging.WARNING, logger="backend.app.result.report_model"):
+    with caplog.at_level(logging.WARNING, logger="app.result.report_model"):
         model = build_report_model(data)
     risk = next(r for r in model.risks if r.clause_id == data["risks"][0]["clause_id"])
     assert any(c.missing for c in risk.citations), (

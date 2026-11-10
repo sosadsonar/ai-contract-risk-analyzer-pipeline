@@ -140,3 +140,16 @@ def test_insufficient_evidence_has_no_severity_or_citation():
     assert _errors(payload) == []
     risk["severity"] = "HIGH"
     assert _errors(payload)
+
+
+def test_related_clause_ids_and_citation_clause_are_optional_and_checked():
+    payload = copy.deepcopy(FIXTURE)
+    payload["risks"][0]["related_clause_ids"] = ["cl_0002"]
+    payload["citations"][0]["clause"] = "1"
+    assert _errors(payload) == []
+    payload["citations"][0]["clause"] = "abc"
+    assert _errors(payload)
+    payload["citations"][0]["clause"] = "1"
+    payload["risks"][0]["related_clause_ids"] = ["clause_2"]
+    assert _errors(payload)
+    assert "clause" not in FIXTURE["citations"][0]

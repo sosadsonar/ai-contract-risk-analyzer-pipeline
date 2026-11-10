@@ -182,3 +182,22 @@ def test_broken_upstream_raises():
 def test_canonical_text_mismatch_raises_inv03():
     with pytest.raises(RiskAssemblerError):
         assemble_risk_output(_upstream(), _ai(), _ctx(), canonical_text="X" * 45)
+
+
+def test_related_clause_ids_pass_through_only_when_present():
+    ai = _ai(_item("cl_0002", related_clause_ids=["cl_0001"]), _item("cl_0003"))
+    m = assemble_risk_output(_upstream(), ai, _ctx(), canonical_text=TEXT).merged
+    assert m["clauses"][0]["related_clause_ids"] == ["cl_0001"]
+    assert "related_clause_ids" not in m["clauses"][1]
+
+
+def test_related_clause_id_not_in_upstream_raises():
+    ai = _ai(_item("cl_0002", related_clause_ids=["cl_0009"]))
+    with pytest.raises(RiskAssemblerError):
+        assemble_risk_output(_upstream(), ai, _ctx(), canonical_text=TEXT)
+
+
+def test_related_clause_self_reference_raises():
+    ai = _ai(_item("cl_0002", related_clause_ids=["cl_0002"]))
+    with pytest.raises(RiskAssemblerError):
+        assemble_risk_output(_upstream(), ai, _ctx(), canonical_text=TEXT)

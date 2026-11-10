@@ -1,0 +1,34 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_013",
+  "description": "Phủ định: chức vụ, số hợp đồng, ngày ký, lương, cụm 'Công ty có quyền'.",
+  "canonical_text": "Đại diện: Giám đốc\nĐại diện: Chủ tịch hội đồng quản trị\nSố hợp đồng: 01/2026/HĐLĐ\nLương 12.000.000 đồng/tháng.\nNgày ký: 02/12/2026\nBên A: Công ty có quyền điều chuyển người lao động.\nNgười lao động có quyền nghỉ phép năm.",
+  "pii_spans": [],
+  "preserve_spans": [
+    {
+      "start": 10,
+      "end": 18,
+      "text": "Giám đốc"
+    },
+    {
+      "start": 29,
+      "end": 55,
+      "text": "Chủ tịch hội đồng quản trị"
+    },
+    {
+      "start": 88,
+      "end": 109,
+      "text": "12.000.000 đồng/tháng"
+    },
+    {
+      "start": 120,
+      "end": 130,
+      "text": "02/12/2026"
+    },
+    {
+      "start": 167,
+      "end": 181,
+      "text": "người lao động"
+    }
+  ]
+}

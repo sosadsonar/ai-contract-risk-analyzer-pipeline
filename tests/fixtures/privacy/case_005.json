@@ -11,13 +11,13 @@
       "text": "Bình Minh"
     },
     {
-      "type": "LEGAL_ENTITY",
+      "type": "TAX_ID",
       "start": 45,
       "end": 59,
       "text": "0312345678-001"
     },
     {
-      "type": "LEGAL_ENTITY",
+      "type": "TAX_ID",
       "start": 64,
       "end": 74,
       "text": "0801234567"

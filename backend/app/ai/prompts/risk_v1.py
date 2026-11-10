@@ -95,6 +95,9 @@ RESPONSE_SCHEMA: dict = {
                     "citation_ids": {"type": "array", "uniqueItems": True, "items": {"type": "string"}},
                     "evidence_status": {"type": "string", "enum": ["SUPPORTED", "INSUFFICIENT_EVIDENCE"]},
                     "explanation": {"type": "string"},
+                    # related_clause_ids: khóa tùy chọn (X-16). Schema provider KHÔNG ràng buộc mẫu cl_NNNN;
+                    # risk_adapter kiểm mẫu cl_NNNN, thuộc related_clauses của chính clause, không trùng.
+                    "related_clause_ids": {"type": "array", "uniqueItems": True, "items": {"type": "string"}},
                 },
             },
         },

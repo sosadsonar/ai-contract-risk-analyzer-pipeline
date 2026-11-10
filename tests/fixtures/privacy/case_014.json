@@ -1,0 +1,32 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_014",
+  "description": "Offset theo code point sau ký tự ngoài BMP; địa chỉ không có tiêu đề bên; 'làm việc tại Công ty' không che.",
+  "canonical_text": "😀 Địa chỉ: 25 đường Lê Lợi, phường Bến Nghé, quận 1, TP. HCM 😀\nHợp đồng có hiệu lực từ ngày 01/01/2026.\nNhân viên làm việc tại Công ty ABC.",
+  "pii_spans": [
+    {
+      "type": "RESIDENTIAL_ADDRESS",
+      "start": 11,
+      "end": 60,
+      "text": "25 đường Lê Lợi, phường Bến Nghé, quận 1, TP. HCM"
+    },
+    {
+      "type": "LEGAL_ENTITY",
+      "start": 135,
+      "end": 138,
+      "text": "ABC"
+    }
+  ],
+  "preserve_spans": [
+    {
+      "start": 114,
+      "end": 134,
+      "text": "làm việc tại Công ty"
+    },
+    {
+      "start": 92,
+      "end": 102,
+      "text": "01/01/2026"
+    }
+  ]
+}

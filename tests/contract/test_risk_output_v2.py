@@ -113,3 +113,17 @@ def test_schema_version_is_pinned():
     doc = _payload()
     doc["schema_version"] = "risk_output_v1"
     assert _errors(doc)
+
+
+@pytest.mark.parametrize("value", [["cl_0002"], []])
+def test_related_clause_ids_is_optional_and_accepts_valid_ids(value):
+    doc = _payload()
+    doc["items"][0]["related_clause_ids"] = value
+    assert _errors(doc) == []
+
+
+@pytest.mark.parametrize("value", [["cl_2"], ["clause_0002"], ["cl_0002", "cl_0002"]])
+def test_related_clause_ids_rejects_bad_pattern_or_duplicates(value):
+    doc = _payload()
+    doc["items"][0]["related_clause_ids"] = value
+    assert _errors(doc)

@@ -29,7 +29,8 @@ def test_basis_types_match_enum():
 def test_response_schema_enums_match_contract_schema():
     item = rv.RESPONSE_SCHEMA["properties"]["items"]["items"]
     assert item["properties"]["risk_labels"]["items"]["enum"] == list(RISK_LABELS)
-    assert set(item["required"]) == set(item["properties"])
+    # related_clause_ids là khóa TÙY CHỌN (X-16): provider không bắt buộc; mọi khóa khác phải bắt buộc.
+    assert set(item["required"]) | {"related_clause_ids"} == set(item["properties"])
     text = json.dumps(SCHEMA)
     for name in RISK_LABELS:
         assert name in text

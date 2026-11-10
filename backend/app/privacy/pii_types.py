@@ -18,6 +18,10 @@ class PiiType(str, Enum):
     EMAIL = "EMAIL"
     BANK_ACCOUNT = "BANK_ACCOUNT"
     LEGAL_ENTITY = "LEGAL_ENTITY"
+    TAX_ID = "TAX_ID"
+    ID_ISSUE = "ID_ISSUE"
+    BUSINESS_ADDRESS = "BUSINESS_ADDRESS"
+    SIGNATURE = "SIGNATURE"
 
 
 @dataclass(frozen=True)
@@ -46,6 +50,10 @@ TYPE_TAG: dict[PiiType, str] = {
     PiiType.EMAIL: "<EMAIL>",
     PiiType.BANK_ACCOUNT: "<BANK>",
     PiiType.LEGAL_ENTITY: "<ORG>",
+    PiiType.TAX_ID: "<TAX>",
+    PiiType.ID_ISSUE: "<ISSUE>",
+    PiiType.BUSINESS_ADDRESS: "<BADDR>",
+    PiiType.SIGNATURE: "<SIGN>",
 }
 
 TYPE_SHORT_CODE: dict[PiiType, str] = {
@@ -57,4 +65,8 @@ TYPE_SHORT_CODE: dict[PiiType, str] = {
     PiiType.EMAIL: "E",
     PiiType.BANK_ACCOUNT: "B",
     PiiType.LEGAL_ENTITY: "O",
+    PiiType.TAX_ID: "T",
+    PiiType.ID_ISSUE: "S",
+    PiiType.BUSINESS_ADDRESS: "A",
+    PiiType.SIGNATURE: "G",
 }

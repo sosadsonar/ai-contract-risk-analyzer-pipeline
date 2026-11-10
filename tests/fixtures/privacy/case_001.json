@@ -11,13 +11,13 @@
       "text": "Sao Mai Việt Nam"
     },
     {
-      "type": "LEGAL_ENTITY",
+      "type": "TAX_ID",
       "start": 109,
       "end": 119,
       "text": "0312345678"
     },
     {
-      "type": "RESIDENTIAL_ADDRESS",
+      "type": "BUSINESS_ADDRESS",
       "start": 129,
       "end": 192,
       "text": "25 đường Lê Lợi, phường Bến Nghé, quận 1, Thành phố Hồ Chí Minh"
