@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, endSession, exportReport, getResult } from "../api/client";
-import type { Citation, FinalResult, RiskResult } from "../api/types";
+import type { Citation, FinalResult } from "../api/types";
 import { labelName } from "../lib/labels";
 import { messageFor } from "../lib/messages";
 import { DATA_NOTICE, DISCLAIMER } from "../lib/notices";
-import { buildCodePointIndex, cpLength, cpSlice } from "../lib/offset";
+import { buildSegments } from "../lib/segments";
 
 interface Props {
     sessionId: string;
@@ -33,45 +33,29 @@ export default function Result({ sessionId, onReset }: Props) {
         return () => { cancelled = true; };
     }, [sessionId]);
 
-    const riskByClause = useMemo(() => {
-        const map = new Map<string, RiskResult>();
-        data?.risks.forEach((r) => map.set(r.clause_id, r));
-        return map;
-    }, [data]);
-
     const citationById = useMemo(() => {
         const map = new Map<string, Citation>();
         data?.citations.forEach((c) => map.set(c.citation_id, c));
         return map;
     }, [data]);
 
-    // Dựng các đoạn văn bản từ canonical_text bằng offset code point (INV-12)
+    // Danh sách rủi ro sắp xếp theo start_char của clause tương ứng (khớp ReportModel)
+    const sortedRisks = useMemo(() => {
+        if (!data) return [];
+        const clauseOrder = new Map<string, number>();
+        data.clauses.forEach((c) => clauseOrder.set(c.clause_id, c.start_char));
+        return [...data.risks].sort((a, b) => {
+            const startA = clauseOrder.get(a.clause_id) ?? 0;
+            const startB = clauseOrder.get(b.clause_id) ?? 0;
+            return startA - startB;
+        });
+    }, [data]);
+
+    // Dựng các đoạn văn bản từ canonical_text bằng offset code point (INV-12 & TDD §5.9)
     const segments = useMemo(() => {
         if (!data) return [];
-        const text = data.canonical_text;
-        const idx = buildCodePointIndex(text);
-        const totalCp = cpLength(idx);
-        const sorted = [...data.clauses].sort((a, b) => a.start_char - b.start_char);
-        const out: { key: string; text: string; clauseId?: string; risk?: RiskResult }[] = [];
-        let cursor = 0;
-
-        for (const c of sorted) {
-            if (c.start_char > cursor) {
-                out.push({ key: `plain_${cursor}`, text: cpSlice(text, cursor, c.start_char, idx) });
-            }
-            out.push({
-                key: c.clause_id,
-                text: cpSlice(text, c.start_char, c.end_char, idx),
-                clauseId: c.clause_id,
-                risk: riskByClause.get(c.clause_id),
-            });
-            cursor = c.end_char;
-        }
-        if (cursor < totalCp) {
-            out.push({ key: `tail_${cursor}`, text: cpSlice(text, cursor, totalCp, idx) });
-        }
-        return out;
-    }, [data, riskByClause]);
+        return buildSegments(data.canonical_text, data.clauses, data.risks);
+    }, [data]);
 
     function selectClause(clauseId: string) {
         setActiveClauseId(clauseId);
@@ -107,6 +91,11 @@ export default function Result({ sessionId, onReset }: Props) {
     }
 
     if (error && !data) {
+        // Phân biệt các mã lỗi đặc biệt khi lấy kết quả (TDD §5.8)
+        const isNotReady = error === messageFor("SESSION_NOT_READY");
+        const isRejected = error === messageFor("SESSION_REJECTED");
+        const isExpired = error === messageFor("SESSION_EXPIRED") || error === messageFor("SESSION_NOT_FOUND");
+        void isNotReady; void isRejected; void isExpired; // dùng để gợi ý ý nghĩa, UI chung cho cả 3
         return (
             <main className="page">
                 <h1>Không tải được kết quả</h1>
@@ -193,7 +182,7 @@ export default function Result({ sessionId, onReset }: Props) {
                         <small>Bấm vào đoạn tô màu bên trái để xem chi tiết căn cứ pháp lý tương ứng.</small>
                     </div>
                     <div className="risk-list">
-                        {data.risks.map((risk) => {
+                        {sortedRisks.map((risk) => {
                             const clause = data.clauses.find((c) => c.clause_id === risk.clause_id);
                             const isSelected = activeClauseId === risk.clause_id;
                             const isInsufficient = risk.evidence_status === "INSUFFICIENT_EVIDENCE" || risk.severity === null;

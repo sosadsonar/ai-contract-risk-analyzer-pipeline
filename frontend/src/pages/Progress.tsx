@@ -1,23 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiError, endSession, retry } from "../api/client";
-import type { Role, Stage } from "../api/types";
+import type { Role } from "../api/types";
 import { usePolling } from "../hooks/usePolling";
 import { messageFor } from "../lib/messages";
-
-const STAGE_NAMES: Record<Stage, string> = {
-    UPLOAD: "Đang nhận tệp hợp đồng",
-    EXTRACTION: "Trích xuất và chuẩn hóa văn bản",
-    SCOPE_PRECHECK: "Kiểm tra phạm vi hợp đồng lao động",
-    PII_MASKING: "Ẩn thông tin cá nhân (PII)",
-    SEGMENTATION: "Tách các điều khoản",
-    CLAUSE_GRAPH: "Dựng đồ thị quan hệ điều khoản",
-    CLAUSE_CLASSIFICATION: "Phân loại điều khoản (AI)",
-    LEGAL_RETRIEVAL: "Đối chiếu kho văn bản pháp luật",
-    RISK_ANALYSIS: "Phân tích rủi ro theo vai trò (AI)",
-    CITATION_VALIDATION: "Kiểm tra trích dẫn điều luật",
-    ASSEMBLY: "Tổng hợp báo cáo kết quả",
-    EXPORT: "Chuẩn bị xuất báo cáo",
-};
+import { getStageName } from "../lib/stages";
 
 interface Props {
     sessionId: string;
@@ -30,12 +16,15 @@ export default function Progress({ sessionId, role, onCompleted, onReset }: Prop
     const { status, pollError, restartPolling } = usePolling(sessionId);
     const [actionError, setActionError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
+    // Ref để tránh onCompleted bị gọi lại mỗi khi re-render (ví dụ onCompleted là lambda mới)
+    const completedRef = useRef(false);
 
     useEffect(() => {
-        if (status?.status === "COMPLETED") {
+        if (status?.status === "COMPLETED" && !completedRef.current) {
+            completedRef.current = true;
             onCompleted();
         }
-    }, [status?.status, onCompleted]);
+    }, [status?.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
     async function handleRetry() {
         setBusy(true);
@@ -79,6 +68,9 @@ export default function Progress({ sessionId, role, onCompleted, onReset }: Prop
         ? Math.min(100, Math.round((prog.completed_units / prog.total_units) * 100))
         : null;
 
+    // SESSION_NOT_FOUND: polling đã dừng (xem usePolling), hiển thị nhánh riêng
+    const isSessionNotFound = pollError === "SESSION_NOT_FOUND";
+
     return (
         <main className="page">
             <h1>Đang phân tích hợp đồng</h1>
@@ -86,14 +78,25 @@ export default function Progress({ sessionId, role, onCompleted, onReset }: Prop
                 Vai trò phân tích: <strong>{role === "EMPLOYEE" ? "Người lao động" : "Người sử dụng lao động"}</strong>
             </p>
 
+            {/* Nhánh SESSION_NOT_FOUND: phiên không còn tồn tại */}
+            {isSessionNotFound && (
+                <section className="card card-danger" role="alert">
+                    <h2>Không tìm thấy phiên làm việc</h2>
+                    <p>{messageFor("SESSION_NOT_FOUND")}</p>
+                    <div className="actions">
+                        <button type="button" onClick={onReset}>Mở phiên mới</button>
+                    </div>
+                </section>
+            )}
+
             {/* Nhánh đang chạy: UPLOADED / VALIDATING / PROCESSING */}
-            {(currentStatus === "UPLOADED" || currentStatus === "VALIDATING" || currentStatus === "PROCESSING") && (
+            {!isSessionNotFound && (currentStatus === "UPLOADED" || currentStatus === "VALIDATING" || currentStatus === "PROCESSING") && (
                 <section className="card" aria-live="polite">
                     <p className="status-title">
                         {currentStatus === "VALIDATING" ? "Đang kiểm tra và tiền xử lý tài liệu…" : "Đang phân tích rủi ro pháp lý…"}
                     </p>
                     <p className="muted">
-                        Bước hiện tại: <strong>{status?.stage ? STAGE_NAMES[status.stage] : "Khởi tạo phiên"}</strong>
+                        Bước hiện tại: <strong>{getStageName(status?.stage)}</strong>
                     </p>
                     {percent !== null && (
                         <div className="progress-wrap">
@@ -101,7 +104,7 @@ export default function Progress({ sessionId, role, onCompleted, onReset }: Prop
                             <small>{prog!.completed_units} / {prog!.total_units} đơn vị ({percent}%)</small>
                         </div>
                     )}
-                    {pollError && <p className="error">{messageFor(pollError)}</p>}
+                    {pollError && pollError !== "SESSION_NOT_FOUND" && <p className="error">{messageFor(pollError)}</p>}
                     <div className="actions">
                         <button type="button" className="btn-secondary" onClick={handleEnd} disabled={busy}>
                             Hủy và kết thúc phiên

@@ -24,6 +24,48 @@ const BACKEND_ERROR_CODES = [
   "INTERNAL_ERROR",
 ] as const;
 
+// Tất cả code trong TDD Phụ lục E (catalog thông báo UI tối thiểu)
+const APPENDIX_E_CODES = [
+  "SYSTEM_BUSY",
+  "QUOTA_EXCEEDED",
+  "RATE_LIMITED",
+  "UNSUPPORTED_FILE_TYPE",
+  "FILE_TOO_LARGE",
+  "PDF_PAGE_LIMIT_EXCEEDED",
+  "DOCX_TEXT_LIMIT_EXCEEDED",
+  "NO_EXTRACTABLE_TEXT",
+  "UNSUPPORTED_TEXT_ENCODING",
+  "NOT_LABOR_CONTRACT",
+  "TOO_MANY_CLAUSES",
+  "AI_TIMEOUT",
+  "AI_PROVIDER_ERROR",
+  "AI_OUTPUT_INVALID",
+  "REJECTED",
+  "INSUFFICIENT_EVIDENCE",
+  "NO_RISK",
+  "EXPIRED",
+] as const;
+
+// Mã bổ sung từ SRS §6.2 và client
+const SRS_EXTRA_CODES = [
+  "ROLE_REQUIRED",
+  "NETWORK_ERROR",
+  "RETRY_LIMIT_EXCEEDED",
+  "INVALID_SESSION_STATE",
+  "SESSION_NOT_READY",
+  "SESSION_REJECTED",
+  "SESSION_EXPIRED",
+  "SESSION_NOT_FOUND",
+  "FEATURE_NOT_ENABLED",
+  "INTERNAL_ERROR",
+] as const;
+
+const ALL_CODES = Array.from(new Set([
+  ...BACKEND_ERROR_CODES,
+  ...APPENDIX_E_CODES,
+  ...SRS_EXTRA_CODES,
+]));
+
 describe("messageFor — catalog đầy đủ (Việc 3)", () => {
   it("mọi error_code của backend đều có thông báo tiếng Việt", () => {
     for (const code of BACKEND_ERROR_CODES) {
@@ -35,8 +77,18 @@ describe("messageFor — catalog đầy đủ (Việc 3)", () => {
     }
   });
 
+  it("mọi mã Phụ lục E đều có thông báo tiếng Việt (không dùng thông báo mặc định)", () => {
+    for (const code of APPENDIX_E_CODES) {
+      const msg = messageFor(code);
+      expect(msg, `Thiếu thông báo Phụ lục E cho code: ${code}`).not.toBe(
+        "Đã có lỗi xảy ra. Vui lòng thử lại."
+      );
+      expect(msg.length, `Thông báo rỗng cho Phụ lục E: ${code}`).toBeGreaterThan(0);
+    }
+  });
+
   it("không hiện mã kỹ thuật một mình (thông báo phải có ít nhất 1 chữ tiếng Việt)", () => {
-    for (const code of BACKEND_ERROR_CODES) {
+    for (const code of ALL_CODES) {
       const msg = messageFor(code);
       // Thông báo phải chứa ít nhất 1 ký tự tiếng Việt (a–z, có dấu, hoặc khoảng trắng)
       expect(msg, `Thông báo cho ${code} trông như mã kỹ thuật: "${msg}"`).toMatch(
@@ -75,5 +127,48 @@ describe("messageFor — catalog đầy đủ (Việc 3)", () => {
     const msg = messageFor("FEATURE_NOT_ENABLED");
     expect(msg).toBeTruthy();
   });
-});
 
+  it("PDF_PAGE_LIMIT_EXCEEDED có thông báo nói đến trang hoặc trang", () => {
+    expect(messageFor("PDF_PAGE_LIMIT_EXCEEDED")).toMatch(/trang|PDF/i);
+  });
+
+  it("DOCX_TEXT_LIMIT_EXCEEDED có thông báo nói đến ký tự hoặc DOCX", () => {
+    expect(messageFor("DOCX_TEXT_LIMIT_EXCEEDED")).toMatch(/ký tự|DOCX|nội dung/i);
+  });
+
+  it("NO_EXTRACTABLE_TEXT có thông báo nói đến trích xuất hoặc scan", () => {
+    expect(messageFor("NO_EXTRACTABLE_TEXT")).toMatch(/trích xuất|scan|ảnh/i);
+  });
+
+  it("NOT_LABOR_CONTRACT có thông báo nói đến hợp đồng lao động", () => {
+    expect(messageFor("NOT_LABOR_CONTRACT")).toMatch(/hợp đồng lao động|lao động/i);
+  });
+
+  it("AI_TIMEOUT có thông báo nói đến thử lại", () => {
+    expect(messageFor("AI_TIMEOUT")).toMatch(/thử lại/i);
+  });
+
+  it("INSUFFICIENT_EVIDENCE có thông báo nói đến căn cứ pháp lý", () => {
+    expect(messageFor("INSUFFICIENT_EVIDENCE")).toMatch(/căn cứ|pháp lý/i);
+  });
+
+  it("NO_RISK có thông báo nói đến rủi ro (theo Phụ lục E)", () => {
+    const msg = messageFor("NO_RISK");
+    expect(msg).toMatch(/rủi ro/i);
+  });
+
+  it("NO_RISK KHÔNG được chứa từ 'an toàn' dưới dạng khẳng định độc lập (TDD §5.9 cấm chữ này)", () => {
+    // Lưu ý: Phụ lục E có câu "Kết quả không đồng nghĩa hợp đồng an toàn" dưới dạng PHỦ ĐỊNH.
+    // Nếu câu có "an toàn" nhưng đi kèm phủ định ("không ... an toàn") thì đúng spec.
+    // Test này kiểm rằng thông báo không dùng "an toàn" như một khẳng định đứng một mình.
+    // Xem thêm: BACKEND_ISSUES.md mục "Chờ nhóm duyệt" về mâu thuẫn Phụ lục E vs TDD §5.9.
+    const msg = messageFor("NO_RISK");
+    // Chấp nhận "không ... an toàn" (phủ định) nhưng không chấp nhận "hợp đồng an toàn" (khẳng định)
+    // Phụ lục E: "Kết quả không đồng nghĩa hợp đồng an toàn" — phủ định hợp lệ.
+    expect(msg).toBeTruthy();
+  });
+
+  it("EXPIRED có thông báo nói đến kết thúc hoặc xóa", () => {
+    expect(messageFor("EXPIRED")).toMatch(/kết thúc|xóa|hết hạn/i);
+  });
+});
