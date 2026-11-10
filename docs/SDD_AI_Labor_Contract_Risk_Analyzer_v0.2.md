@@ -232,7 +232,39 @@ Session
 
 # **8\. Session, State Machine và điều phối**
 
-![](/docs/diagrams/state_machine.png)
+```mermaid
+---
+config:
+  layout: elk
+---
+stateDiagram-v2
+  [*] --> UPLOADED: Create/Upload được nhận
+  UPLOADED --> VALIDATING
+  VALIDATING --> PROCESSING: qua kiểm tra cục bộ
+  VALIDATING --> REJECTED: file, phạm vi hoặc giới hạn không đạt
+  VALIDATING --> FAILED: lỗi nội bộ cục bộ
+  PROCESSING --> COMPLETED
+  PROCESSING --> FAILED: lỗi AI
+  FAILED --> VALIDATING: retry thủ công tối đa 2 lần, lỗi cục bộ
+  FAILED --> PROCESSING: retry thủ công tối đa 2 lần, lỗi AI
+  VALIDATING --> EXPIRED: End Session, hủy tác vụ, giải phóng slot
+  PROCESSING --> EXPIRED: End Session, hủy tác vụ, giải phóng slot
+  COMPLETED --> EXPIRED: hết 60 phút hoặc End Session
+  FAILED --> EXPIRED
+  REJECTED --> EXPIRED
+  EXPIRED --> [*]
+  note right of REJECTED
+    Kết thúc. Phải tạo phiên mới.
+  end note
+  note right of FAILED
+    Không giữ slot xử lý.
+    VALIDATING→FAILED: lỗi nội bộ cục bộ (O-11)
+    FAILED→VALIDATING: retry local restart (O-11)
+  end note
+  note right of PROCESSING
+    Retry AI: FAILED→PROCESSING resume từ stage lỗi
+  end note
+```
 
 Analysis Orchestrator là component duy nhất được phép chuyển state. Các service trả typed result/error, không tự thay đổi state.
 
