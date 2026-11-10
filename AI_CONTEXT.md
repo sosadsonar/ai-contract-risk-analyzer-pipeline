@@ -15,7 +15,7 @@
 
 ## 2. Thứ tự ưu tiên nguồn (khi tài liệu mâu thuẫn)
 
-`BRD 0.5` (nghiệp vụ, chỉ số) **>** `SRS 1.4` (FR/NFR, entity, state, mã lỗi) **>** `SDD 0.1` (kiến trúc) **>** `TDD 0.2` (chi tiết kỹ thuật).
+`BRD 0.6` (nghiệp vụ, chỉ số) **>** `SRS 1.5` (FR/NFR, entity, state, mã lỗi) **>** `SDD 0.2` (kiến trúc) **>** `TDD 0.3` (chi tiết kỹ thuật).
 TDD sai so với BRD/SRS thì **TDD phải sửa**. Không tự ý đổi schema sản phẩm (vd thêm `related_clause_ids` vào RiskResult) khi SRS chưa sửa.
 
 ## 3. Invariant — KHÔNG BAO GIỜ phá
