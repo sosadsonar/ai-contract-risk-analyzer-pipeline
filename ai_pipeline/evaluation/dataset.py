@@ -57,6 +57,44 @@ def _required_text(obj: dict[str, Any], field: str, owner: str) -> str:
     return value
 
 
+def _validate_privacy_gold(artifact: Any) -> None:
+    """Validate the adjudicated privacy Gold v1 metadata schema."""
+    from ai_pipeline.evaluation.metrics.privacy import KNOWN_PII_TYPES
+
+    required = {"schema_version", "status", "source", "offset_unit", "pii_spans", "preserve_spans"}
+    if not isinstance(artifact, dict) or set(artifact) != required:
+        raise ValueError("privacy gold must contain only the required metadata fields")
+    if artifact["schema_version"] != "privacy_gold_v1":
+        raise ValueError("privacy gold schema_version must be privacy_gold_v1")
+    if artifact["status"] != "GOLD_ADJUDICATED":
+        raise ValueError("privacy gold is not adjudicated gold")
+    _required_text(artifact, "source", "privacy gold")
+    if artifact["offset_unit"] != "unicode_code_point":
+        raise ValueError("privacy gold offset_unit must be unicode_code_point")
+
+    for field, expected_keys, label_key in (
+        ("pii_spans", {"start_char", "end_char", "pii_type"}, "pii_type"),
+        ("preserve_spans", {"start_char", "end_char", "field"}, "field"),
+    ):
+        rows = artifact[field]
+        if not isinstance(rows, list):
+            raise ValueError(f"privacy gold {field} must be an array")
+        for index, row in enumerate(rows):
+            owner = f"privacy gold {field}[{index}]"
+            if not isinstance(row, dict) or set(row) != expected_keys:
+                raise ValueError(f"{owner} must contain only the required metadata fields")
+            start, end = row["start_char"], row["end_char"]
+            if (isinstance(start, bool) or not isinstance(start, int)
+                    or isinstance(end, bool) or not isinstance(end, int)
+                    or start < 0 or end <= start):
+                raise ValueError(f"{owner} must have a non-empty non-negative integer range")
+            label = row[label_key]
+            if not isinstance(label, str) or not label.strip():
+                raise ValueError(f"{owner}.{label_key} must be non-empty")
+            if field == "pii_spans" and label not in KNOWN_PII_TYPES:
+                raise ValueError(f"{owner} has unknown pii_type")
+
+
 def _resolve_file(root: Path, value: Any, owner: str) -> Path:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{owner} must name a non-empty relative path")
@@ -112,6 +150,7 @@ def load_dataset(manifest_path: Path) -> EvaluationDataset:
             field: _read_json(_resolve_file(root, item.get(field), f"{owner}.{field}"))
             for field in _GOLD_FIELDS
         }
+        _validate_privacy_gold(artifacts["privacy_gold"])
         documents.append(EvaluationDocument(
             doc_id=doc_id,
             source_path=source_path,
