@@ -144,9 +144,27 @@ TDD §8.5 replacement/control/printable and two-stage legacy-font checks.
 The legacy fixture is synthetic, **not** a D1 measurement; D1 smoke and any
 threshold tuning remain pending N2's confirmed D1 selection.
 
-The extractor is synchronous; the future orchestrator must invoke it via
-`asyncio.to_thread` and pass configured limits. No runtime API/orchestrator
-path is changed in this commit. DOCX extraction belongs to C-08(b), Week 4.
+The extractor is synchronous; the local validation runner calls it via
+`asyncio.to_thread` with configured limits. No runtime API/orchestrator path
+has been changed.
+
+### C-08(b) DOCX implementation (`extract_docx_v1`, Week 4)
+
+`.docx` requires ZIP magic (`PK\x03\x04`) and a readable Word package.
+Paragraphs and table rows follow document order; table cells are joined with
+` | `. Text from inserted/moved-to revisions is included, deleted/moved-from
+text is excluded; textbox content follows its anchor paragraph. Comments,
+footnotes and headers/footers do not enter canonical body. Normalization,
+quality gates and Unicode code-point offsets match PDF. The 100,000-character
+DOCX limit is checked **after** canonicalization; upload bytes remain capped
+at 10 MB. `extraction_v1` omits `page_count` for DOCX (PDF still requires it).
+
+Automatic numbering is materialized for decimal (including leading zero),
+alphabetic, Roman and bullet formats, including multilevel references and
+start overrides. Other OOXML numbering formats are not materialized; unusual
+floating textbox layout may not reconstruct exact visual reading order.
+**OI-11 remains open** pending team agreement on real D1/T1 fixture coverage.
+Tests use generated synthetic DOCX, not an approved D1 benchmark.
 
 ---
 

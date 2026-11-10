@@ -1,4 +1,4 @@
-"""Local Week 3 PDF validation, without publishing a session result or changing API state.
+"""Local Week 3–4 PDF/DOCX validation, without publishing a session result or changing API state.
 
 The caller owns the input file and the returned RAM-only artifacts. Once the
 remaining PROCESSING stages exist, the session orchestrator can invoke this
@@ -29,6 +29,7 @@ class LocalValidationResult:
 def _validate(path: Path, display_name: str, cfg: Settings) -> LocalValidationResult:
     kind = detect_kind(path, display_name)
     extraction = extract(path, kind, max_pdf_pages=cfg.MAX_PDF_PAGES,
+                         max_docx_chars=cfg.MAX_DOCX_CHARS,
                          max_upload_bytes=cfg.MAX_UPLOAD_MB * 1024 * 1024)
     scope = precheck(extraction.canonical_text, cfg)
     if not scope.accept:

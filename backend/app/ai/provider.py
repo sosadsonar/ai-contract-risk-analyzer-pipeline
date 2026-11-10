@@ -2,7 +2,7 @@
 
 Quy tắc cứng:
   * MỖI request thật tới provider — kể cả retry — gọi `ledger.before_call()` TRƯỚC khi gửi và
-    `ledger.after_call()` sau (kể cả khi lỗi). `before_call` được phép raise (hết quota) → dừng, không gửi.
+    `ledger.after_call()` đúng một lần sau response/lỗi/hủy (kể cả output sai schema).
   * Retry tự động tối đa `max_retries` (≤1) cho MỘT lần gọi, tính chung mọi loại lỗi:
     timeout/mạng, 429 (backoff + jitter), 5xx, response sai schema (kèm phản hồi lỗi validate).
     400/401/403 và các 4xx khác KHÔNG retry.
@@ -132,13 +132,19 @@ async def call_with_retry(
                     await sleep(BACKOFF_BASE_S * (1 + rng()))
                 continue
             raise _domain_error(f) from None
-        ledger.after_call(resp.in_tokens, resp.out_tokens, resp.cost)
+        except asyncio.CancelledError:
+            ledger.after_call(0, 0, 0.0, error_code="cancelled")
+            raise
+        except Exception:
+            ledger.after_call(0, 0, 0.0, error_code="INTERNAL_ERROR")
+            raise
         if validate is None:
+            ledger.after_call(resp.in_tokens, resp.out_tokens, resp.cost)
             return resp, None
         try:
-            return resp, validate(resp.data)
+            parsed = validate(resp.data)
         except ValueError as e:
-            ledger.errors.append("schema_invalid") if isinstance(ledger, InMemoryLedger) else None
+            ledger.after_call(resp.in_tokens, resp.out_tokens, resp.cost, error_code="schema_invalid")
             if attempt < max_retries:
                 attempt += 1
                 msgs = list(messages) + [{
@@ -148,3 +154,11 @@ async def call_with_retry(
                 }]
                 continue
             raise AiOutputInvalid(str(e)[:200]) from None
+        except asyncio.CancelledError:
+            ledger.after_call(resp.in_tokens, resp.out_tokens, resp.cost, error_code="cancelled")
+            raise
+        except Exception:
+            ledger.after_call(resp.in_tokens, resp.out_tokens, resp.cost, error_code="INTERNAL_ERROR")
+            raise
+        ledger.after_call(resp.in_tokens, resp.out_tokens, resp.cost)
+        return resp, parsed
