@@ -7,10 +7,18 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 
 HIGH_SENSITIVITY_TYPES = frozenset(
-    {"NATIONAL_ID_OR_PASSPORT", "PHONE", "EMAIL", "BANK_ACCOUNT"}
+    {"NATIONAL_ID_OR_PASSPORT", "PHONE", "EMAIL", "BANK_ACCOUNT", "TAX_ID"}
 )
 STANDARD_SENSITIVITY_TYPES = frozenset(
-    {"PERSON_NAME", "DATE_OF_BIRTH", "RESIDENTIAL_ADDRESS", "LEGAL_ENTITY"}
+    {
+        "PERSON_NAME",
+        "DATE_OF_BIRTH",
+        "RESIDENTIAL_ADDRESS",
+        "BUSINESS_ADDRESS",
+        "LEGAL_ENTITY",
+        "ID_ISSUE",
+        "SIGNATURE",
+    }
 )
 KNOWN_PII_TYPES = HIGH_SENSITIVITY_TYPES | STANDARD_SENSITIVITY_TYPES
 

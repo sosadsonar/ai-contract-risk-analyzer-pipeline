@@ -1,0 +1,111 @@
+{
+  "schema": "pii_baseline_v1",
+  "masking_version": "pii_draft_0.3",
+  "note": "A0 trước X-17, tính trên mã gốc (pristine). Chỉ số đếm và tỉ lệ, không có văn bản.",
+  "fixtures": {
+    "masking_version": "pii_draft_0.3",
+    "cases": 8,
+    "by_type": {
+      "LEGAL_ENTITY": {
+        "gold": 6,
+        "masked": 6,
+        "type_ok": 6
+      },
+      "RESIDENTIAL_ADDRESS": {
+        "gold": 5,
+        "masked": 4,
+        "type_ok": 4
+      },
+      "PERSON_NAME": {
+        "gold": 12,
+        "masked": 11,
+        "type_ok": 11
+      },
+      "PHONE": {
+        "gold": 7,
+        "masked": 7,
+        "type_ok": 7
+      },
+      "EMAIL": {
+        "gold": 4,
+        "masked": 4,
+        "type_ok": 4
+      },
+      "DATE_OF_BIRTH": {
+        "gold": 2,
+        "masked": 2,
+        "type_ok": 2
+      },
+      "NATIONAL_ID_OR_PASSPORT": {
+        "gold": 3,
+        "masked": 3,
+        "type_ok": 3
+      },
+      "BANK_ACCOUNT": {
+        "gold": 2,
+        "masked": 2,
+        "type_ok": 2
+      }
+    },
+    "groups": {
+      "A (CCCD/hộ chiếu, SĐT, email, TK ngân hàng)": {
+        "gold": 16,
+        "masked": 16,
+        "recall": 1.0,
+        "threshold": 0.99
+      },
+      "B (họ tên, ngày sinh, địa chỉ, pháp nhân)": {
+        "gold": 25,
+        "masked": 23,
+        "recall": 0.92,
+        "threshold": 0.9
+      }
+    },
+    "preserve": {
+      "total": 29,
+      "kept": 29,
+      "rate": 1.0,
+      "threshold": 0.95,
+      "damaged": []
+    },
+    "false_positive": []
+  },
+  "d1_scan": [
+    {
+      "file": "HDLD001.txt",
+      "code_points": 7213,
+      "spans": 0,
+      "chars_changed": 0
+    },
+    {
+      "file": "HDLD002.txt",
+      "code_points": 6822,
+      "spans": 0,
+      "chars_changed": 0
+    },
+    {
+      "file": "HDLD003.txt",
+      "code_points": 9004,
+      "spans": 0,
+      "chars_changed": 0
+    },
+    {
+      "file": "HDLD004.txt",
+      "code_points": 10991,
+      "spans": 0,
+      "chars_changed": 0
+    },
+    {
+      "file": "HDLD005.txt",
+      "code_points": 14402,
+      "spans": 0,
+      "chars_changed": 0
+    },
+    {
+      "file": "HDLD006.txt",
+      "code_points": 13090,
+      "spans": 0,
+      "chars_changed": 0
+    }
+  ]
+}

@@ -35,7 +35,8 @@ Output `merged` (risk_merged_v1), không chứa trường dev/eval:
    "citations": [...chỉ các citation được dùng...],
    "clauses": [{clause_id, clause_number, start_char, end_char, original_text, clause_labels,
                 risk_labels, risk_basis, severity, explanation, evidence_status,
-                citation_ids}]}
+                citation_ids[, related_clause_ids chỉ khi không rỗng]}]}
+`related_clause_ids` là tùy chọn: mỗi ID phải thuộc upstream_clauses và khác clause_id, không trùng.
 `clauses` theo thứ tự xuất hiện trong hợp đồng. Không có rủi ro thì `clauses` rỗng.
 
 Output `diagnostics` chỉ cho dev/eval/log, KHÔNG đưa vào response sản phẩm (không chứa text):
@@ -126,7 +127,7 @@ def _check_upstream(
     return by_id
 
 
-def _check_ai_item(item: dict[str, Any], citation_ids_known: set[str]) -> None:
+def _check_ai_item(item: dict[str, Any], citation_ids_known: set[str], upstream_ids: set[str]) -> None:
     for key in _REQUIRED_AI_ITEM:
         if key not in item:
             raise RiskAssemblerError(f"AI item thiếu trường '{key}': {item.get('clause_id')}")
@@ -155,6 +156,13 @@ def _check_ai_item(item: dict[str, Any], citation_ids_known: set[str]) -> None:
     if missing:
         raise RiskAssemblerError(
             f"clause '{cid}': citation chưa resolve trong ctx.citations: {missing}"
+        )
+    rel = item.get("related_clause_ids", [])
+    if not isinstance(rel, list) or any(not isinstance(x, str) for x in rel) or len(set(rel)) != len(rel):
+        raise RiskAssemblerError(f"clause '{cid}': related_clause_ids phải là mảng chuỗi không trùng")
+    if any(x == cid or x not in upstream_ids for x in rel):
+        raise RiskAssemblerError(
+            f"clause '{cid}': related_clause_ids không thuộc upstream hoặc tự tham chiếu"
         )
 
 
@@ -186,7 +194,7 @@ def assemble_risk_output(
 
     items: dict[str, dict[str, Any]] = {}
     for item in ai_response.get("items", []):
-        _check_ai_item(item, set(resolved))
+        _check_ai_item(item, set(resolved), set(upstream))
         cid = item["clause_id"]
         if cid in items:
             raise RiskAssemblerError(f"clause_id '{cid}' xuất hiện nhiều hơn một lần trong items[]")
@@ -242,6 +250,8 @@ def assemble_risk_output(
                 "citation_ids": list(item["citation_ids"]),
             }
         )
+        if item.get("related_clause_ids"):
+            merged_clauses[-1]["related_clause_ids"] = list(item["related_clause_ids"])
 
     merged = {
         "schema_version": MERGED_SCHEMA_VERSION,

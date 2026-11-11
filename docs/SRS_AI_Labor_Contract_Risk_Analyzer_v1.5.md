@@ -364,19 +364,20 @@ Tất cả yêu cầu là bắt buộc cho bản demo, trừ phần có ghi số
 ## **6\. Trạng thái xử lý và mã lỗi**
 
 ### **6.1 State machine**
-
-UPLOADED \-\> VALIDATING \-\> REJECTED                  (input/file/out-of-scope; cuối)  
+```text
+UPLOADED -> VALIDATING -> REJECTED                  (input/file/out-of-scope; cuối)  
                  |  
-                 \+-----\> FAILED                   (lỗi nội bộ local)  
+                 +-----> FAILED                   (lỗi nội bộ local)  
                  |  
-                 \+-----\> PROCESSING \-\> COMPLETED  
+                 \-----> PROCESSING -> COMPLETED  
                               |  
-                              \+-----\> FAILED
+                              \-----> FAILED
 
-FAILED --manual retry\--> VALIDATING   nếu failed stage thuộc local validating stages  
-FAILED --manual retry\--> PROCESSING   nếu failed stage thuộc processing stages  
-COMPLETED | FAILED | REJECTED \-\> EXPIRED
-VALIDATING | PROCESSING --End Session\--> EXPIRED   (hủy tác vụ đang chạy, giải phóng processing slot)
+FAILED --(manual retry)--> VALIDATING   nếu failed stage thuộc local validating stages  
+FAILED --(manual retry)--> PROCESSING   nếu failed stage thuộc processing stages  
+COMPLETED | FAILED | REJECTED -> EXPIRED
+VALIDATING | PROCESSING --(End Session)--> EXPIRED   (hủy tác vụ đang chạy, giải phóng processing slot)
+```
 
 | State | Ý nghĩa |
 | :---- | :---- |

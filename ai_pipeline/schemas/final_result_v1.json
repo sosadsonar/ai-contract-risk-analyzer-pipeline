@@ -73,7 +73,8 @@
         "severity": {"oneOf": [{"enum": ["HIGH", "MEDIUM", "LOW"]}, {"type": "null"}]},
         "explanation": {"type": "string", "minLength": 10},
         "evidence_status": {"enum": ["SUPPORTED", "INSUFFICIENT_EVIDENCE"]},
-        "citation_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+        "citation_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "related_clause_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^cl_[0-9]{4}$"}}
       },
       "allOf": [
         {"if": {"properties": {"evidence_status": {"const": "SUPPORTED"}}}, "then": {"properties": {"citation_ids": {"minItems": 1}, "severity": {"enum": ["HIGH", "MEDIUM", "LOW"]}}}},
@@ -87,7 +88,8 @@
         "citation_id": {"type": "string", "minLength": 1},
         "document_name": {"type": "string", "minLength": 1},
         "article": {"type": "string", "minLength": 1},
-        "content": {"type": "string", "minLength": 1}
+        "content": {"type": "string", "minLength": 1},
+        "clause": {"type": "string", "pattern": "^[0-9]+$", "description": "Số khoản (ví dụ \"1\") khi nút trích dẫn là Khoản; vắng mặt khi là Điều."}
       }
     },
     "version_pins": {

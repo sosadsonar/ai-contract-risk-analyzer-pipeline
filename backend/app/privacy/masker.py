@@ -14,7 +14,7 @@ from app.clause.segmenter import adjust_boundary, boundary_guard  # noqa: F401  
 from app.privacy.detector import detect
 from app.privacy.pii_types import TYPE_SHORT_CODE, TYPE_TAG, MaskResult, PiiType
 
-PII_MASKING_VERSION = "pii_draft_0.3"
+PII_MASKING_VERSION = "pii_draft_0.4"
 
 
 # ==============================================================================

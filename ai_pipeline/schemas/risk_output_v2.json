@@ -111,6 +111,12 @@
           "type": "string",
           "minLength": 10,
           "description": "Văn bản hiển thị thẳng cho người dùng (không còn bước LLM nào sau stage này), tiếng Việt, trung tính. Nêu điều khoản gây rủi ro gì cho vai trò đang phân tích và vì sao theo basis_type. Không khuyên sửa/đàm phán; không nêu mức độ nghiêm trọng (severity do backend quyết định); không trích nguyên văn điều khoản và không lặp placeholder PII như <NAME>___ (quote do backend gắn từ canonical text); chỉ nhắc Điều/Luật có trong citation_ids; INSUFFICIENT_EVIDENCE thì không nhắc số điều hay tên văn bản pháp luật."
+        },
+        "related_clause_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^cl_[0-9]{4}$"},
+          "description": "Tùy chọn. Tập con của related_clauses trong request, là các clause có liên quan (ví dụ mâu thuẫn hoặc phụ thuộc) với chính clause này (FR-32). Không chứa clause_id của chính nó. Vắng mặt nghĩa là không có clause liên quan."
         }
       },
       "allOf": [

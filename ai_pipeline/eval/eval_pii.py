@@ -4,7 +4,7 @@ Chạy từ gốc repo:  python ai_pipeline/eval/eval_pii.py [--d1 DIR] [--out F
 
 Đo trên hai nguồn, khai báo rõ nguồn gold (BRD §8.1):
   * `tests/fixtures/privacy/case_*.json`: văn bản TỔNG HỢP do N3 viết, gold span do người đánh dấu.
-    Đây là nguồn duy nhất có gold hiện nay.
+    Gold D1/T1 (restricted) đo bằng ai_pipeline/eval/eval_pii_gold.py, không nằm trong file này.
   * D1 (`ai_pipeline/data/data/processed/raw_text/HDLD*.txt`): 6 mẫu đã de-identify (biểu mẫu trống),
     KHÔNG có PII thật nên không đo được recall; chỉ kiểm detector không che nhầm (số span, số ký tự
     đổi) và quét lỏng (số 9-13 chữ số, email) để chắc D1 không còn PII rơi ngoài detector.
@@ -39,19 +39,28 @@ D1_RAW_TEXT = ROOT / "ai_pipeline" / "data" / "data" / "processed" / "raw_text"
 
 # BRD §7.3
 GROUPS: dict[str, tuple[frozenset[PiiType], float]] = {
-    "A (CCCD/hộ chiếu, SĐT, email, TK ngân hàng)": (
+    "A (CCCD/hộ chiếu, SĐT, email, TK ngân hàng, MST)": (
         frozenset(
-            {PiiType.NATIONAL_ID_OR_PASSPORT, PiiType.PHONE, PiiType.EMAIL, PiiType.BANK_ACCOUNT}
+            {
+                PiiType.NATIONAL_ID_OR_PASSPORT,
+                PiiType.PHONE,
+                PiiType.EMAIL,
+                PiiType.BANK_ACCOUNT,
+                PiiType.TAX_ID,
+            }
         ),
         0.99,
     ),
-    "B (họ tên, ngày sinh, địa chỉ, pháp nhân)": (
+    "B (họ tên, ngày sinh, địa chỉ, pháp nhân, ngày/nơi cấp, chữ ký)": (
         frozenset(
             {
                 PiiType.PERSON_NAME,
                 PiiType.DATE_OF_BIRTH,
                 PiiType.RESIDENTIAL_ADDRESS,
                 PiiType.LEGAL_ENTITY,
+                PiiType.ID_ISSUE,
+                PiiType.BUSINESS_ADDRESS,
+                PiiType.SIGNATURE,
             }
         ),
         0.90,
@@ -182,7 +191,7 @@ def render_markdown(fx: dict, d1: list[dict] | None) -> str:
         "(không phải hợp đồng thật, không phải gold của N2). Cỡ mẫu nhỏ: một span sót làm recall nhóm đổi "
         "vài điểm phần trăm, nên các con số dưới đây là **tín hiệu hồi quy, chưa phải số nghiệm thu**.",
         "- D1: 6 mẫu đã de-identify (biểu mẫu trống), **không có PII thật** nên không đo được recall trên D1. "
-        "Gold privacy D1 (N2) và T1 (hợp đồng thật) chưa có.",
+        "Gold privacy D1 và T1 đo bằng ai_pipeline/eval/eval_pii_gold.py (N2 chạy và điền số, cần restricted/).",
         "",
         "## 2. Recall khi che (gold span phải được phủ 100%)",
         "",

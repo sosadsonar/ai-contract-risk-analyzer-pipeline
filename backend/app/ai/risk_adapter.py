@@ -10,6 +10,8 @@ Bất biến:
   INV-05  response có field lạ / ID lạ / trùng / nhãn hoặc basis ngoài taxonomy / sai ràng buộc chéo ⇒ từ
           chối; retry ≤1 ⇒ AiOutputInvalid; model KHÔNG khai severity, role, version pin;
   INV-06  severity KHÔNG do adapter quyết (assembler tra bảng).
+`related_clause_ids` là trường TÙY CHỌN duy nhất ngoài 6 khóa bắt buộc: mỗi ID phải thuộc
+related_clauses của chính clause đó trong batch, không trùng, không tự tham chiếu; khóa lạ vẫn bị từ chối.
 `citation_ids` ngoài `candidate_ids` KHÔNG bị từ chối ở đây: validator (TDD §15.4) log rồi lọc; adapter chỉ
 đếm vào `citations_outside_candidate` (không chứa text).
 """
@@ -40,7 +42,10 @@ from app.risk.taxonomy import (
 )
 
 _CLAUSE_ID = re.compile(r"^cl_[0-9]{4}$")
-_ITEM_KEYS = {"clause_id", "basis_type", "risk_labels", "citation_ids", "evidence_status", "explanation"}
+_REQUIRED_KEYS = frozenset(
+    {"clause_id", "basis_type", "risk_labels", "citation_ids", "evidence_status", "explanation"}
+)
+_OPTIONAL_KEYS = frozenset({"related_clause_ids"})
 _EVIDENCE = {"SUPPORTED", "INSUFFICIENT_EVIDENCE"}
 _MIN_EXPLANATION = 10
 
@@ -94,9 +99,10 @@ class RiskItemOut:
     citation_ids: list[str]
     evidence_status: str
     explanation: str
+    related_clause_ids: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
-        return {
+        out = {
             "clause_id": self.clause_id,
             "basis_type": self.basis_type,
             "risk_labels": list(self.risk_labels),
@@ -104,6 +110,9 @@ class RiskItemOut:
             "evidence_status": self.evidence_status,
             "explanation": self.explanation,
         }
+        if self.related_clause_ids:  # vắng khi rỗng: đầu ra cũ không đổi
+            out["related_clause_ids"] = list(self.related_clause_ids)
+        return out
 
 
 @dataclass(frozen=True)
@@ -137,6 +146,21 @@ def make_batches(items: list, size: int) -> list[list]:
     return [items[i : i + size] for i in range(0, len(items), size)]
 
 
+def _related_ids(it: dict, clause: RiskItemIn) -> list[str]:
+    """`related_clause_ids` tùy chọn: thuộc related_clauses của CHÍNH clause, không trùng, không tự tham chiếu."""
+    if "related_clause_ids" not in it:
+        return []
+    rel, cid = it["related_clause_ids"], clause.clause_id
+    if not isinstance(rel, list) or any(not isinstance(x, str) or not _CLAUSE_ID.match(x) for x in rel):
+        raise ValueError(f"related_clause_ids phải là mảng cl_NNNN ở {cid}")
+    if len(set(rel)) != len(rel):
+        raise ValueError(f"related_clause_ids bị trùng ở {cid}")
+    allowed = {r.clause_id for r in clause.related_clauses}
+    if any(x == cid or x not in allowed for x in rel):
+        raise ValueError(f"related_clause_ids ngoài context hoặc tự tham chiếu ở {cid}")
+    return list(rel)
+
+
 def validate_batch_response(data: dict, batch: list[RiskItemIn]) -> list[RiskItemOut]:
     """Kiểm một response; raise ValueError (message KHÔNG chứa nội dung clause/explanation) nếu sai.
 
@@ -152,12 +176,17 @@ def validate_batch_response(data: dict, batch: list[RiskItemIn]) -> list[RiskIte
     if not isinstance(raw_items, list):
         raise ValueError("'items' phải là mảng")
 
-    known = {b.clause_id for b in batch}
+    known = {b.clause_id: b for b in batch}
     out: dict[str, RiskItemOut] = {}
     for it in raw_items:
-        if not isinstance(it, dict) or set(it) != _ITEM_KEYS:
-            extra = sorted(set(it) ^ _ITEM_KEYS) if isinstance(it, dict) else []
-            raise ValueError(f"item phải đúng {sorted(_ITEM_KEYS)} (lệch: {extra})")
+        keys = set(it) if isinstance(it, dict) else set()
+        if not isinstance(it, dict) or not _REQUIRED_KEYS <= keys <= _REQUIRED_KEYS | _OPTIONAL_KEYS:
+            missing = sorted(_REQUIRED_KEYS - keys)
+            extra = sorted(keys - _REQUIRED_KEYS - _OPTIONAL_KEYS)
+            raise ValueError(
+                f"item phải có đủ {sorted(_REQUIRED_KEYS)}, chỉ thêm tối đa {sorted(_OPTIONAL_KEYS)} "
+                f"(thiếu: {missing}, lạ: {extra})"
+            )
         cid = it["clause_id"]
         if not isinstance(cid, str) or not _CLAUSE_ID.match(cid):
             raise ValueError("clause_id sai định dạng")
@@ -185,7 +214,10 @@ def validate_batch_response(data: dict, batch: list[RiskItemIn]) -> list[RiskIte
         expl = it["explanation"]
         if not isinstance(expl, str) or len(expl.strip()) < _MIN_EXPLANATION:
             raise ValueError(f"explanation quá ngắn hoặc không phải chuỗi ở {cid}")
-        out[cid] = RiskItemOut(cid, it["basis_type"], list(labels), list(cites), status, expl.strip())
+        rel = _related_ids(it, known[cid])
+        out[cid] = RiskItemOut(
+            cid, it["basis_type"], list(labels), list(cites), status, expl.strip(), related_clause_ids=rel
+        )
     return [out[b.clause_id] for b in batch if b.clause_id in out]
 
 

@@ -1,0 +1,44 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_011",
+  "description": "BUSINESS_ADDRESS theo trụ sở và tiêu đề Bên A; RESIDENTIAL theo Bên B; tỉnh/thành đứng riêng giữ nguyên.",
+  "canonical_text": "Bên A (Người sử dụng lao động): Công ty Cổ phần Đông Hải\nĐịa chỉ trụ sở chính: 25 Lê Lợi, Quận 1, TP. HCM\nBên B (Người lao động)\nHọ và tên: Trần Thị Bình\nĐịa chỉ: 18 ngõ 5, đường Láng, Hà Nội\nĐịa chỉ: Thành phố Hồ Chí Minh\nNơi làm việc: Hà Nội.",
+  "pii_spans": [
+    {
+      "type": "LEGAL_ENTITY",
+      "start": 48,
+      "end": 56,
+      "text": "Đông Hải"
+    },
+    {
+      "type": "BUSINESS_ADDRESS",
+      "start": 79,
+      "end": 105,
+      "text": "25 Lê Lợi, Quận 1, TP. HCM"
+    },
+    {
+      "type": "PERSON_NAME",
+      "start": 140,
+      "end": 153,
+      "text": "Trần Thị Bình"
+    },
+    {
+      "type": "RESIDENTIAL_ADDRESS",
+      "start": 163,
+      "end": 191,
+      "text": "18 ngõ 5, đường Láng, Hà Nội"
+    }
+  ],
+  "preserve_spans": [
+    {
+      "start": 201,
+      "end": 222,
+      "text": "Thành phố Hồ Chí Minh"
+    },
+    {
+      "start": 237,
+      "end": 243,
+      "text": "Hà Nội"
+    }
+  ]
+}

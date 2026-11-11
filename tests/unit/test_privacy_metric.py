@@ -149,6 +149,19 @@ def test_privacy_metric_rejects_non_nfc_canonical_text():
         )
 
 
+def test_new_types_are_counted_in_their_sensitivity_group():
+    from ai_pipeline.evaluation.metrics.privacy import PrivacySpan, evaluate_privacy
+    text = "Mã số thuế: 0312345678 ngày cấp 12/03/2019 địa chỉ trụ sở 25 Lê Lợi"
+    def sp(kind, sub):
+        i = text.index(sub)
+        return PrivacySpan(kind, i, i + len(sub))
+    gold = [sp("TAX_ID", "0312345678"), sp("ID_ISSUE", "12/03/2019"), sp("BUSINESS_ADDRESS", "25 Lê Lợi")]
+    res = evaluate_privacy(text, text, predicted_spans=[sp("TAX_ID", "0312345678")],
+                           gold_pii_spans=gold, preserve_spans=[])
+    assert res.high_sensitivity.gold_count == 1
+    assert res.standard_sensitivity.gold_count == 2
+
+
 def test_privacy_metric_runs_against_repository_masker_fixture():
     case = json.loads((FIXTURE_DIR / "case_001.json").read_text(encoding="utf-8"))
     masked = mask(case["canonical_text"])
@@ -173,7 +186,8 @@ def test_privacy_metric_runs_against_repository_masker_fixture():
         preserve_spans=preserve,
     )
 
-    assert result.group("high_sensitivity").gold_count == 4
-    assert result.group("standard_sensitivity").gold_count == 7
+    # Sau X-17: MST là TAX_ID (nhóm cao); địa chỉ trụ sở là BUSINESS_ADDRESS (vẫn nhóm chuẩn).
+    assert result.group("high_sensitivity").gold_count == 5
+    assert result.group("standard_sensitivity").gold_count == 6
     assert result.preserve_count > 0
     assert 0 <= result.preserve_rate <= 1

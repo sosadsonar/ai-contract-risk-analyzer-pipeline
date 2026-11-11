@@ -1,0 +1,32 @@
+{
+  "schema_version": "privacy_fixture_v1",
+  "case_id": "case_012",
+  "description": "SIGNATURE: tên in dưới khối ký ở cuối văn bản; tiêu đề khối ký không che.",
+  "canonical_text": "Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. Điều khoản chung về công việc và thời gian làm việc theo quy định của pháp luật. \n\nNGƯỜI LAO ĐỘNG    NGƯỜI SỬ DỤNG LAO ĐỘNG\n(Ký, ghi rõ họ tên)    (Ký tên, đóng dấu)\nNguyễn Văn An    Trần Thị Bình\n",
+  "pii_spans": [
+    {
+      "type": "SIGNATURE",
+      "start": 1057,
+      "end": 1070,
+      "text": "Nguyễn Văn An"
+    },
+    {
+      "type": "SIGNATURE",
+      "start": 1074,
+      "end": 1087,
+      "text": "Trần Thị Bình"
+    }
+  ],
+  "preserve_spans": [
+    {
+      "start": 974,
+      "end": 988,
+      "text": "NGƯỜI LAO ĐỘNG"
+    },
+    {
+      "start": 992,
+      "end": 1014,
+      "text": "NGƯỜI SỬ DỤNG LAO ĐỘNG"
+    }
+  ]
+}

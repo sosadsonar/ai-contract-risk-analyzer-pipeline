@@ -8,6 +8,13 @@ Giới hạn đã biết (cần đo trên D1, SRS OI-12):
 - Tên pháp nhân dừng ở dấu , ; : ( ) hoặc từ nối (có, do, được, là...), nên "Co., Ltd" sau dấu
   phẩy còn sót.
 - Địa chỉ cần anchor có dấu ':' và có từ hành chính/đường phố trong giá trị.
+- TAX_ID (a): MST 10 hoặc 13 số, bắt buộc có anchor; số 10 chữ số không anchor vẫn có thể là PHONE.
+- ID_ISSUE (b): chỉ khi có nhãn "cấp ngày", "nơi cấp:", "cấp tại:" hoặc dòng "Tại:" ngay sau dòng "Cấp ngày".
+- Địa chỉ (c): anchor chung "địa chỉ" được phân loại theo tiêu đề Bên A/Bên B gần nhất trong 400 ký tự; không thấy tiêu đề thì RESIDENTIAL_ADDRESS.
+- SIGNATURE (d): chỉ tên in dưới khối ký trong 20% cuối văn bản; không bắt chữ ký tay.
+- LEGAL_ENTITY (e): chỉ che tên riêng, không che loại hình (TNHH, Cổ phần...); tên không được là từ loại hình.
+- Tỉnh/thành đứng riêng, không có số hay từ chỉ chi tiết, không bị che (f).
+- Cờ high chỉ quyết định thứ tự giải trùng (_resolve_overlaps), không quyết định nhóm đo.
 """
 
 from __future__ import annotations
@@ -57,8 +64,8 @@ _PATTERNS_HIGH: list[tuple[PiiType, re.Pattern[str]]] = [
         # Mã số thuế (định danh pháp nhân) có anchor. Phải đứng TRƯỚC PHONE: MST 10 số như
         # 0312345678 trùng dạng số di động; cả hai cùng high-precision nên khi hai span trùng
         # nhau _resolve_overlaps giữ ứng viên đứng trước trong danh sách này.
-        PiiType.LEGAL_ENTITY,
-        re.compile(r"(?i:mst|mã[ \t]+số[ \t]+thuế)[ \t]*[:：]?[ \t]*(?P<v>\d{10}(?:-\d{3})?)(?!\d)"),
+        PiiType.TAX_ID,
+        re.compile(r"(?i:mst|mã[ \t]+số[ \t]+thuế)[ \t]*[:：]?[ \t]*(?P<v>\d{10}(?:-?\d{3})?)(?!\d)"),
     ),
     (
         PiiType.EMAIL,
@@ -111,17 +118,6 @@ _PATTERNS_HIGH: list[tuple[PiiType, re.Pattern[str]]] = [
             r"|(?:19|20)\d{2})(?!\d)"
         ),
     ),
-    (
-        PiiType.RESIDENTIAL_ADDRESS,
-        re.compile(
-            r"(?i:địa[ \t]+chỉ(?:[ \t]+(?:thường[ \t]+trú|cư[ \t]+trú|hiện[ \t]+tại|"
-            r"liên[ \t]+(?:lạc|hệ)|nơi[ \t]+ở))?|"
-            r"nơi[ \t]+(?:thường[ \t]+trú|cư[ \t]+trú|ở)|hộ[ \t]+khẩu[ \t]+thường[ \t]+trú|"
-            r"chỗ[ \t]+ở(?:[ \t]+hiện[ \t]+nay)?)"
-            + _SEP
-            + r"(?P<v>[^\r\n]+)"
-        ),
-    ),
 ]
 
 # Heuristic entity quét sau. Chỉ mask giá trị, không mask từ vai trò.
@@ -153,7 +149,8 @@ _PATTERNS_HEURISTIC: list[tuple[PiiType, re.Pattern[str]]] = [
         re.compile(
             r"(?<![\w])(?i:tổng[ \t]+công[ \t]+ty|công[ \t]+ty|tập[ \t]+đoàn)"
             + _ORG_FORM
-            + rf"[ \t]+(?P<v>[{_UP}0-9][^\r\n,;:()]{{0,79}}?)"
+            + r"[ \t]+(?!(?i:tnhh|mtv|cổ[ \t]+phần|trách[ \t]+nhiệm|hợp[ \t]+danh|tư[ \t]+nhân|liên[ \t]+doanh)(?!\w))"
+            + rf"(?P<v>[{_UP}0-9][^\r\n,;:()]{{0,79}}?)"
             + rf"(?=[ \t]*(?:[,;:()\r\n.]|$)|[ \t]+{_ORG_STOP}\b)"
         ),
     ),
@@ -190,6 +187,8 @@ PRESERVE_LIST: frozenset[str] = frozenset(
         "người lao động", "nld", "nlđ", "người sử dụng lao động", "nsdld", "nsdlđ",
         "giám đốc", "tổng giám đốc", "trưởng phòng", "kế toán trưởng", "nhân viên",
         "lương", "phụ cấp", "bảo hiểm", "giờ làm", "công ty", "doanh nghiệp",
+        "phó giám đốc", "phó tổng giám đốc", "chủ tịch", "chủ tịch hội đồng quản trị",
+        "giám đốc nhân sự", "người đại diện theo pháp luật", "chủ hộ",
     }
 )  # fmt: skip
 
@@ -254,12 +253,154 @@ def _resolve_overlaps(candidates: list[tuple[PiiSpan, bool]]) -> list[PiiSpan]:
     return accepted
 
 
+# ==============================================================================
+# 3b. PATTERN CHO ID_ISSUE, ĐỊA CHỈ, CHỮ KÝ (P3 b, c, d, f)
+# ==============================================================================
+
+_DATE_VN = r"(?:\d{1,2}[/\-.]\d{1,2}[/\-.]\d{4}|\d{1,2}[ \t]+tháng[ \t]+\d{1,2}[ \t]+năm[ \t]+\d{4})"
+
+# ID_ISSUE: chỉ che khi có nhãn. "nơi cấp" và "cấp tại" bắt buộc dấu ':' để không bắt câu thường
+# ("được cấp tại Hà Nội" không phải nhãn giấy tờ).
+_ISSUE_DATE = re.compile(r"(?i:cấp[ \t]+ngày|ngày[ \t]+cấp)[ \t]*[:：]?[ \t]*(?P<v>" + _DATE_VN + r")(?!\d)")
+_ISSUE_PLACE = re.compile(r"(?i:nơi[ \t]+cấp|cấp[ \t]+tại)[ \t]*[:：][ \t]*(?P<v>[^\r\n;]+)")
+_ISSUE_NEXT_LINE = re.compile(r"(?im)^[ \t]*cấp[ \t]+ngày[^\r\n]*\r?\n[ \t]*tại[ \t]*[:：][ \t]*(?P<v>[^\r\n;]+)")
+_ISSUE_SAME_LINE = re.compile(
+    r"(?i:cấp[ \t]+ngày|ngày[ \t]+cấp)[ \t]*[:：]?[ \t]*" + _DATE_VN + r"[ \t]+(?i:tại)[ \t]*[:：]?[ \t]*(?P<v>[^\r\n;]+)"
+)
+
+
+def _issue_candidates(text: str) -> list[tuple[PiiSpan, bool]]:
+    """Giá trị ngày/nơi cấp đứng sau nhãn. Bỏ giá trị không có chữ hoặc số (biểu mẫu trống "……")."""
+    out: list[tuple[PiiSpan, bool]] = []
+    for pattern in (_ISSUE_DATE, _ISSUE_PLACE, _ISSUE_NEXT_LINE, _ISSUE_SAME_LINE):
+        for m in pattern.finditer(text):
+            start, end = m.span("v")
+            value = text[start:end].rstrip()
+            if any(ch.isalnum() for ch in value):
+                out.append((PiiSpan(PiiType.ID_ISSUE, start, start + len(value)), True))
+    return out
+
+
+# Anchor địa chỉ. Nhóm `anchor` dùng để phân loại BUSINESS/RESIDENTIAL (P3 c).
+_ADDRESS_ANCHOR = re.compile(
+    r"(?P<anchor>(?i:địa[ \t]+chỉ(?:[ \t]+(?:trụ[ \t]+sở(?:[ \t]+chính)?|công[ \t]+ty|doanh[ \t]+nghiệp|"
+    r"thường[ \t]+trú|tạm[ \t]+trú|cư[ \t]+trú|hiện[ \t]+tại|liên[ \t]+(?:lạc|hệ)|nơi[ \t]+ở))?|"
+    r"nơi[ \t]+(?:thường[ \t]+trú|tạm[ \t]+trú|cư[ \t]+trú|ở)|"
+    r"hộ[ \t]+khẩu(?:[ \t]+thường[ \t]+trú)?|chỗ[ \t]+ở(?:[ \t]+hiện[ \t]+nay)?))"
+    + _SEP
+    + r"(?P<v>[^\r\n]+)"
+)
+_PROVINCE_PREFIX = re.compile(r"(?i)^(?:tỉnh|thành[ \t]+phố|tp\.?)[ \t]*")
+_ADDRESS_DETAIL = re.compile(r"(?i)(?<!\w)(?:đường|phố|phường|xã|quận|huyện|thôn|ngõ|số|tòa)(?!\w)")
+_BUSINESS_HEADER = re.compile(r"(?i)(?<!\w)(?:bên[ \t]+a|người[ \t]+sử[ \t]+dụng[ \t]+lao[ \t]+động|nsdlđ)(?!\w)")
+_RESIDENT_HEADER = re.compile(r"(?i)(?<!\w)(?:bên[ \t]+b|người[ \t]+lao[ \t]+động|nlđ)(?!\w)")
+
+
+def _has_address_detail(value: str) -> bool:
+    """Tỉnh/thành đứng riêng (không số, không từ chỉ chi tiết) thì không che (P3 f)."""
+    rest = _PROVINCE_PREFIX.sub("", value.strip(), count=1)
+    return any(ch.isdigit() for ch in rest) or _ADDRESS_DETAIL.search(rest) is not None
+
+
+def _address_type(anchor: str, text: str, pos: int) -> PiiType:
+    if any(k in anchor for k in ("trụ sở", "công ty", "doanh nghiệp")):
+        return PiiType.BUSINESS_ADDRESS
+    if anchor in ("địa chỉ", "địa chỉ liên hệ", "địa chỉ liên lạc"):
+        best: tuple[int, PiiType] | None = None
+        window = text[max(0, pos - 400) : pos]
+        for pattern, kind in ((_BUSINESS_HEADER, PiiType.BUSINESS_ADDRESS), (_RESIDENT_HEADER, PiiType.RESIDENTIAL_ADDRESS)):
+            for h in pattern.finditer(window):
+                if best is None or h.start() > best[0]:
+                    best = (h.start(), kind)
+        return best[1] if best else PiiType.RESIDENTIAL_ADDRESS
+    return PiiType.RESIDENTIAL_ADDRESS
+
+
+def _address_candidates(text: str) -> list[tuple[PiiSpan, bool]]:
+    out: list[tuple[PiiSpan, bool]] = []
+    for m in _ADDRESS_ANCHOR.finditer(text):
+        start, end = m.span("v")
+        value = text[start:end].rstrip()
+        if not value or _is_preserved(value) or not _ADDRESS_HINT.search(value):
+            continue
+        if not _has_address_detail(value):
+            continue
+        anchor = " ".join(m.group("anchor").lower().split())
+        kind = _address_type(anchor, text, m.start("anchor"))
+        out.append((PiiSpan(kind, start, start + len(value)), True))
+    return out
+
+
+# SIGNATURE: tên in dưới khối ký ở 20% cuối văn bản. Không bắt chữ ký tay (PDF thường không có).
+_SIG_LABEL = re.compile(
+    r"(?i:\(ký,[ \t]*ghi[ \t]+rõ[ \t]+họ[ \t]+tên\)|\(ký[ \t]+và[ \t]+ghi[ \t]+rõ[ \t]+họ[ \t]+tên\)|"
+    r"\(ký[ \t]+tên\)|ký[ \t]+tên[ \t]*[:：])"
+)
+_NAME_FULL = re.compile(rf"{_NAME_TOKEN}(?:[ \t]+{_NAME_TOKEN}){{1,4}}")
+_SIG_SEGMENT = re.compile(r"\S+(?:[ \t]\S+)*")  # cụm cách nhau bằng đúng một khoảng trắng
+_SIG_TITLE_WORDS = frozenset({"người", "lao", "động", "sử", "dụng", "giám", "đốc", "đại", "diện", "bên", "ký"})
+
+
+# Chức danh bị anchor "Đại diện:"/"Họ và tên:" nhặt nhầm (P5): cặp đầu ("Phó", "Kế") + từ kế tiếp.
+_TITLE_FIRST = frozenset({"phó", "tổng", "giám", "chủ", "kế", "trưởng"})
+_TITLE_SECOND = frozenset({"giám", "đốc", "tịch", "toán", "hộ", "phòng", "trưởng", "nhân", "viên"})
+
+
+def _is_job_title(value: str, following: str) -> bool:
+    """`following` = văn bản ngay sau giá trị: _trim_name có thể cắt còn một từ ("Kế" của "Kế toán")."""
+    tokens = value.lower().split()
+    if not tokens or tokens[0] not in _TITLE_FIRST:
+        return False
+    if len(tokens) >= 2:
+        return tokens[1] in _TITLE_SECOND
+    m = _NEXT_WORD.match(following)
+    return m is not None and m.group(1).lower() in _TITLE_SECOND
+
+
+def _signature_spans(text: str) -> list[tuple[int, int]]:
+    """Phần còn lại của dòng nhãn và tối đa 4 dòng không rỗng sau nhãn; mỗi cụm 2-5 từ là một tên."""
+    spans: list[tuple[int, int]] = []
+    limit = int(len(text) * 0.8)
+    for m in _SIG_LABEL.finditer(text):
+        if m.start() < limit:
+            continue
+        pos, used, label_line = m.end(), 0, True
+        while pos <= len(text):
+            nl = text.find("\n", pos)
+            line_end = len(text) if nl == -1 else nl
+            line = text[pos:line_end]
+            if not label_line and line.strip():
+                used += 1  # tối đa 4 dòng không rỗng SAU dòng nhãn; phần còn lại của dòng nhãn không tính
+                if used > 4:
+                    break
+            label_line = False
+            if line.strip():
+                for seg in _SIG_SEGMENT.finditer(line):
+                    s = seg.group(0)
+                    if (
+                        _NAME_FULL.fullmatch(s)
+                        and not (set(w.lower() for w in s.split()) & _SIG_TITLE_WORDS)
+                        and not _is_preserved(s)
+                    ):
+                        spans.append((pos + seg.start(), pos + seg.end()))
+            if nl == -1:
+                break
+            pos = nl + 1
+    return spans
+
+
 def detect(canonical_text: str) -> list[PiiSpan]:
     """Phát hiện PII trên canonical_text (đã NFC): high-precision, heuristic, rồi resolve."""
     _require_nfc(canonical_text)
     found: list[tuple[PiiSpan, bool]] = []
 
     for rules, high in ((_PATTERNS_HIGH, True), (_PATTERNS_HEURISTIC, False)):
+        if high:
+            found.extend(_issue_candidates(canonical_text))
+            found.extend(_address_candidates(canonical_text))
+        else:
+            # SIGNATURE đứng TRƯỚC heuristic: khi trùng span với PERSON_NAME, thứ tự danh sách thắng.
+            found.extend((PiiSpan(PiiType.SIGNATURE, s, e), False) for s, e in _signature_spans(canonical_text))
         for pii_type, pattern in rules:
             for m in pattern.finditer(canonical_text):
                 start, end = m.span("v")
@@ -269,7 +410,7 @@ def detect(canonical_text: str) -> list[PiiSpan]:
                 value = value.rstrip()  # địa chỉ cuối dòng có thể còn khoảng trắng
                 if not value or _is_preserved(value):
                     continue
-                if pii_type is PiiType.RESIDENTIAL_ADDRESS and not _ADDRESS_HINT.search(value):
+                if pii_type is PiiType.PERSON_NAME and _is_job_title(value, canonical_text[end : end + 40]):
                     continue
                 found.append((PiiSpan(pii_type, start, start + len(value)), high))
 
