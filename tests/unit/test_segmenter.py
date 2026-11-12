@@ -25,6 +25,31 @@ def run(text: str, *, enable_plus_lists: bool = False):
     return segment(text, m.masked_text, m.pii_spans, enable_plus_lists=enable_plus_lists)
 
 
+def test_blank_line_tail_splits_complete_paragraph_but_not_single_newline():
+    first = "- Người lao động thực hiện công việc và báo cáo kết quả theo lịch đã thống nhất."
+    second = "Công ty thanh toán đầy đủ tiền lương vào ngày đã thống nhất trong hợp đồng."
+    text = f"Điều 1. Nghĩa vụ\n{first}\nMột dòng tiếp nối trong cùng mục.\n\n{second}"
+    masked = mask(text)
+    result = segment(text, masked.masked_text, masked.pii_spans,
+                     enable_blank_line_paragraphs=True)
+    check_partition(text, result)
+    assert result.segmentation_version == "rules_v1.3"
+    assert result.clauses[-1].original_text == second
+    assert any("Một dòng tiếp nối" in c.original_text for c in result.clauses[:-1])
+
+
+def test_blank_line_tail_keeps_short_or_incomplete_following_line():
+    first = "- Người lao động thực hiện công việc và báo cáo kết quả theo lịch đã thống nhất."
+    for following in ("Ký tên.", "Công ty thanh toán đầy đủ tiền lương vào ngày đã thống nhất trong hợp đồng:"):
+        text = f"Điều 1. Nghĩa vụ\n{first}\n\n{following}"
+        masked = mask(text)
+        baseline = segment(text, masked.masked_text, masked.pii_spans)
+        result = segment(text, masked.masked_text, masked.pii_spans,
+                         enable_blank_line_paragraphs=True)
+        check_partition(text, result)
+        assert len(result.clauses) == len(baseline.clauses)
+
+
 def check_partition(text: str, result):
     """INV-02 + INV-03 + mọi ký tự khác khoảng trắng thuộc đúng một clause."""
     covered = [False] * len(text)
@@ -134,18 +159,20 @@ def test_lists_false_positives_do_not_create_boundaries():
 
 
 def test_repeated_plus_list_items_are_individual_clauses():
+    item_a = "+ Thực hiện công việc được giao và báo cáo kết quả cho bộ phận liên quan theo lịch đã thỏa thuận."
+    item_b = "+ Phối hợp với bộ phận liên quan và hoàn thành các nghĩa vụ được mô tả trong hợp đồng."
     text = (
         "Điều 1. Nhiệm vụ\n"
-        "+ Thực hiện công việc được giao.\n"
-        "+ Phối hợp với bộ phận liên quan.\n"
+        f"{item_a}\n"
+        f"{item_b}\n"
         "Điều 2. Thời hạn\n"
     )
     result = run(text, enable_plus_lists=True)
     check_partition(text, result)
     assert [c.original_text for c in result.clauses] == [
         "Điều 1. Nhiệm vụ",
-        "+ Thực hiện công việc được giao.",
-        "+ Phối hợp với bộ phận liên quan.",
+        item_a,
+        item_b,
         "Điều 2. Thời hạn",
     ]
     assert all(c.structure.parent_clause_id == result.clauses[0].clause_id for c in result.clauses[1:3])
@@ -159,7 +186,7 @@ def test_plus_list_candidate_is_disabled_by_default():
     check_partition(text, candidate)
     assert len(default.clauses) == 2
     assert default.segmentation_version == "rules_v1.1"
-    assert len(candidate.clauses) == 4
+    assert len(candidate.clauses) == 2  # parent block shorter than 160 characters
     assert candidate.segmentation_version == "rules_v1.2"
 
 
@@ -172,11 +199,13 @@ def test_lone_plus_line_stays_with_parent_clause():
 
 
 def test_plus_items_can_be_children_of_a_dash_item():
+    item_a = "+ Thực hiện việc A theo yêu cầu đã được hai bên thống nhất trong hợp đồng và báo cáo kết quả."
+    item_b = "+ Thực hiện việc B theo yêu cầu đã được hai bên thống nhất trong hợp đồng và báo cáo kết quả."
     text = (
         "Điều 1. Nhiệm vụ\n"
         "- Nhóm công việc thứ nhất:\n"
-        "+ Thực hiện việc A.\n"
-        "+ Thực hiện việc B.\n"
+        f"{item_a}\n"
+        f"{item_b}\n"
         "- Nhóm công việc thứ hai.\n"
     )
     result = run(text, enable_plus_lists=True)

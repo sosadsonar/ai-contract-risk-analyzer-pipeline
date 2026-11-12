@@ -33,11 +33,11 @@ from typing import Callable, Optional
 STRUCTURE_PARSER_VERSION = "structure_parser_v1.1"
 
 # ---- 6 pattern (TDD §11.2 plus D1 Dev extension). Chạy theo từng dòng. ----
-_ARTICLE = re.compile(r"^[ \t]*Điều[ \t]+(?P<num>\d+[A-Za-z]?)[ \t]*[.:\-]?[ \t]*(?P<body>.*)$")
+_ARTICLE = re.compile(r"^[ \t]*(?:Điều|DIEU)[ \t]+(?P<num>\d+[A-Za-z]?)[ \t]*[.:\-]?[ \t]*(?P<body>.*)$", re.I)
 _DECIMAL = re.compile(r"^[ \t]*(?P<num>\d+(?:\.\d+){1,3})[ \t]*[.)\-]?[ \t]+(?P<body>\S.*)$")
 _NUMBERED = re.compile(r"^[ \t]*(?P<num>\d{1,3})[.)][ \t]+(?P<body>\S.*)$")
 _LETTERED = re.compile(r"^[ \t]*(?P<num>[a-zA-ZđĐ])[.)][ \t]+(?P<body>\S.*)$")
-_DASH = re.compile(r"^[ \t]*[-–•][ \t]+(?P<body>\S.*)$")
+_DASH = re.compile(r"^[ \t]*[-–—•][ \t]+(?P<body>\S.*)$")
 _PLUS = re.compile(r"^[ \t]*\+[ \t]+(?P<body>\S.*)$")
 
 ARTICLE, DECIMAL, NUMBERED, LETTERED, DASH, PLUS = "article", "decimal", "numbered", "lettered", "dash", "plus"
@@ -178,7 +178,8 @@ def _drop_unreliable(cands, assigned) -> set[int]:
 
 
 def parse_structure(
-    masked_text: str, boundary_guard: Callable[[int], bool] = lambda pos: True, *, allow_plus: bool = False
+    masked_text: str, boundary_guard: Callable[[int], bool] = lambda pos: True, *,
+    allow_plus: bool = False, allowed_plus_positions: set[int] | None = None,
 ) -> list[HeadingMark]:
     """Trả danh sách `HeadingMark` đã chấp nhận, sắp theo `start` tăng dần.
 
@@ -186,7 +187,9 @@ def parse_structure(
     chặt bên trong một placeholder PII; marker đó bị bỏ.
     `allow_plus` chỉ bật cho phép thử D1 Dev; mặc định giữ hành vi cũ.
     """
-    cands = [c for c in _candidates(masked_text, allow_plus=allow_plus) if boundary_guard(c[0])]
+    cands = [c for c in _candidates(masked_text, allow_plus=allow_plus)
+             if boundary_guard(c[0]) and (c[1] != PLUS or allowed_plus_positions is None
+                                           or c[0] in allowed_plus_positions)]
 
     # Lặp tới khi ổn định: bỏ nhóm yếu có thể làm đổi cha của các marker còn lại.
     for _ in range(len(cands) + 1):

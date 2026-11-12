@@ -38,6 +38,7 @@ from app.privacy.pii_types import PiiSpan
 
 SEGMENTATION_VERSION = "rules_v1.1"
 PLUS_SEGMENTATION_VERSION = "rules_v1.2"
+BLANK_PARAGRAPH_SEGMENTATION_VERSION = "rules_v1.3"
 SEGMENTATION_SCHEMA_VERSION = "segmentation_v1"
 OFFSET_UNIT = "unicode_code_point"
 
@@ -180,6 +181,23 @@ def _paragraph_clauses(text: str, lo: int, hi: int) -> list[tuple[int, int]]:
     return _merge_short(text, _paragraph_blocks(text, lo, hi))
 
 
+def _split_blank_line_tail(text: str, lo: int, hi: int) -> list[tuple[int, int]]:
+    """Split a marked clause only before a substantial independent blank-line paragraph.
+
+    A single newline (including a wrapped dash item) is never a boundary here.
+    The following first line must be a complete sentence of at least 60 characters.
+    """
+    cuts = [lo]
+    for match in _BLANK_LINE.finditer(text, lo, hi):
+        after = match.end()
+        first_line = text[after:hi].split("\n", 1)[0].strip()
+        if (len(first_line) >= 60 and first_line[0].isupper()
+                and first_line.endswith(".") and not re.fullmatch(r"[.\s]+", first_line)):
+            cuts.append(match.start())
+    cuts.append(hi)
+    return [span for a, b in zip(cuts, cuts[1:]) if (span := _trim(text, a, b))]
+
+
 # ---------------------------------------------------------------------------------------------
 # segment()
 # ---------------------------------------------------------------------------------------------
@@ -192,6 +210,7 @@ def segment(
     *,
     max_clauses: int = MAX_CLAUSES,
     enable_plus_lists: bool = False,
+    enable_blank_line_paragraphs: bool = False,
 ) -> SegmentationResult:
     """Cắt hợp đồng thành clause. Chạy trên `masked_text`, span tính trên `canonical_text`.
 
@@ -206,7 +225,18 @@ def segment(
 
     n = len(masked_text)
     guard = lambda pos: boundary_guard(pos, pii_spans)  # noqa: E731
-    marks: list[HeadingMark] = parse_structure(masked_text, guard, allow_plus=enable_plus_lists)
+    allowed_plus_positions = None
+    if enable_plus_lists:
+        baseline = segment(canonical_text, masked_text, pii_spans, max_clauses=max_clauses)
+        # The parent block is the unsplit rules_v1.1 segment on the same source.
+        allowed_plus_positions = {
+            c.start_char + match.start() + len(match.group()) - len(match.group().lstrip(" \t"))
+            for c in baseline.clauses if c.end_char - c.start_char >= 160
+            for match in re.finditer(r"(?m)^[ \t]*\+[ \t]+\S", masked_text[c.start_char:c.end_char])
+        }
+    marks: list[HeadingMark] = parse_structure(
+        masked_text, guard, allow_plus=enable_plus_lists,
+        allowed_plus_positions=allowed_plus_positions)
 
     # (start, end, mark_index | None): None = vùng paragraph không thuộc heading nào.
     pieces: list[tuple[int, int, Optional[int]]] = []
@@ -220,6 +250,13 @@ def segment(
         t = _trim(masked_text, mark.start, nxt)
         if t:  # luôn có (mark.start trỏ vào ký tự không phải khoảng trắng) — phòng thủ
             pieces.append((t[0], t[1], i))
+
+    if enable_blank_line_paragraphs:
+        split_pieces: list[tuple[int, int, Optional[int]]] = []
+        for a, b, mi in pieces:
+            for index, (start, end) in enumerate(_split_blank_line_tail(masked_text, a, b)):
+                split_pieces.append((start, end, mi if index == 0 else None))
+        pieces = split_pieces
 
     # Ranh giới an toàn với PII: placeholder không chứa khoảng trắng nên trim không cắt vào trong,
     # nhưng kiểm lại và nới ra mép span (không bao giờ thu hẹp để không mất chữ khỏi partition).
@@ -266,7 +303,8 @@ def segment(
         )
 
     _assert_invariants(canonical_text, clauses, pii_spans)
-    version = PLUS_SEGMENTATION_VERSION if enable_plus_lists else SEGMENTATION_VERSION
+    version = (BLANK_PARAGRAPH_SEGMENTATION_VERSION if enable_blank_line_paragraphs
+               else PLUS_SEGMENTATION_VERSION if enable_plus_lists else SEGMENTATION_VERSION)
     return SegmentationResult(clauses=clauses, warnings=warnings, segmentation_version=version)
 
 
