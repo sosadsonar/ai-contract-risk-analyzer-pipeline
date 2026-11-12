@@ -1,6 +1,7 @@
 """Sole authority for session status transitions and cancellation."""
 import asyncio
 from datetime import datetime
+from typing import Awaitable, Callable
 from uuid import UUID
 
 from app.core.enums import SessionStatus, Stage
@@ -21,9 +22,11 @@ _ALLOWED = {
 
 
 class Orchestrator:
-    def __init__(self, store: InMemorySessionStore, lease: ProcessingLease):
+    def __init__(self, store: InMemorySessionStore, lease: ProcessingLease,
+                 pipeline_runner: Callable[..., Awaitable[dict]] | None = None):
         self.store = store
         self.lease = lease
+        self.pipeline_runner = pipeline_runner
 
     def transition(self, session: Session, status: SessionStatus, stage: Stage,
                    error_code: str | None = None, result: dict | None = None) -> bool:
@@ -56,7 +59,8 @@ class Orchestrator:
                 if not self.transition(session, SessionStatus.PROCESSING, Stage.RISK_ANALYSIS):
                     return
             await asyncio.sleep(0.05)
-            result = sample_result(session)
+            result = (sample_result(session) if self.pipeline_runner is None else
+                      await self.pipeline_runner(session, cancel=lambda: session.cancelled))
             self.transition(session, SessionStatus.COMPLETED, Stage.ASSEMBLY, result=result)
         except asyncio.CancelledError:
             raise
