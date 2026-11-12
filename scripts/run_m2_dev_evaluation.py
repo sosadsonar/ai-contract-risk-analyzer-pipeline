@@ -1,7 +1,8 @@
 """Evaluate approved D1/D2 Dev risk slices; write aggregate metadata only.
 
-The deterministic Article 17 detector is a local diagnostic, not the product M2
-classifier. Never use this script on T1/T2 or write clause text to its output.
+The deterministic Article 17 and unilateral-change rules are Dev diagnostics,
+not the product M2 classifier. Never use this script on T1/T2 or write clause
+text to its output.
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ from pathlib import Path
 from app.clause.segmenter import segment
 from app.legal.corpus_loader import load_corpus
 from app.privacy.masker import mask
-from app.risk.dev_injection_candidate import detect_dev_risks_candidate
+from app.risk.dev_m2_baseline import detect_dev_m2_risks
 
 from ai_pipeline.evaluation.metrics.risk_classification import (
     RiskRecord,
@@ -45,25 +46,38 @@ def _verified_source(path: Path, segmentation_gold: dict) -> str:
 def gold_from_injections(injections: list[dict], segmentation: list[dict],
                          document_id: str) -> list[RiskRecord]:
     """Implement approved two-role Dev policy using D2 v02 clause boundaries."""
-    spans = {item["gold_clause_ref"]: item for item in segmentation}
     result = []
+    seen = set()
     for item in injections:
         if not item["verification"] or any(
             review["decision"] != "VERIFIED" for review in item["verification"]
         ):
             raise ValueError("D2 injection is not verified")
-        clause = spans[item["clause_id"]]
         injected = item["insertion_span"]
-        if not (clause["start_char"] <= injected["start_char"] < injected["end_char"]
-                <= clause["end_char"]):
-            raise ValueError("D2 injection lies outside its v02 Gold clause")
+        start, end = injected["start_char"], injected["end_char"]
+        if end <= start:
+            raise ValueError("invalid D2 insertion span")
+        candidates = []
+        for clause in segmentation:
+            overlap = max(0, min(end, clause["end_char"]) - max(start, clause["start_char"]))
+            coverage = overlap / (end - start)
+            if coverage >= 0.8:
+                candidates.append((-coverage, clause["end_char"] - clause["start_char"], clause))
+        if not candidates:
+            raise ValueError("D2 injection has no containing v02 Gold clause")
+        clause = sorted(candidates, key=lambda row: (row[0], row[1]))[0][2]
+        if item["clause_id"] != clause["gold_clause_ref"]:
+            raise ValueError("D2 injection clause reference disagrees with resolved Gold clause")
         if item["risk_label"] not in {"DEPOSIT_DOCUMENT_HELD", "EMPLOYEE_OBLIGATIONS_DISCIPLINE"}:
             raise ValueError("D2 Dev risk label outside approved Article 17 slice")
         for role in ("EMPLOYEE", "EMPLOYER"):
             _, label = map_dev_candidate_to_risk_labels(((role, item["risk_label"]),))[0]
-            result.append(RiskRecord(item["clause_id"], role, label,
-                                     "LEGAL_VIOLATION", clause["start_char"],
-                                     clause["end_char"], document_id))
+            key = (clause["gold_clause_ref"], role, label)
+            if key not in seen:
+                result.append(RiskRecord(clause["gold_clause_ref"], role, label,
+                                         "LEGAL_VIOLATION", clause["start_char"],
+                                         clause["end_char"], document_id))
+                seen.add(key)
     return result
 
 
@@ -80,6 +94,7 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
     segment_counts = Counter()
     source_hashes = {}
     citation_total = citation_valid = quote_total = quote_valid = 0
+    labels_without_d2_gold = Counter()
     for dataset in ("D1", "D2"):
         for doc in _DOCS:
             folder, suffix, gold_folder = (
@@ -122,18 +137,18 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
                               enable_blank_line_paragraphs=True).clauses
             segment_counts[dataset] += len(clauses)
             for clause in clauses:
-                for role, label in map_dev_candidate_to_risk_labels(
-                    detect_dev_risks_candidate(clause.original_text)
-                ):
+                for role, label, basis in detect_dev_m2_risks(clause.original_text):
                     record = RiskRecord(clause.clause_id, role, label,
-                                        "LEGAL_VIOLATION", clause.start_char,
+                                        basis, clause.start_char,
                                         clause.end_char, doc_id)
                     all_predicted.append(record)
                     if dataset == "D2":
                         d2_predicted.append(record)
+                        if label == "UNILATERAL_CHANGE":
+                            labels_without_d2_gold[label] += 1
                     quote_total += 1
                     quote_valid += (clause.original_text == source[clause.start_char:clause.end_char])
-                    for cid in _CITATIONS[label]:
+                    for cid in _CITATIONS.get(label, ()):
                         citation_total += 1
                         provision = provisions.get(cid)
                         citation_valid += bool(
@@ -144,7 +159,7 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
         raise ValueError("approved Dev Gold support changed")
     return {
         "scope": "D1_D2_DEV_ARTICLE17_PLUS_SIX_D1_RISK_ITEMS",
-        "classifier": "FROZEN_M5_ARTICLE17_LOCAL_RULE_PROXY_NOT_PRODUCT_M2",
+        "classifier": "FROZEN_M5_ARTICLE17_PLUS_SOURCE_ONLY_UNILATERAL_DEV_RULE_NOT_PRODUCT_M2",
         "gold_policy": "D1_M2_V02_PLUS_RATIFIED_D2_TWO_ROLE_INJECTION_V01_ON_D2_SEG_V02",
         "as_of": as_of.isoformat(),
         "source_sha256_by_document": source_hashes,
@@ -153,6 +168,7 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
         "combined_dev": evaluate_risk_classification(all_gold, all_predicted),
         "gold_tuple_counts": {"d2": len(d2_gold), "combined": len(all_gold)},
         "predicted_tuple_counts": {"d2": len(d2_predicted), "combined": len(all_predicted)},
+        "predictions_on_d2_labels_without_gold": dict(labels_without_d2_gold),
         "m3a_local_rule_citation_proxy": {
             "status": "STATIC_ARTICLE17_MAPPING_CORPUS_EFFECTIVITY_ONLY_NOT_MODEL_CITATIONS",
             "valid": citation_valid, "total": citation_total,
@@ -164,7 +180,9 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
         },
         "limitations": [
             "D2 two-role labels are an explicitly ratified Dev evaluation policy derived from verified injected cases.",
-            "The local Article 17 detector has no UNILATERAL_CHANGE rule or independent M2 model predictions.",
+            "UNILATERAL_CHANGE is a separate source-only Dev heuristic; neither detector is an independent M2 model.",
+            "D2 Gold covers Article 17 labels only; predicted UNILATERAL_CHANGE "
+            "on D2 is counted as FP by the unfiltered metric although D2 has no annotation for it.",
             "M3a counts static law citations assigned by rule label, not citations selected by an LLM.",
             "M4 checks the local segmentation quote invariant, not a product response envelope.",
             "D1 and D2 share underlying base documents; the combined score is not independent-sample evidence.",

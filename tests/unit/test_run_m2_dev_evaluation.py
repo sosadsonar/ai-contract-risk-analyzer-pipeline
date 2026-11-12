@@ -22,6 +22,19 @@ def test_approved_d2_policy_expands_verified_case_to_both_roles():
     assert all((r.start_char, r.end_char) == (10, 30) for r in records)
 
 
+def test_insertion_resolves_to_clause_with_eighty_percent_containment():
+    spans = [{"gold_clause_ref": "d2seg_0001", "start_char": 10, "end_char": 30}]
+    records = gold_from_injections([_case(start=22, end=32)], spans, "D2:HDLD001")
+    assert len(records) == 2
+
+
+def test_duplicate_injections_in_one_gold_clause_count_one_label_per_role():
+    spans = [{"gold_clause_ref": "d2seg_0001", "start_char": 10, "end_char": 30}]
+    records = gold_from_injections([_case(), _case(start=18, end=25)], spans,
+                                   "D2:HDLD001")
+    assert len(records) == 2
+
+
 @pytest.mark.parametrize("case", [
     _case(decision="PENDING"),
     _case(start=5),

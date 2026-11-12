@@ -70,6 +70,27 @@ def _align_clauses(gold_spans, pred_spans) -> dict[tuple[str, str], tuple[str, s
             pairs = greedy_align_spans([gold_spans[key] for key in gold_keys],
                                        [pred_spans[key] for key in pred_keys], threshold=0.5)
             mapped.update({pred_keys[pi]: gold_keys[gi] for gi, pi in pairs})
+            used_gold = {gi for gi, _ in pairs}
+            used_pred = {pi for _, pi in pairs}
+            containment_candidates = []
+            for gi, gold_key in enumerate(gold_keys):
+                if gi in used_gold:
+                    continue
+                gs, ge = gold_spans[gold_key]
+                for pi, pred_key in enumerate(pred_keys):
+                    if pi in used_pred:
+                        continue
+                    ps, pe = pred_spans[pred_key]
+                    overlap = max(0, min(ge, pe) - max(gs, ps))
+                    coverage = overlap / (ge - gs)
+                    if coverage >= 0.8:
+                        containment_candidates.append(
+                            (-coverage, -span_iou((gs, ge), (ps, pe)), gi, pi))
+            for _, _, gi, pi in sorted(containment_candidates):
+                if gi not in used_gold and pi not in used_pred:
+                    mapped[pred_keys[pi]] = gold_keys[gi]
+                    used_gold.add(gi)
+                    used_pred.add(pi)
     return mapped
 
 

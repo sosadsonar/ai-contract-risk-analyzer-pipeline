@@ -51,6 +51,20 @@ def test_span_alignment_maps_different_clause_ids_before_label_scoring():
     assert result["micro_counts"] == {"tp": 1, "fp": 0, "fn": 0}
 
 
+def test_gold_clause_contained_in_long_prediction_aligns_without_insertion_span():
+    gold = [rec("gold_clause", span=(100, 200))]
+    predicted = [rec("pred_clause", span=(50, 400))]
+    result = evaluate_risk_classification(gold, predicted)
+    assert result["micro_counts"] == {"tp": 1, "fp": 0, "fn": 0}
+
+
+def test_containment_alignment_remains_one_to_one():
+    gold = [rec("gold_one", span=(100, 200)), rec("gold_two", span=(210, 310))]
+    predicted = [rec("pred_big", span=(50, 400))]
+    result = evaluate_risk_classification(gold, predicted)
+    assert result["micro_counts"] == {"tp": 1, "fp": 0, "fn": 1}
+
+
 def test_basis_mismatch_only_reduces_m2b():
     result = evaluate_risk_classification(
         [rec("cl_0001")], [rec("cl_0001", basis="AMBIGUOUS")])
