@@ -24,6 +24,7 @@ from app.ai.prompts.clause_v1 import (
 )
 from app.ai.provider import CallLedger, LLMProvider, call_with_retry
 from app.clause.taxonomy import DATA_TAXONOMY_VERSION, validate_labels
+from app.clause.eligibility import is_eligible_clause_for_classification, source_position_metadata
 from app.domain.errors import AiOutputInvalid, StageCancelled
 
 _CLAUSE_ID = re.compile(r"^cl_[0-9]{4}$")
@@ -67,7 +68,11 @@ def masked_items_from_segmentation(segmentation, masked_text: str) -> list[Claus
     Chỉ trả `clause_id` + masked_text; không role, canonical, offset hay structure. Span tính trên
     canonical nhưng masked_text cùng độ dài (INV-01) nên cắt trực tiếp được.
     """
-    return [ClauseMasked(c.clause_id, masked_text[c.start_char : c.end_char]) for c in segmentation.clauses]
+    positions = source_position_metadata(segmentation.clauses)
+    return [ClauseMasked(c.clause_id, masked_text[c.start_char : c.end_char])
+            for c, position in zip(segmentation.clauses, positions)
+            if is_eligible_clause_for_classification(
+                masked_text[c.start_char : c.end_char], position)]
 
 
 def make_batches(items: list, size: int) -> list[list]:
