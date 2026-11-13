@@ -1,0 +1,30 @@
+{
+  "status": "DEV_STRUCTURAL_FAKE_PROVIDER_NOT_PRODUCT_M2",
+  "documents": 4,
+  "result_versions": {
+    "HDLD001": "dev_pipeline_result_v1",
+    "HDLD002": "dev_pipeline_result_v1",
+    "HDLD003": "dev_pipeline_result_v1",
+    "HDLD004": "dev_pipeline_result_v1"
+  },
+  "provider_request_batches": 39,
+  "risk_basis_records": 168,
+  "m3a_technical_citation_validity": {
+    "valid": 168,
+    "total": 168,
+    "rate": 1.0
+  },
+  "m4_technical_exact_quote": {
+    "valid": 168,
+    "total": 168,
+    "rate": 1.0
+  },
+  "severity_from_taxonomy": {
+    "valid": 168,
+    "total": 168
+  },
+  "limitations": [
+    "make_pipeline_runner returns dev_pipeline_result_v1, not product final_result_v1.",
+    "The providers emit synthetic labels and citations; no semantic M2/M3a accuracy is measured."
+  ]
+}

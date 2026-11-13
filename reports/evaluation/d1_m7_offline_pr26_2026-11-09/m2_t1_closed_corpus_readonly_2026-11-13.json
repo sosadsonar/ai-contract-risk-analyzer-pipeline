@@ -1,0 +1,318 @@
+{
+  "status": "ONE_SHOT_T1_CLOSED_CORPUS_READONLY",
+  "gold_version": "T1_m2_risk_gold_v02",
+  "prediction_basis": "T1_segmentation_candidate_v01 plus frozen Dev risk baseline",
+  "source_sha256_by_document": {
+    "HDLD005": "8f6e3d3b10d20f949879e2a7dcd5e27229baa06d661187e299cfa5d9d06ea85f",
+    "HDLD006": "23df0f40398beafa769d8272f812ad930199554936020b0b6acd08b3a5dc5664",
+    "HDLD007": "1a3a6d57b3c22aed5d0fcefe7d3bed4bd1fbac3cbf11becd2d336e5ac1eeab33",
+    "HDLD008": "224bf16ce6d48935a72ece5852345b57bfb0c2555827ba42b6d841af3f93e135",
+    "HDLD009": "8d08ad89f3932853ce6ec0cf657e0148b98d2826eabbe4d71ef7f565c5cb3cd2",
+    "HDLD010": "eecde5b418ae41cd1e25b4aa085023100973264b300661605e51c4f55f80c2b6",
+    "HDLD011": "270e5226b4d5123cfea085979fa82d034da4b29b1b68a7a4f63211f457725b93",
+    "HDLD012": "10267d9dbd5880dd0b019911c2657e8889266479a772255b527bbdbd1627ac51",
+    "HDLD013": "4e62719a772fa83cd9af06252c240f8127bf292773e46c50d154e88da88ec0b6"
+  },
+  "gold_positive_count": 3,
+  "candidate_clause_count": 747,
+  "context_scope_unit_count": 190,
+  "excluded_corpus_scope_unit_count": 17,
+  "score": {
+    "per_label": {
+      "CONTRACT_TERM_TYPE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "PROBATION": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "WAGE_AMOUNT_COMPONENTS": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "BONUS_BENEFITS": {
+        "tp": 1,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666,
+        "gold_support": 1,
+        "pred_support": 2
+      },
+      "PAYMENT_TIMING_METHOD": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "WORKING_HOURS_OVERTIME": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 2,
+        "pred_support": 0
+      },
+      "REST_AND_LEAVE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "SOCIAL_INSURANCE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "OSH_OBLIGATION": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "UNILATERAL_CHANGE": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 1
+      },
+      "PENALTY_DEDUCTION_DAMAGES": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "DISCIPLINE_OBLIGATION": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 2
+      },
+      "POST_EMPLOYMENT_RESTRICTION": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "DEPOSIT_DOCUMENT_HELD": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 2
+      },
+      "DISCRIMINATION_PROTECTED_GROUPS": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "TRAINING_COMMITMENT": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "TERMINATION_GROUNDS_NOTICE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "TERMINATION_SETTLEMENT": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "WAIVER_RIGHTS_DISPUTE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "PERSONAL_DATA_PRIVACY": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "CONTRACT_FORM_RULES": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      }
+    },
+    "macro_f1_present_labels": 0.3333333333333333,
+    "macro_f1_all_21_labels": 0.031746031746031744,
+    "micro_counts": {
+      "tp": 1,
+      "fp": 6,
+      "fn": 2
+    },
+    "micro_precision": 0.14285714285714285,
+    "micro_recall": 0.3333333333333333,
+    "micro_f1": 0.2,
+    "gold_label_coverage": {
+      "present": 2,
+      "total": 21
+    },
+    "full_taxonomy_coverage": false,
+    "alignment_pairs": 1,
+    "excluded_gold_unalignable": 0,
+    "excluded_scope_gold_records": 0,
+    "excluded_scope_predicted_records": 0,
+    "merged_excluded_regions": [
+      {
+        "document_id": "HDLD005",
+        "role": "EMPLOYEE",
+        "start_char": 9502,
+        "end_char": 9629
+      },
+      {
+        "document_id": "HDLD006",
+        "role": "EMPLOYEE",
+        "start_char": 10088,
+        "end_char": 10215
+      },
+      {
+        "document_id": "HDLD011",
+        "role": "EMPLOYEE",
+        "start_char": 3660,
+        "end_char": 3793
+      },
+      {
+        "document_id": "HDLD011",
+        "role": "EMPLOYEE",
+        "start_char": 5492,
+        "end_char": 5586
+      },
+      {
+        "document_id": "HDLD011",
+        "role": "EMPLOYEE",
+        "start_char": 7093,
+        "end_char": 7567
+      },
+      {
+        "document_id": "HDLD011",
+        "role": "EMPLOYEE",
+        "start_char": 7783,
+        "end_char": 7969
+      },
+      {
+        "document_id": "HDLD012",
+        "role": "EMPLOYEE",
+        "start_char": 5132,
+        "end_char": 5456
+      },
+      {
+        "document_id": "HDLD013",
+        "role": "EMPLOYEE",
+        "start_char": 5463,
+        "end_char": 5711
+      }
+    ],
+    "excluded_overlap_predictions": [],
+    "partial_excluded_overlap_warnings": [],
+    "partial_excluded_gold_overlap_warnings": [],
+    "basis_type_accuracy": 1.0,
+    "basis_type_ci95": [
+      0.20654931437723745,
+      1.0
+    ],
+    "basis_type_support": 1
+  },
+  "limitations": [
+    "Only three adjudicated T1 positives cover two risk labels; not full 21-label M2 acceptance.",
+    "T1 segmentation candidates are AI-proposed inputs, not Gold boundaries.",
+    "The detector is a frozen Dev heuristic, not the product risk classifier.",
+    "CONTEXT scope units are segmentation-only and absent from the M2 packet."
+  ]
+}
