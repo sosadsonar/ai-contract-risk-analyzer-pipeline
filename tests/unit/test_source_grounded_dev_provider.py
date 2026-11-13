@@ -49,6 +49,21 @@ def test_local_provider_does_not_emit_on_benign_source():
     assert result == {"schema_version": "risk_output_v2", "items": []}
 
 
+def test_original_document_uses_article_17_clause_1_and_review_explanation():
+    provider = SourceGroundedDevProvider(FixedClauseModel())
+    text = "Người lao động phải giao bản gốc bằng tốt nghiệp để công ty giữ đến khi hết hợp đồng."
+    result = _call(provider, {
+        "schema_version": "risk_analysis_request_v2", "role": "EMPLOYEE",
+        "items": [{"clause_id": "cl_0001", "masked_text": text,
+                   "candidate_ids": ["BLLD2019:art17:cl1"]}],
+    })
+    assert result["items"][0]["citation_ids"] == ["BLLD2019:art17:cl1"]
+    assert result["items"][0]["explanation"] == (
+        "Dấu hiệu giữ giấy tờ gốc hoặc yêu cầu bảo đảm khi thực hiện hợp đồng; "
+        "cần người rà nguồn và điều luật."
+    )
+
+
 def test_same_basis_rules_keep_both_labels_in_one_clause_item():
     provider = SourceGroundedDevProvider(FixedClauseModel())
     text = ("Người lao động phải chấp nhận mọi sự điều động khi có yêu cầu của công ty; "

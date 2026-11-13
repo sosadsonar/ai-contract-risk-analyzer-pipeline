@@ -80,6 +80,8 @@ def _match_review_rows(risks: list[dict], review_rows: list[dict]) -> dict:
     ambiguous = []
     exact = 0
     quote_matched = citation_matched = explanation_matched = 0
+    fully_matching = 0
+    mismatch_ids = {"span": [], "quote": [], "citation": [], "explanation": []}
     for row in review_rows:
         key = (row["document_id"], row["role"], row["risk_label"])
         possible = []
@@ -97,18 +99,40 @@ def _match_review_rows(risks: list[dict], review_rows: list[dict]) -> dict:
             used.add(possible[0][1])
             matched.append(row["output_id"])
             output = risks[possible[0][1]]
-            exact += (output["start_char"] == row["start_char"]
-                      and output["end_char"] == row["end_char"])
-            quote_matched += output["masked_quote"] == row["masked_clause_text"]
-            citation_matched += row["citation_candidate"] in output["citation_ids"]
-            explanation_matched += output["explanation"] == row["explanation_candidate"]
+            checks = {
+                "span": (output["start_char"] == row["start_char"]
+                         and output["end_char"] == row["end_char"]),
+                "quote": output["masked_quote"] == row["masked_clause_text"],
+                "citation": row["citation_candidate"] in output["citation_ids"],
+                "explanation": output["explanation"] == row["explanation_candidate"],
+            }
+            exact += checks["span"]
+            quote_matched += checks["quote"]
+            citation_matched += checks["citation"]
+            explanation_matched += checks["explanation"]
+            fully_matching += all(checks.values())
+            for field, passed in checks.items():
+                if not passed:
+                    mismatch_ids[field].append(row["output_id"])
+    unmatched = [row for row in review_rows if row["output_id"] not in matched]
+    diagnostics = []
+    for row in unmatched:
+        nearby = sorted(((_iou(output, row), output["risk_label"])
+                         for output in risks
+                         if output["document_id"] == row["document_id"]
+                         and output["role"] == row["role"]), reverse=True)
+        diagnostics.append({"output_id": row["output_id"],
+                            "nearest_iou": nearby[0][0] if nearby else None,
+                            "nearest_risk_label": nearby[0][1] if nearby else None})
     return {"review_rows": len(review_rows), "uniquely_matched": len(matched),
             "exact_span_matches": exact,
             "masked_quote_matches": quote_matched,
             "citation_matches": citation_matched,
             "explanation_matches": explanation_matched,
-            "unmatched_output_ids": [row["output_id"] for row in review_rows
-                                     if row["output_id"] not in matched],
+            "fully_matching_records": fully_matching,
+            "mismatch_output_ids_by_field": mismatch_ids,
+            "unmatched_output_ids": [row["output_id"] for row in unmatched],
+            "unmatched_diagnostics": diagnostics,
             "ambiguous_output_ids": ambiguous,
             "match_rule": "document_id + role + normalized risk label + span IoU >= 0.80"}
 
@@ -221,8 +245,8 @@ def audit(data_root: Path, corpus_root: Path) -> dict:
                                 "citation_ids": risk["citation_ids"],
                                 "explanation": risk["explanation"],
                             })
-    review_path = (restricted / "M6_D2_dev_candidate_review_v01" /
-                   "D2_40_ratings_minh_adjudicated.csv")
+    review_path = (restricted / "M6_D2_dev_candidate_review_v13" /
+                   "D2_40_v13_ratings_minh_adjudicated.csv")
     with review_path.open(encoding="utf-8-sig", newline="") as stream:
         review_rows = list(csv.DictReader(stream))
     for row in review_rows:

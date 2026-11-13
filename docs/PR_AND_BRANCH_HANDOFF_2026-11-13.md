@@ -7,6 +7,33 @@ The branch inventories below are local commits reachable from `HEAD` but absent
 from the locally cached `origin/main` at the time of this report. Re-fetch and
 compare before any remote action because remote branches may have advanced.
 
+## v10 local update — 14/11/2026
+
+The approved private D1 worksheet v05 and restricted D2 v13 M6 ratings were
+copied into the Data repo's ignored intake directories. `D1_m2_risk_gold_v04`
+contains 18 adjudicated risk items; v03 remains intact. The Pipeline evaluator
+now accepts an explicit v04 option while preserving v03 as its default.
+Present-label Dev Macro-F1 is 0.96257 on D1 and 0.97077 on combined D1+D2;
+this does not change the frozen T1 result or establish product M2 accuracy.
+
+The v13 packet's human A/B agreement is 0.975, but only 35/40 reviewed rows
+match the current `final_result_v1` runner in all of span, masked quote,
+citation and explanation. Four rows for two D2 clauses have packet spans
+narrower than the segmenter output; one further row differs on the Article 17
+clause citation. Preserve the reviewer CSV unchanged and obtain adjudication
+before claiming 40/40 runner agreement.
+
+The closed corpus label map now seeds `EMPLOYEE_OBLIGATIONS_DISCIPLINE` with
+Article 17 clause 3. M8-primary Dev Graph Off stays 66/74; Graph On reaches
+72/74. D1 oracle Graph On reaches 14/14. The remaining two D2 role rows have
+predicted label `TERMINATION`, for which no general Article 17 clause 1 mapping
+is legally justified. A 74/74 trial was not committed. No T1/T2 source was
+accessed or reevaluated in this update.
+
+The v10 Pipeline commit hash is reported in the delivery message because this
+document cannot contain its own hash. Data's new intake and Gold paths are
+ignored by Git; no private or restricted material is staged. No push/merge.
+
 ## v8 local update
 
 Pipeline commit `44006c0` adds the opt-in session route, bounded PDF runner

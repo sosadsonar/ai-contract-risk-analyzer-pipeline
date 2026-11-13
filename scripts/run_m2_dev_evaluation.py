@@ -81,7 +81,10 @@ def gold_from_injections(injections: list[dict], segmentation: list[dict],
     return result
 
 
-def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
+def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date,
+                 d1_gold_version: str = "D1_m2_risk_gold_v03") -> dict:
+    if d1_gold_version not in {"D1_m2_risk_gold_v03", "D1_m2_risk_gold_v04"}:
+        raise ValueError("unsupported D1 Dev risk Gold version")
     restricted = data_root / "data" / "intake" / "restricted"
     corpus = load_corpus(corpus_root)
     if corpus.release_status != "APPROVED":
@@ -115,7 +118,7 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
             spans = {item["gold_clause_ref"]: item for item in geometry["segments"]}
             doc_id = f"{dataset}:{doc}"
             if dataset == "D1":
-                risk_gold = _read_json(restricted / "D1_m2_risk_gold_v03" /
+                risk_gold = _read_json(restricted / d1_gold_version /
                                        f"{doc}.risk_gold.json")
                 if risk_gold["status"] != "GOLD_ADJUDICATED":
                     raise ValueError("D1 risk Gold is not adjudicated")
@@ -162,12 +165,14 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
                             provision and provision.effective_from <= as_of
                             and (provision.effective_to is None or as_of <= provision.effective_to)
                         )
-    if len(d2_gold) != 60 or len(all_gold) != 74:
+    expected_d1 = 18 if d1_gold_version.endswith("v04") else 14
+    if len(d2_gold) != 60 or len(d1_gold) != expected_d1 or len(all_gold) != expected_d1 + 60:
         raise ValueError("approved Dev Gold support changed")
     return {
-        "scope": "D1_D2_DEV_ARTICLE17_PLUS_FOURTEEN_D1_RISK_ITEMS",
-        "classifier": "FROZEN_M5_ARTICLE17_PLUS_SOURCE_ONLY_UNILATERAL_DEV_RULE_NOT_PRODUCT_M2",
-        "gold_policy": "D1_M2_V03_PLUS_RATIFIED_D2_TWO_ROLE_INJECTION_V01_ON_D2_SEG_V02",
+        "scope": f"D1_D2_DEV_ARTICLE17_PLUS_{expected_d1}_D1_RISK_ITEMS",
+        "classifier": "FROZEN_M5_ARTICLE17_PLUS_SOURCE_ONLY_D1_DEV_RULES_NOT_PRODUCT_M2",
+        "gold_policy": (f"{d1_gold_version.upper()}_PLUS_RATIFIED_D2_TWO_ROLE_"
+                        "INJECTION_V01_ON_D2_SEG_V02"),
         "as_of": as_of.isoformat(),
         "source_sha256_by_document": source_hashes,
         "segment_counts": dict(segment_counts),
@@ -203,9 +208,13 @@ def main() -> None:
     parser.add_argument("--data-root", type=Path, required=True)
     parser.add_argument("--corpus-root", type=Path, default=Path("data/legal_corpus"))
     parser.add_argument("--as-of", type=date.fromisoformat, default=date(2026, 11, 12))
+    parser.add_argument("--d1-gold-version", choices=("D1_m2_risk_gold_v03",
+                                                       "D1_m2_risk_gold_v04"),
+                        default="D1_m2_risk_gold_v03")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    report = evaluate_dev(args.data_root, args.corpus_root, as_of=args.as_of)
+    report = evaluate_dev(args.data_root, args.corpus_root, as_of=args.as_of,
+                          d1_gold_version=args.d1_gold_version)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n",
                            encoding="utf-8")

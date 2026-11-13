@@ -8,6 +8,44 @@ Macro-F1 on only two supported T1 risk labels, below 0.80; the 21-label M2 model
 is not yet evaluated. The 40-output human agreement is from D2 Dev and is not
 the final M6 acceptance sample. No T1/T2 source text is reproduced here.
 
+## v10 Dev update — 14/11/2026
+
+- The approved D1 worksheet v05 SHA-256 is
+  `eb23d95935c75af2dc3efb4cbc853a33e3155168a51da2f0efad007adc127ed5`.
+  Its 366 role rows contain 18 adjudicated `RISK` items. The converter wrote
+  `D1_m2_risk_gold_v04` in restricted storage without changing v03. Label
+  support is 9 `UNILATERAL_CHANGE`, 5 `BONUS_BENEFITS`, 3 `REST_AND_LEAVE`,
+  and 1 `WORKING_HOURS_OVERTIME`.
+- Label-scoped Dev M2/M2b using v04: D1 **17 TP / 1 FP / 1 FN**, present-label
+  Macro-F1 **0.96257**; D2 **58 / 0 / 2**, **0.98718**; combined **75 / 1 / 3**,
+  **0.97077** across six supported labels. Combined Gold support is 78, not
+  74. The 21-label Macro-F1 is **0.27736** because 15 labels have no positive
+  support in this Dev evaluation. These are local Dev heuristic results and do
+  not replace the frozen T1 read-only result.
+- The v13 M6 CSV SHA-256 is
+  `a76418e4b9fec99c6182d847713eea1b039ddbd054cc22049985c6b0bd88b675`.
+  Its human A/B agreement is **39/40 = 0.975** (κ **0.89474**); judge agreement
+  is **40/40 = 1.0** (κ **1.0**). The current v1.3 `final_result_v1` runner
+  matches **36/40** review rows by document, role, label and span; **35/40**
+  match every required field. Four rows for two D2 Dev clauses have narrower
+  packet spans than the actual segmenter output, even without PII masking.
+  One further matched row has a different Article 17 clause citation. The
+  human ratings therefore verify the submitted packet, but cannot yet be
+  assigned to all 40 current runner outputs.
+- A source-backed `EMPLOYEE_OBLIGATIONS_DISCIPLINE -> BLLD2019:art17:cl3`
+  seed mapping makes M8-primary Dev Graph Off **66/74** and Graph On **72/74**;
+  D1 oracle-labels improve from **8/14** Off to **14/14** On. The remaining
+  two role rows share one D2 clause whose predicted taxonomy label is
+  `TERMINATION` while its target citation is Article 17 clause 2. A trial
+  `TERMINATION -> Article 17 clause 1` mapping reached 74/74 in memory, but
+  that general mapping lacks a sound legal basis and was not saved. No D2
+  adjudicated clause-label oracle is available. M8 remains an in-sample Dev
+  diagnostic.
+- The source-grounded Dev provider now selects Article 17 clause 1 or 2 with
+  the frozen `_DOCUMENT` source pattern and uses the reviewed explanation
+  wording. The frozen candidate detector SHA-256 remains
+  `a6d7a1fb2663511764606d0ad9075246df423a282eb96c406fca342c6644f438`.
+
 ## v8 Dev-only integration and M8 audit
 
 - The HTTP session route can now bind `make_pipeline_runner()` when
@@ -90,14 +128,14 @@ the final M6 acceptance sample. No T1/T2 source text is reproduced here.
 | Metric | Dev evidence | Held-out evidence | Acceptance interpretation |
 | --- | --- | --- | --- |
 | M1, IoU ≥ 0.80 | D2 v02: 228/250 TP, 253 predicted, F1 **0.90656**. D1 full granularity: 151/329 TP, F1 0.54710. | T1 rules_v1.3: 229/842 TP, 390 predicted, F1 **0.37175**. | Dev D2 passes; T1 does not. D1/D2/T1 annotation granularity differs. |
-| M2 risk classification | D1: 13 TP/5 FP/1 FN, present-label Macro-F1 0.77696 (4 labels). D2 Article 17: 58/0/2, 0.98718 (2 labels). Combined: 71/5/3, **0.84703** (6 labels; all-21 Macro-F1 0.24201). | **One read-only T1 v02 run**: 1 TP/6 FP/2 FN, Micro-F1 0.20000, present-label Macro-F1 **0.33333** (2 labels; all-21 Macro-F1 0.03175). | Frozen Dev heuristic, not the product M2 classifier. Fails held-out target; 19 labels lack T1 positive support. D1 and D2 share source contracts. |
-| M2b basis type | Dev combined 71/71 correct *among matched true positives*. | T1 1/1 correct *among matched true positives*. | Conditional measure with very small held-out support; not overall basis accuracy. |
+| M2 risk classification | D1 v04: 17 TP/1 FP/1 FN, present-label Macro-F1 **0.96257** (4 labels). D2 Article 17: 58/0/2, 0.98718 (2 labels). Combined: 75/1/3, **0.97077** (6 labels; all-21 Macro-F1 0.27736). | **One read-only T1 v02 run**: 1 TP/6 FP/2 FN, Micro-F1 0.20000, present-label Macro-F1 **0.33333** (2 labels; all-21 Macro-F1 0.03175). | Frozen Dev heuristic, not the product M2 classifier. Fails held-out target; 19 labels lack T1 positive support. D1 and D2 share source contracts. |
+| M2b basis type | Dev combined 75/75 correct *among matched true positives*. | T1 1/1 correct *among matched true positives*. | Conditional measure with very small held-out support; not overall basis accuracy. |
 | M3a citation validity | D1 injected runner with fake providers: 168/168 citation IDs valid in approved corpus. | Earlier equivalent-gate T1 top-1 retrieval: 747/747, membership/effectivity only. | Structural validity only; no proof of citation relevance or a real model's legal accuracy. |
 | M4 quote/offset | D1 injected runner: 168/168 exact quote and source offset. | Earlier T2 technical run: 19/19 exact on emitted risks; T1 had zero emitted risks in that run. | Structural invariant on emitted records, not risk recall. |
 | M5 injected-error recall | D2 Dev: 30/30. | Frozen T2 read-only: 26/30. | Recall on Article 17 injections; not M2 F1. |
-| M6 human agreement | D2 Dev 40 outputs: human A/B 0.975; Cohen κ 0.89474; judge/adjudicated agreement 1.0, κ 1.0. | No held-out M6 packet scored. | Dev packet passes its agreement check; formal M6 acceptance remains pending. |
+| M6 human agreement | D2 Dev v13 packet: human A/B 0.975; Cohen κ 0.89474; judge/adjudicated agreement 1.0, κ 1.0. Current v1.3 runner matches 35/40 records in all output fields. | No held-out M6 packet scored. | Dev packet passes its agreement check; four span mismatches and one citation mismatch prevent full runner attribution. Formal M6 acceptance remains pending. |
 | M7 clause taxonomy | D1 leave-one-document-out local baseline Macro-F1 0.51062 (95% CI 0.25458–0.83893). | Earlier T1 full 747-row Macro-F1 0.33775; 340 genuine-clause subset 0.54416. | Below 0.80; separate from M2 risk taxonomy. |
-| M8 Recall@5 | Paired D1 v03 14 + D2 60 citation cases, final_k=8: Graph Off **66/74 = 0.89189**, Graph On **66/74 = 0.89189**. | Earlier T2 30 cases: Graph Off 15/30, Graph On 14/30. | Dev uses D1-trained local clause-label predictions on D1/D2 derivatives, so it is in-sample. Graph gives no Dev gain and regresses on the earlier T2 diagnostic. |
+| M8 Recall@5 | Paired D1 v03 14 + D2 60 citation cases, final_k=8: Graph Off **66/74 = 0.89189**, Graph On **72/74 = 0.97297**; D1 oracle Off 8/14, On 14/14. | Earlier T2 30 cases: Graph Off 15/30, Graph On 14/30. No new held-out run. | Dev uses D1-trained local clause-label predictions on D1/D2 derivatives, so it is in-sample. D2 oracle labels are unavailable. |
 | Privacy | Data-repo privacy Gold validator restored; Data full suite passes. | Earlier T1 high/standard sensitivity recall 1.0 each; preserve 62/63. | Technical privacy evidence, not a new held-out privacy run in this change. |
 
 ## Scope and implementation facts
@@ -119,6 +157,10 @@ the final M6 acceptance sample. No T1/T2 source text is reproduced here.
 
 ## Evidence files
 
+- `reports/evaluation/d1_m7_offline_pr26_2026-11-09/m2_m2b_dev_label_scoped_v04_2026-11-13.json`
+- `reports/evaluation/d1_m7_offline_pr26_2026-11-09/m6_d2_dev_v13_human_adjudicated_2026-11-13.json`
+- `reports/evaluation/d1_m7_offline_pr26_2026-11-09/m8_d1_d2_dev_graph_paired_v10_2026-11-14.json`
+- `reports/evaluation/d1_m7_offline_pr26_2026-11-09/source_grounded_dev_runner_v10_2026-11-13.json`
 - `reports/evaluation/d1_m7_offline_pr26_2026-11-09/m8_d1_d2_dev_graph_paired_2026-11-13.json`
 - `reports/evaluation/d1_m7_offline_pr26_2026-11-09/m2_t1_closed_corpus_readonly_2026-11-13.json`
 - `reports/evaluation/d1_m7_offline_pr26_2026-11-09/d1_dev_runner_structural_2026-11-13.json`
@@ -132,4 +174,4 @@ the final M6 acceptance sample. No T1/T2 source text is reproduced here.
 2. Build and evaluate the actual 21-label M2 risk pipeline with sufficient adjudicated support; do not tune the frozen Dev heuristic to the T1 miss metadata.
 3. Deploy the opt-in route with a pinned build SHA, real provider/call-ledger verification and independent real-output M3a/M4 review. Adjudicate any proposed Article 21/17 clause-label mappings or graph edges before changing the approved corpus; obtain D2 clause-label Gold for a complete oracle M8 diagnostic.
 4. Complete a separately scoped 40-output M6 human review if the D2 Dev packet is not accepted as the formal sample.
-5. Obtain an adjudicated D2 clause-label file with source hashes and offsets before claiming a 74-case oracle M8 score. Review actual top-three seed behavior on Dev before proposing any further retrieval change. Re-rate a packet generated from the current v1.3 `final_result_v1` output for M6.
+5. Obtain an adjudicated D2 clause-label file with source hashes and offsets before claiming a 74-case oracle M8 score. Resolve the four v13 packet spans and one citation discrepancy with reviewers before attributing all 40 ratings to the current runner. Avoid a generic `TERMINATION -> Article 17` mapping without legal adjudication.

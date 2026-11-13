@@ -7,17 +7,12 @@ product M2 model and must never be selected by ``make_provider``.
 from __future__ import annotations
 
 import json
-import re
 
 from app.ai.provider import LLMResponse
 from app.clause.dev_tfidf_baseline import DevTfidfBaseline
+from app.risk.dev_injection_candidate import _DOCUMENT
 from app.risk.dev_m2_baseline import detect_dev_m2_risks
 
-_SECURITY_MONEY = re.compile(
-    r"đặt\s+cọc|ký\s+quỹ|thế\s+chân|thế\s+chấp|cầm\s+cố|"
-    r"(?:tiền|tài\s+sản|khoản)\s+bảo\s+đảm|lương.{0,50}bảo\s+đảm",
-    re.IGNORECASE | re.DOTALL,
-)
 _CITATIONS = {
     "DISCIPLINE_OBLIGATION": "BLLD2019:art17:cl3",
     "UNILATERAL_CHANGE": "BLLD2019:art21:cl1:ptc",
@@ -26,8 +21,13 @@ _CITATIONS = {
     "REST_AND_LEAVE": "BLLD2019:art21:cl1:ptg",
 }
 _EXPLANATIONS = {
-    "DEPOSIT_DOCUMENT_HELD": "Điều khoản có dấu hiệu giữ giấy tờ hoặc yêu cầu bảo đảm thực hiện hợp đồng.",
-    "DISCIPLINE_OBLIGATION": "Điều khoản có dấu hiệu ràng buộc nghĩa vụ làm việc với khoản nợ.",
+    "DEPOSIT_DOCUMENT_HELD": (
+        "Dấu hiệu giữ giấy tờ gốc hoặc yêu cầu bảo đảm khi thực hiện hợp đồng; "
+        "cần người rà nguồn và điều luật."
+    ),
+    "DISCIPLINE_OBLIGATION": (
+        "Dấu hiệu buộc tiếp tục làm việc để trả nợ; cần người rà nguồn và điều luật."
+    ),
     "UNILATERAL_CHANGE": "Điều khoản có dấu hiệu cho phép thay đổi công việc hoặc điều kiện làm việc một chiều.",
     "BONUS_BENEFITS": "Điều khoản để mức thưởng hoặc phụ cấp phụ thuộc quy định mở của công ty.",
     "WORKING_HOURS_OVERTIME": "Điều khoản để việc làm thêm giờ phụ thuộc yêu cầu mở của công ty.",
@@ -69,8 +69,9 @@ class SourceGroundedDevProvider:
                 desired = []
                 for label in labels:
                     if label == "DEPOSIT_DOCUMENT_HELD":
-                        citation = ("BLLD2019:art17:cl2" if _SECURITY_MONEY.search(item["masked_text"])
-                                    else "BLLD2019:art17:cl1")
+                        citation = ("BLLD2019:art17:cl1"
+                                    if _DOCUMENT.search(item["masked_text"].casefold())
+                                    else "BLLD2019:art17:cl2")
                     else:
                         citation = _CITATIONS[label]
                     if citation not in desired:
