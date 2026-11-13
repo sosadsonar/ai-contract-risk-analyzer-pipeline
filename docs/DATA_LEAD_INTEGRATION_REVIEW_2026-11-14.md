@@ -30,6 +30,9 @@ cho toàn bộ 21 nhãn. Không dùng các điểm Dev như điểm nghiệm thu
 - `.venv` Pipeline `pytest -q`: exit 0; test cần private submodule được skip.
 - `.venv` Pipeline `ruff check .`: exit 0.
 - `git diff --check origin/main...HEAD`: exit 0.
+- Đã ghim LF cho `dev_injection_candidate.py` trong `.gitattributes` để
+  SHA-256 bytes của bộ dò giữ `a6d7a1fb2663511764606d0ad9075246df423a282eb96c406fca342c6644f438`
+  kể cả khi Git trên Windows đặt `core.autocrlf=true`; mã detector không đổi.
 - Không đưa CSV duyệt, Gold restricted, văn bản hợp đồng hoặc tệp `.env` vào PR.
 
 ## Điều kiện trước merge

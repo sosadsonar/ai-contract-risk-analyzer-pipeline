@@ -1,3 +1,4 @@
 # Hash-pinned corpus files use exact LF bytes on every platform.
 data/legal_corpus/*.jsonl text eol=lf
 data/legal_corpus/*.yaml text eol=lf
+backend/app/risk/dev_injection_candidate.py text eol=lf
