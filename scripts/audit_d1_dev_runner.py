@@ -20,6 +20,7 @@ from app.legal.corpus_loader import load_corpus
 from app.privacy.masker import mask
 from app.risk.taxonomy import severity_for_labels
 from app.session.lock import ProcessingLease
+from app.session.m6_packet import review_rows_from_final_result
 from app.session.orchestrator import Orchestrator
 from app.session.pipeline_runner import make_pipeline_runner
 from app.session.store import InMemorySessionStore
@@ -63,6 +64,8 @@ def audit(data_root: Path, corpus_root: Path) -> dict:
     total_risk_basis = valid_severity = total_severity = 0
     request_count = 0
     result_versions = {}
+    m6_reviewable = 0
+    m6_complete = 0
     for i in range(1, 5):
         doc = f"HDLD{i:03}"
         source_path = restricted / "D1_m1_runtime_predictions_v01" / f"{doc}.canonical_nfc.txt"
@@ -99,6 +102,11 @@ def audit(data_root: Path, corpus_root: Path) -> dict:
                     != clause_row["original_text"]):
                 raise ValueError("D1 final clause quote does not match source")
         result_versions[doc] = result["schema_version"]
+        review_rows = review_rows_from_final_result(result)
+        m6_reviewable += len(review_rows)
+        m6_complete += sum(all(key in row for key in (
+            "output_id", "role", "risk_label", "severity", "explanation",
+            "citation_ids", "quote", "start_char", "end_char")) for row in review_rows)
         request_count += len(clause.requests) + len(risk.requests)
         for request in clause.requests + risk.requests:
             payload = json.dumps(request, ensure_ascii=False)
@@ -136,6 +144,12 @@ def audit(data_root: Path, corpus_root: Path) -> dict:
         },
         "severity_from_taxonomy": {
             "valid": valid_severity, "total": total_severity,
+        },
+        "m6_final_result_packet_structure": {
+            "reviewable_rows": m6_reviewable,
+            "complete_rows": m6_complete,
+            "can_select_40": m6_complete >= 40,
+            "source": "fake-provider Dev structural outputs; not human-reviewed ratings",
         },
         "limitations": [
             "make_pipeline_runner returns final_result_v1 after masked provider calls complete.",

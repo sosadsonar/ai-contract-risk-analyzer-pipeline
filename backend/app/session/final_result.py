@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import os
+import re
+import subprocess
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any
 
 from app.clause.segmenter import OFFSET_UNIT
@@ -19,6 +23,27 @@ _RISK_KEYS = ("clause_id", "risk_labels", "risk_basis", "severity", "explanation
               "evidence_status", "citation_ids")
 _DISCLAIMER = "Kết quả chỉ hỗ trợ tham khảo rủi ro theo phạm vi phân tích, không thay thế tư vấn pháp lý."
 _DATA_NOTICE = "Nội dung hợp đồng được xử lý trong phiên tạm thời và có thể chứa thông tin cá nhân."
+_COMMIT_SHA = re.compile(r"^[0-9a-fA-F]{40}$")
+
+
+def resolve_app_commit(cfg: Any = None, *, repo_root: Path | None = None) -> str:
+    """Pin the deployed revision without putting Git output in provider requests."""
+    configured = os.getenv("APP_COMMIT") or getattr(cfg, "APP_COMMIT", None)
+    if configured:
+        if not isinstance(configured, str) or not _COMMIT_SHA.fullmatch(configured):
+            raise ValueError("APP_COMMIT must be a 40-character Git SHA")
+        return configured.lower()
+    root = repo_root or Path(__file__).resolve().parents[3]
+    if not (root / ".git").exists():
+        return "dev-unpinned"
+    result = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--verify", "HEAD"],
+        capture_output=True, text=True, timeout=2, check=False,
+    )
+    value = result.stdout.strip()
+    if result.returncode != 0 or not _COMMIT_SHA.fullmatch(value):
+        raise RuntimeError("Git HEAD is unavailable for app_commit pin")
+    return value.lower()
 
 
 def build_final_result_v1(

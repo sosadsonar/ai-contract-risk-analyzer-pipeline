@@ -3,6 +3,7 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from threading import RLock
+from typing import Awaitable, Callable
 from uuid import UUID, uuid4
 
 from app.core.enums import Role, SessionStatus, Stage
@@ -27,6 +28,9 @@ class Session:
     manual_retry_count: int = 0
     task: asyncio.Task | None = field(default=None, repr=False)
     result: dict | None = field(default=None, repr=False)
+    pipeline_runner: Callable[..., Awaitable[dict]] | None = field(default=None, repr=False)
+    pipeline_factory: Callable[..., Awaitable[Callable[..., Awaitable[dict]]]] | None = (
+        field(default=None, repr=False))
     mock_variant: str | None = None
     cancelled: bool = False
 

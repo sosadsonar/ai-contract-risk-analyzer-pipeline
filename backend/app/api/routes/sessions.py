@@ -81,17 +81,25 @@ async def create(request: Request):
                     state.lease.release(token)
                     raise
 
-    upload = await parse_upload(request, state.settings.MAX_UPLOAD_MB * 1024 * 1024, on_role)
+    factory = getattr(state, "pipeline_runner_factory", None)
+    upload = await parse_upload(request, state.settings.MAX_UPLOAD_MB * 1024 * 1024,
+                                on_role, capture_file=factory is not None)
     if rejection is not None:
         return rejection
     if session is None:
         return api_error(400, "ROLE_REQUIRED")
-    # Dev sample selection stores only a fixed variant key, never the raw filename.
-    filename = (upload.filename or "").lower()
-    session.mock_variant = (
-        "norisk" if "norisk" in filename else
-        "insufficient" if "insufficient" in filename else None
-    )
+    if factory is not None and upload.error is None:
+        async def bind_runner(current: Session):
+            return await factory(upload, current)
+
+        session.pipeline_factory = bind_runner
+    elif factory is None:
+        # Dev sample selection stores only a fixed variant key, never the raw filename.
+        filename = (upload.filename or "").lower()
+        session.mock_variant = (
+            "norisk" if "norisk" in filename else
+            "insufficient" if "insufficient" in filename else None
+        )
     state.orchestrator.start(session, upload.error)
     return JSONResponse(status_code=201, content={
         "session_id": str(session.session_id), "status": "UPLOADED",

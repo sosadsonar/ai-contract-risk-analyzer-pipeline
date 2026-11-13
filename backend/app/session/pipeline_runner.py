@@ -21,7 +21,7 @@ from app.domain.errors import AiOutputInvalid, StageCancelled
 from app.integrations.risk_assembler import AssemblerContext, assemble_risk_output
 from app.legal.corpus_loader import LegalCorpus
 from app.privacy.masker import mask
-from app.session.final_result import build_final_result_v1
+from app.session.final_result import build_final_result_v1, resolve_app_commit
 from app.session.store import Session
 
 _ADVICE = re.compile(
@@ -76,6 +76,7 @@ def make_pipeline_runner(
             raise StageCancelled()
         masked = mask(canonical_text)
         segmented = segment(canonical_text, masked.masked_text, masked.pii_spans,
+                            max_clauses=getattr(cfg, "MAX_CLAUSES", 150),
                             enable_plus_lists=enable_plus_lists,
                             enable_blank_line_paragraphs=enable_blank_line_paragraphs)
         graph, _ = build_clause_graph(segmented.clauses, masked.masked_text)
@@ -161,8 +162,8 @@ def make_pipeline_runner(
             "clause_prompt_version": classified.prompt_version,
             "risk_prompt_version": output.prompt_version,
             "model_id": output.model_id,
-            "temperature": getattr(cfg, "GEMINI_TEMPERATURE", 0.0),
-            "app_commit": getattr(cfg, "APP_COMMIT", "dev-unpinned"),
+            "temperature": getattr(cfg, "TEMPERATURE", 0.0),
+            "app_commit": resolve_app_commit(cfg),
         }
         return build_final_result_v1(
             session_id=str(session.session_id), role=session.role.value,

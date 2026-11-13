@@ -92,10 +92,11 @@ def _body_order(lines: list[_Line], width: float) -> list[_Line]:
     ) + bottom
 
 
-def extract_pdf(path: Path, *, max_pages: int = 30) -> list[str]:
+def extract_pdf(path: Path | bytes, *, max_pages: int = 30) -> list[str]:
     """Return page texts, including empty pages; enforce page limit before extraction."""
     try:
-        document = fitz.open(path)
+        document = (fitz.open(stream=path, filetype="pdf") if isinstance(path, bytes)
+                    else fitz.open(path))
     except (fitz.FileDataError, fitz.EmptyFileError, ValueError, RuntimeError) as exc:
         raise ValidationReject("NO_EXTRACTABLE_TEXT") from exc
     try:

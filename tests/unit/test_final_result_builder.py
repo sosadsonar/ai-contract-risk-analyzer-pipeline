@@ -1,7 +1,7 @@
 """Final client envelope is assembled after masked provider work."""
 
 import pytest
-from app.session.final_result import build_final_result_v1
+from app.session.final_result import build_final_result_v1, resolve_app_commit
 
 _PINS = {
     "extraction_version": "caller_canonical_v1",
@@ -73,3 +73,17 @@ def test_final_result_rejects_offset_mismatch_and_unpinned_model():
             related_clause_ids={}, version_pins={k: v for k, v in _PINS.items()
                                                   if k != "model_id"},
         )
+
+
+def test_app_commit_uses_environment_then_git_then_no_git_fallback(monkeypatch, tmp_path):
+    env_sha = "a" * 40
+    monkeypatch.setenv("APP_COMMIT", env_sha)
+    assert resolve_app_commit(repo_root=tmp_path) == env_sha
+    monkeypatch.delenv("APP_COMMIT")
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / ".git").mkdir()
+    monkeypatch.setattr("app.session.final_result.subprocess.run", lambda *args, **kwargs:
+                        type("Result", (), {"returncode": 0, "stdout": "B" * 40})())
+    assert resolve_app_commit(repo_root=repo) == "b" * 40
+    assert resolve_app_commit(repo_root=tmp_path) == "dev-unpinned"

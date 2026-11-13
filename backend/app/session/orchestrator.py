@@ -5,6 +5,7 @@ from typing import Awaitable, Callable
 from uuid import UUID
 
 from app.core.enums import SessionStatus, Stage
+from app.domain.errors import ValidationReject
 from app.session.lock import ProcessingLease
 from app.session.mock import sample_result
 from app.session.store import InMemorySessionStore, Session, utcnow
@@ -55,15 +56,24 @@ class Orchestrator:
             if error_code:
                 self.transition(session, SessionStatus.REJECTED, Stage.EXTRACTION, error_code)
                 return
+            if session.status == SessionStatus.VALIDATING and session.pipeline_factory:
+                factory = session.pipeline_factory
+                session.pipeline_runner = await factory(session)
+                session.pipeline_factory = None
             if session.status == SessionStatus.VALIDATING:
                 if not self.transition(session, SessionStatus.PROCESSING, Stage.RISK_ANALYSIS):
                     return
             await asyncio.sleep(0.05)
-            result = (sample_result(session) if self.pipeline_runner is None else
-                      await self.pipeline_runner(session, cancel=lambda: session.cancelled))
+            runner = session.pipeline_runner or self.pipeline_runner
+            result = (sample_result(session) if runner is None else
+                      await runner(session, cancel=lambda: session.cancelled))
             self.transition(session, SessionStatus.COMPLETED, Stage.ASSEMBLY, result=result)
+            session.pipeline_runner = None
         except asyncio.CancelledError:
             raise
+        except ValidationReject as exc:
+            if self.store.get(session.session_id) is session and not session.cancelled:
+                self.transition(session, SessionStatus.REJECTED, Stage.EXTRACTION, exc.code)
         except Exception:
             if self.store.get(session.session_id) is session and not session.cancelled:
                 stage = session.stage
@@ -102,6 +112,8 @@ class Orchestrator:
             session.updated_at = now
             self.store.delete(sid)
             session.result = None
+            session.pipeline_factory = None
+            session.pipeline_runner = None
             if session.task and not session.task.done():
                 session.task.cancel()
             self.lease.release(sid)

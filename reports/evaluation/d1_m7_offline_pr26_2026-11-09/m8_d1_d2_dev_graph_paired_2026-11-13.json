@@ -25,8 +25,180 @@
   "graph_added_candidate_count": 18,
   "graph_fallback_count": 0,
   "bootstrap_cluster_count": 7,
+  "m8_primary": {
+    "graph_off": {
+      "hits": 66,
+      "total": 74,
+      "recall": 0.8918918918918919,
+      "ci95_low": 0.72,
+      "ci95_high": 0.9591836734693877,
+      "valid_replicate_count": 1000
+    },
+    "graph_on": {
+      "hits": 66,
+      "total": 74,
+      "recall": 0.8918918918918919,
+      "ci95_low": 0.72,
+      "ci95_high": 0.9591836734693877,
+      "valid_replicate_count": 1000
+    },
+    "total": 74
+  },
+  "m8_oracle_labels": {
+    "scope": "D1_ONLY_ADJUDICATED_CLAUSE_GOLD",
+    "graph_off": {
+      "hits": 8,
+      "total": 14,
+      "recall": 0.5714285714285714,
+      "ci95_low": 0.5,
+      "ci95_high": 0.625,
+      "valid_replicate_count": 1000
+    },
+    "graph_on": {
+      "hits": 8,
+      "total": 14,
+      "recall": 0.5714285714285714,
+      "ci95_low": 0.5,
+      "ci95_high": 0.625,
+      "valid_replicate_count": 1000
+    },
+    "total": 14
+  },
+  "primary_missed_cases": [
+    {
+      "case_id": "D1:HDLD001:2",
+      "gold_clause_ref": "HDLD001_C024",
+      "gold_citation_id": "BLLD2019:art21:cl1:ptc",
+      "predicted_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "primary_off_rank": 8,
+      "primary_on_rank": 8,
+      "gold_label_weight": 0.0,
+      "gold_reachable_from_graph_seeds": false,
+      "oracle_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "oracle_off_rank": 8,
+      "oracle_on_rank": 8
+    },
+    {
+      "case_id": "D1:HDLD001:3",
+      "gold_clause_ref": "HDLD001_C025",
+      "gold_citation_id": "BLLD2019:art21:cl1:ptc",
+      "predicted_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "primary_off_rank": null,
+      "primary_on_rank": null,
+      "gold_label_weight": 0.0,
+      "gold_reachable_from_graph_seeds": false,
+      "oracle_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "oracle_off_rank": null,
+      "oracle_on_rank": null
+    },
+    {
+      "case_id": "D1:HDLD002:2",
+      "gold_clause_ref": "HDLD002_C025",
+      "gold_citation_id": "BLLD2019:art21:cl1:ptc",
+      "predicted_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "primary_off_rank": 8,
+      "primary_on_rank": 8,
+      "gold_label_weight": 0.0,
+      "gold_reachable_from_graph_seeds": false,
+      "oracle_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "oracle_off_rank": 8,
+      "oracle_on_rank": 8
+    },
+    {
+      "case_id": "D1:HDLD002:3",
+      "gold_clause_ref": "HDLD002_C026",
+      "gold_citation_id": "BLLD2019:art21:cl1:ptc",
+      "predicted_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "primary_off_rank": null,
+      "primary_on_rank": null,
+      "gold_label_weight": 0.0,
+      "gold_reachable_from_graph_seeds": false,
+      "oracle_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "oracle_off_rank": null,
+      "oracle_on_rank": null
+    },
+    {
+      "case_id": "D1:HDLD003:2",
+      "gold_clause_ref": "HDLD003_C012",
+      "gold_citation_id": "BLLD2019:art21:cl1:ptc",
+      "predicted_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "primary_off_rank": 7,
+      "primary_on_rank": 7,
+      "gold_label_weight": 0.0,
+      "gold_reachable_from_graph_seeds": false,
+      "oracle_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "oracle_off_rank": 7,
+      "oracle_on_rank": 7
+    },
+    {
+      "case_id": "D1:HDLD003:3",
+      "gold_clause_ref": "HDLD003_C013",
+      "gold_citation_id": "BLLD2019:art21:cl1:ptc",
+      "predicted_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "primary_off_rank": null,
+      "primary_on_rank": null,
+      "gold_label_weight": 0.0,
+      "gold_reachable_from_graph_seeds": false,
+      "oracle_clause_labels": [
+        "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "oracle_off_rank": null,
+      "oracle_on_rank": null
+    },
+    {
+      "case_id": "D2:HDLD003:6",
+      "gold_clause_ref": "d2seg_0024",
+      "gold_citation_id": "BLLD2019:art17:cl2",
+      "predicted_clause_labels": [
+        "TERMINATION"
+      ],
+      "primary_off_rank": null,
+      "primary_on_rank": null,
+      "gold_label_weight": 0.0,
+      "gold_reachable_from_graph_seeds": false
+    },
+    {
+      "case_id": "D2:HDLD003:7",
+      "gold_clause_ref": "d2seg_0024",
+      "gold_citation_id": "BLLD2019:art17:cl2",
+      "predicted_clause_labels": [
+        "TERMINATION"
+      ],
+      "primary_off_rank": null,
+      "primary_on_rank": null,
+      "gold_label_weight": 0.0,
+      "gold_reachable_from_graph_seeds": false
+    }
+  ],
+  "oracle_label_coverage": {
+    "D1": 14,
+    "D2": 0
+  },
   "limitations": [
     "D1-trained clause-label model is evaluated on D1 and D2 derivatives; this is not held-out M8.",
-    "D2 two-role items share a clause query and therefore are correlated."
+    "D2 two-role items share a clause query and therefore are correlated.",
+    "D2 has injection and segmentation Gold but no adjudicated clause-label Gold; a 74-case oracle estimate is unavailable."
   ]
 }

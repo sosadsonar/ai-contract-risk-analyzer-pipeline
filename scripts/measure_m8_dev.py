@@ -63,6 +63,8 @@ def evaluate(data_root: Path, corpus_root: Path) -> dict:
                           GRAPH_MAX_NEIGHBORS_PER_SEED=4, GRAPH_MAX_CHILDREN_PER_SEED=2)
     as_of = date(2026, 11, 12)
     cases = []
+    oracle_cases = []
+    case_details = []
     counts = Counter()
     fallback = 0
     for i in range(1, 5):
@@ -98,27 +100,74 @@ def evaluate(data_root: Path, corpus_root: Path) -> dict:
                 span = spans[clause_id]
                 query = masked[span["start_char"]:span["end_char"]]
                 labels = model.predict([query])[0]
-                off = retriever.retrieve(query, labels, as_of=as_of).baseline_pool
+                retrieved = retriever.retrieve(query, labels, as_of=as_of)
+                off = retrieved.baseline_pool
                 on, did_fallback = get_candidates(retriever, graph, query, labels,
                                                    as_of, cfg)
                 fallback += did_fallback
-                cases.append(RetrievalCase(f"{dataset}:{doc}:{index}", citation_id,
-                                           [row.citation_id for row in off],
-                                           [row.citation_id for row in on],
+                case_id = f"{dataset}:{doc}:{index}"
+                off_ids = [row.citation_id for row in off]
+                on_ids = [row.citation_id for row in on]
+                cases.append(RetrievalCase(case_id, citation_id, off_ids, on_ids,
                                            source_document_id=f"{dataset}:{doc}"))
+                detail = {
+                    "case_id": case_id, "gold_clause_ref": clause_id,
+                    "gold_citation_id": citation_id, "predicted_clause_labels": labels,
+                    "primary_off_rank": off_ids.index(citation_id) + 1
+                    if citation_id in off_ids else None,
+                    "primary_on_rank": on_ids.index(citation_id) + 1
+                    if citation_id in on_ids else None,
+                    "gold_label_weight": max(
+                        (corpus.label_map.get(label, {}).get(citation_id, 0.0)
+                         for label in labels), default=0.0),
+                    "gold_reachable_from_graph_seeds": any(
+                        neighbor.citation_id == citation_id
+                        for seed in retrieved.seeds
+                        for neighbor in graph.neighbors(seed.citation_id, as_of=as_of)),
+                }
+                if dataset == "D1":
+                    oracle_labels = labels_by_id[clause_id]
+                    oracle_off = [row.citation_id for row in
+                                  retriever.retrieve(query, oracle_labels,
+                                                     as_of=as_of).baseline_pool]
+                    oracle_on_rows, _ = get_candidates(
+                        retriever, graph, query, oracle_labels, as_of, cfg)
+                    oracle_on = [row.citation_id for row in oracle_on_rows]
+                    oracle_cases.append(RetrievalCase(
+                        case_id, citation_id, oracle_off, oracle_on,
+                        source_document_id=f"{dataset}:{doc}"))
+                    detail["oracle_clause_labels"] = oracle_labels
+                    detail["oracle_off_rank"] = (oracle_off.index(citation_id) + 1
+                                                  if citation_id in oracle_off else None)
+                    detail["oracle_on_rank"] = (oracle_on.index(citation_id) + 1
+                                                 if citation_id in oracle_on else None)
+                case_details.append(detail)
                 counts[dataset] += 1
     if counts != {"D1": 14, "D2": 60}:
         raise ValueError("Dev M8 Gold inventory changed")
     metric = evaluate_retrieval(cases, final_k=8, k=5)
+    oracle_metric = evaluate_retrieval(oracle_cases, final_k=8, k=5)
+    missed = [item for item in case_details
+              if item["primary_off_rank"] is None or item["primary_off_rank"] > 5]
     return {"status": "DEV_IN_SAMPLE_CLAUSE_LABEL_PREDICTIONS",
             "gold_counts": dict(counts), "final_k": 8, "k": 5,
             "graph_off": vars(metric.graph_off), "graph_on": vars(metric.graph_on),
             "graph_added_candidate_count": metric.graph_added_candidate_count,
             "graph_fallback_count": fallback,
             "bootstrap_cluster_count": metric.bootstrap_cluster_count,
+            "m8_primary": {"graph_off": vars(metric.graph_off),
+                           "graph_on": vars(metric.graph_on), "total": len(cases)},
+            "m8_oracle_labels": {"scope": "D1_ONLY_ADJUDICATED_CLAUSE_GOLD",
+                                 "graph_off": vars(oracle_metric.graph_off),
+                                 "graph_on": vars(oracle_metric.graph_on),
+                                 "total": len(oracle_cases)},
+            "primary_missed_cases": missed,
+            "oracle_label_coverage": {"D1": len(oracle_cases), "D2": 0},
             "limitations": [
                 "D1-trained clause-label model is evaluated on D1 and D2 derivatives; this is not held-out M8.",
                 "D2 two-role items share a clause query and therefore are correlated.",
+                "D2 has injection and segmentation Gold but no adjudicated clause-label Gold; "
+                "a 74-case oracle estimate is unavailable.",
             ]}
 
 

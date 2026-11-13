@@ -23,6 +23,12 @@
     "valid": 168,
     "total": 168
   },
+  "m6_final_result_packet_structure": {
+    "reviewable_rows": 168,
+    "complete_rows": 168,
+    "can_select_40": true,
+    "source": "fake-provider Dev structural outputs; not human-reviewed ratings"
+  },
   "limitations": [
     "make_pipeline_runner returns final_result_v1 after masked provider calls complete.",
     "The providers emit synthetic labels and citations; no semantic M2/M3a accuracy is measured."
