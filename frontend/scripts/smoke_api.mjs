@@ -144,6 +144,23 @@ async function runTestCase(fileName, role = "EMPLOYEE") {
   }
   console.log(`  ✓ Đầy đủ tất cả các khóa theo src/api/types.ts`);
 
+  // Hai trường tùy chọn của final_result_v1: backend dev có thể chưa gửi.
+  const clauseIds = new Set(result.clauses.map((clause) => clause.clause_id));
+  for (const risk of result.risks) {
+    if ("related_clause_ids" in risk &&
+        (!Array.isArray(risk.related_clause_ids) ||
+         risk.related_clause_ids.some((id) => !clauseIds.has(id)))) {
+      console.error(`  ❌ related_clause_ids không hợp lệ trong risk ${risk.clause_id}`);
+      return false;
+    }
+  }
+  for (const citation of result.citations) {
+    if ("clause" in citation && typeof citation.clause !== "string") {
+      console.error(`  ❌ citation.clause phải là chuỗi nếu có`);
+      return false;
+    }
+  }
+
   // 3.2 Kiểm tra offset là partition không chồng lấn
   console.log(`  Kiểm tra partition của clauses (INV-12)...`);
   const clauses = [...result.clauses].sort((a, b) => a.start_char - b.start_char);

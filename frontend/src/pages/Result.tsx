@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, endSession, exportReport, getResult } from "../api/client";
 import type { Citation, FinalResult } from "../api/types";
+import { clauseLabel } from "../lib/clauseLabel";
 import { labelName } from "../lib/labels";
 import { messageFor } from "../lib/messages";
 import { DATA_NOTICE, DISCLAIMER } from "../lib/notices";
 import { buildSegments } from "../lib/segments";
+import { classifyRisk } from "../lib/riskView";
+
+const REVIEW_MESSAGE = "Điều khoản này có thể có rủi ro nhưng hệ thống chưa kết luận được; cần xem xét thủ công";
+const INSUFFICIENT_MESSAGE = "có thể có rủi ro, chưa đủ căn cứ trong kho luật, cần đọc kỹ";
 
 interface Props {
     sessionId: string;
@@ -17,6 +22,7 @@ export default function Result({ sessionId, onReset }: Props) {
     const [activeClauseId, setActiveClauseId] = useState<string | null>(null);
     const [exporting, setExporting] = useState(false);
     const cardRefs = useRef<Record<string, HTMLElement | null>>({});
+    const textRefs = useRef<Record<string, HTMLElement | null>>({});
 
     useEffect(() => {
         let cancelled = false;
@@ -39,6 +45,10 @@ export default function Result({ sessionId, onReset }: Props) {
         return map;
     }, [data]);
 
+    const clauseIndexById = useMemo(() => new Map(
+        data?.clauses.map((clause, index) => [clause.clause_id, index] as const) ?? []
+    ), [data]);
+
     // Danh sách rủi ro sắp xếp theo start_char của clause tương ứng (khớp ReportModel)
     const sortedRisks = useMemo(() => {
         if (!data) return [];
@@ -60,6 +70,11 @@ export default function Result({ sessionId, onReset }: Props) {
     function selectClause(clauseId: string) {
         setActiveClauseId(clauseId);
         cardRefs.current[clauseId]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function selectRelatedClause(clauseId: string) {
+        setActiveClauseId(clauseId);
+        textRefs.current[clauseId]?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     async function handleExport() {
@@ -121,7 +136,7 @@ export default function Result({ sessionId, onReset }: Props) {
                     <p className="muted">
                         Vai trò: <strong>{data.role === "EMPLOYEE" ? "Người lao động" : "Người sử dụng lao động"}</strong>
                         {" · "}Ngày phân tích: {data.analysis_date}
-                        {" · "}Phát hiện: <strong>{data.risks.length}</strong> điều khoản có rủi ro
+                        {" · "}Kết quả: <strong>{data.risks.length}</strong> mục phân tích
                     </p>
                 </div>
                 <div className="actions">
@@ -152,16 +167,21 @@ export default function Result({ sessionId, onReset }: Props) {
                     </div>
                     <div className="canonical-box">
                         {segments.map((seg) => {
-                            if (!seg.risk || !seg.clauseId) {
+                            if (!seg.clauseId) {
                                 return <span key={seg.key}>{seg.text}</span>;
                             }
-                            const sevClass = seg.risk.evidence_status === "INSUFFICIENT_EVIDENCE" || !seg.risk.severity
-                                ? "hl-insufficient"
-                                : `hl-${seg.risk.severity.toLowerCase()}`;
+                            if (!seg.risk) {
+                                return <span key={seg.key} ref={(el) => { textRefs.current[seg.clauseId!] = el; }}>{seg.text}</span>;
+                            }
+                            const view = classifyRisk(seg.risk);
+                            const sevClass = view === "NEEDS_REVIEW" ? "hl-review"
+                                : view === "INSUFFICIENT" ? "hl-insufficient"
+                                    : `hl-${seg.risk.severity?.toLowerCase()}`;
                             const isSelected = activeClauseId === seg.clauseId;
                             return (
                                 <mark
                                     key={seg.key}
+                                    ref={(el) => { textRefs.current[seg.clauseId!] = el; }}
                                     className={`hl ${sevClass}${isSelected ? " hl-active" : ""}`}
                                     onClick={() => selectClause(seg.clauseId!)}
                                     role="button"
@@ -184,22 +204,27 @@ export default function Result({ sessionId, onReset }: Props) {
                     <div className="risk-list">
                         {sortedRisks.map((risk) => {
                             const clause = data.clauses.find((c) => c.clause_id === risk.clause_id);
+                            const clauseIndex = clauseIndexById.get(risk.clause_id) ?? 0;
                             const isSelected = activeClauseId === risk.clause_id;
-                            const isInsufficient = risk.evidence_status === "INSUFFICIENT_EVIDENCE" || risk.severity === null;
+                            const view = classifyRisk(risk);
+                            const related = (risk.related_clause_ids ?? []).flatMap((id) => {
+                                const index = clauseIndexById.get(id);
+                                return index === undefined ? [] : [{ id, clause: data.clauses[index], index }];
+                            });
 
                             return (
                                 <article
                                     key={risk.clause_id}
                                     ref={(el) => { cardRefs.current[risk.clause_id] = el; }}
-                                    className={`risk-card${isSelected ? " risk-card-active" : ""}`}
+                                    className={`risk-card${view === "NEEDS_REVIEW" ? " risk-card-review" : ""}${isSelected ? " risk-card-active" : ""}`}
                                     onClick={() => setActiveClauseId(risk.clause_id)}
                                 >
                                     <header className="risk-card-head">
-                                        <span className="clause-tag">Điều khoản {risk.clause_id}</span>
-                                        {/* FR-18 / DEC-12: INSUFFICIENT_EVIDENCE không hiện badge severity */}
-                                        {isInsufficient ? (
-                                            <span className="badge badge-insufficient">{messageFor("INSUFFICIENT_EVIDENCE")}</span>
-                                        ) : (
+                                        <span className="clause-tag">
+                                            {view === "NEEDS_REVIEW" ? "Nghi ngờ, cần xem xét" : clause ? clauseLabel(clause, clauseIndex) : "Điều khoản chưa xác định"}
+                                            {view === "NEEDS_REVIEW" && clause && <small>{clauseLabel(clause, clauseIndex)}</small>}
+                                        </span>
+                                        {view === "SUPPORTED" && (
                                             <span className={`badge badge-${risk.severity!.toLowerCase()}`}>
                                                 Mức độ: {labelName(risk.severity!)}
                                             </span>
@@ -207,19 +232,34 @@ export default function Result({ sessionId, onReset }: Props) {
                                     </header>
 
                                     {/* Hiển thị tất cả nhãn rủi ro + basis_type của điều khoản đó (TDD §5.9) */}
-                                    <div className="basis-tags">
+                                    {view !== "NEEDS_REVIEW" && <div className="basis-tags">
                                         {risk.risk_basis.map((b) => (
                                             <span key={b.label} className="basis-pill">
                                                 <strong>{labelName(b.label)}</strong> · {labelName(b.basis_type)}
                                             </span>
                                         ))}
-                                    </div>
+                                    </div>}
 
                                     {clause && (
                                         <blockquote className="clause-quote">{clause.original_text.trim()}</blockquote>
                                     )}
 
-                                    <p className="explanation">{risk.explanation}</p>
+                                    {view === "NEEDS_REVIEW" && <p className="explanation">{REVIEW_MESSAGE}</p>}
+                                    {view === "INSUFFICIENT" && <p className="explanation">{INSUFFICIENT_MESSAGE}</p>}
+                                    {(view !== "NEEDS_REVIEW" || risk.explanation.trim() !== `${REVIEW_MESSAGE}.`) &&
+                                        <p className="explanation">{risk.explanation}</p>}
+
+                                    {related.length > 0 && (
+                                        <p className="related-clauses">Liên quan: {related.map(({ id, clause: relatedClause, index }, position) => (
+                                            <span key={id}>
+                                                {position > 0 ? ", " : ""}
+                                                <button type="button" className="related-link" onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    selectRelatedClause(id);
+                                                }}>{clauseLabel(relatedClause, index)}</button>
+                                            </span>
+                                        ))}</p>
+                                    )}
 
                                     {risk.citation_ids.length > 0 && (
                                         <div className="citations">
@@ -229,7 +269,7 @@ export default function Result({ sessionId, onReset }: Props) {
                                                     const cit = citationById.get(cid);
                                                     return (
                                                         <li key={cid}>
-                                                            <strong>{cit ? `${cit.document_name} (Điều ${cit.article})` : cid}:</strong>{" "}
+                                                            <strong>{cit ? `${cit.document_name} (Điều ${cit.article}${cit.clause ? `, Khoản ${cit.clause}` : ""})` : cid}:</strong>{" "}
                                                             {cit?.content}
                                                         </li>
                                                     );

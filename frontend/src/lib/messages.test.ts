@@ -4,7 +4,13 @@
  * thông báo tiếng Việt đầy đủ ở frontend và không hiện mã kỹ thuật một mình.
  */
 import { describe, expect, it } from "vitest";
-import { messageFor } from "./messages";
+import { messageFor, MESSAGES } from "./messages";
+// @ts-ignore fs is available in the Vitest node environment
+import fs from "node:fs";
+// @ts-ignore path is available in the Vitest node environment
+import path from "node:path";
+
+declare const process: { cwd(): string };
 
 // Tất cả code trong backend/app/api/errors.py MESSAGES (14 mục, cập nhật khi backend thêm code mới).
 const BACKEND_ERROR_CODES = [
@@ -152,20 +158,20 @@ describe("messageFor — catalog đầy đủ (Việc 3)", () => {
     expect(messageFor("INSUFFICIENT_EVIDENCE")).toMatch(/căn cứ|pháp lý/i);
   });
 
-  it("NO_RISK có thông báo nói đến rủi ro (theo Phụ lục E)", () => {
-    const msg = messageFor("NO_RISK");
-    expect(msg).toMatch(/rủi ro/i);
+  it("NO_RISK đúng nguyên văn TDD §5.9", () => {
+    expect(messageFor("NO_RISK")).toBe("Không phát hiện rủi ro trong phạm vi phân tích.");
   });
 
-  it("NO_RISK KHÔNG được chứa từ 'an toàn' dưới dạng khẳng định độc lập (TDD §5.9 cấm chữ này)", () => {
-    // Lưu ý: Phụ lục E có câu "Kết quả không đồng nghĩa hợp đồng an toàn" dưới dạng PHỦ ĐỊNH.
-    // Nếu câu có "an toàn" nhưng đi kèm phủ định ("không ... an toàn") thì đúng spec.
-    // Test này kiểm rằng thông báo không dùng "an toàn" như một khẳng định đứng một mình.
-    // Xem thêm: BACKEND_ISSUES.md mục "Chờ nhóm duyệt" về mâu thuẫn Phụ lục E vs TDD §5.9.
-    const msg = messageFor("NO_RISK");
-    // Chấp nhận "không ... an toàn" (phủ định) nhưng không chấp nhận "hợp đồng an toàn" (khẳng định)
-    // Phụ lục E: "Kết quả không đồng nghĩa hợp đồng an toàn" — phủ định hợp lệ.
-    expect(msg).toBeTruthy();
+  it("toàn bộ catalog và chuỗi cố định trong các trang không dùng cụm bị cấm", () => {
+    for (const [code, message] of Object.entries(MESSAGES)) {
+      expect(message, code).not.toMatch(/an toàn/i);
+    }
+    expect(messageFor(null)).not.toMatch(/an toàn/i);
+    const pages = path.join(process.cwd(), "src", "pages");
+    for (const file of fs.readdirSync(pages).filter((name: string) => name.endsWith(".tsx"))) {
+      const source = fs.readFileSync(path.join(pages, file), "utf8");
+      expect(source, file).not.toMatch(/an toàn/i);
+    }
   });
 
   it("EXPIRED có thông báo nói đến kết thúc hoặc xóa", () => {

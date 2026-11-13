@@ -233,8 +233,9 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] C-16 (b): `SlidingWindowLimiter` (HMAC IP)
 - **N5**
   - [x] C-21 (b): `export_docx` đủ quote, risk + basis, severity/"chưa đủ căn cứ", explanation, citation, disclaimer, **data notice**
-  - [ ] UI: `INSUFFICIENT_EVIDENCE` (không badge severity), không risk ("Không phát hiện rủi ro trong phạm vi phân tích")
-  - [ ] X-23: dòng "Liên quan: Điều X", thẻ "cần xem xét", số Điều thay `cl_xxxx`, thẻ citation hiện nguyên văn Khoản
+  - [x] UI: `INSUFFICIENT_EVIDENCE` (không badge severity), không risk ("Không phát hiện rủi ro trong phạm vi phân tích") — `classifyRisk`, `NO_RISK` đúng TDD §5.9, test hàm thuần và catalog; `npm.cmd test` 47/47 xanh (13/11).
+  - [x] X-23: dòng "Liên quan: Điều X", thẻ "cần xem xét", số Điều thay `cl_xxxx`, thẻ citation hiện số Khoản và nguyên văn nội dung — đã làm trên mock/fixture; backend chưa phát `related_clause_ids`, `clause`, bản ghi cần xem xét nên chưa kiểm với dữ liệu thật (13/11).
+  - Ghi chú X-15: N5 không làm phần labels.ts/mock.ts của X-15 (bỏ theo quyết định chủ dự án).
 
 **Cổng T5:** test tích hợp toàn pipeline với LLM mock xanh; INV-01…11 có test; DOCX xuất được; `related_clause_ids` hiển thị; thẻ "cần xem xét" hiện đúng.
 
@@ -364,6 +365,8 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
 | 2026-11-13 | N5 | C-21 (b): export_docx.py, mở rộng ReportModel (X-16), cập nhật route /export trong sessions.py, hoàn thành tests/unit/test_export_docx.py (12 passed; 40 passed toàn bộ suite backend/tests) | Xuất báo cáo DOCX chuẩn TDD §16/FR-25 từ ReportModel: số điều thay cho cl_xxxx; badge severity chỉ hiện khi có căn cứ, ngược lại ghi 'Chưa đủ căn cứ'; needs_review hiện 'Nghi ngờ, cần xem xét'; dòng 'Liên quan:'; disclaimer và data notice; tuyệt đối không chứa chuỗi cl_ và không dùng từ 'an toàn'. Giữ nguyên nhãn POST_EMPLOYMENT_RESTRICTION (chờ X-15). Route /export giữ nguyên header/status/filename report.docx; 3 file mẫu DOCX đã sinh tại thư mục tạm ngoài repo. |
 
 | 2026-11-06 | N2 | Owner-approved equivalent T1 gate and independent technical T1/T2 evaluation | `T1_EQUIVALENT_GATE_V1` admits 10/10 as 4 restricted + 5 template + 1 synthetic control; historical source-only intake remains 0/10; BRD 0.6 §8.2 adopts the equivalent gate. `reports/evaluation/t1_t2_equivalent_gate_eval_2026-11-06/result.json` records M1 F1 (unique 8: 0.3683; real 9: 0.3713; composite 10: 0.3805; T2 nine: 0.3431), privacy §7.3 (21/21 PII, 62/63 fields preserved on nine T1 documents), T1 M7 Macro-F1 (747 full: 0.3377; 340 genuine: 0.5442), T2 M5 (12/30), T2 M8 Recall@5 (graph off 15/30; graph on 14/30), and M3a citation validity (T1 747/747; T2 387/387). BRD M4 is quote/offset correctness: T2 19/19 emitted risk outputs; T1 has zero emitted risk outputs, so M4 is undefined. Scores have 1,000 seed-0 document bootstrap intervals where defined. M7 is a newly fixed D1-only baseline; T2 privacy uses a derived reference not independently adjudicated. MS-4/MS-5 remain open; this row does not change the 19/19 early N2 checkbox count. |
+
+| 2026-11-13 | N5 | UI tuần 5: NO_RISK theo TDD §5.9, `clauseLabel`, `classifyRisk`, X-23 trên mock/fixture, kiểm tùy chọn trong smoke API; `npm.cmd test` 47/47 và `npm.cmd run build` xanh | N5 không làm phần labels.ts/mock.ts của X-15 (bỏ theo quyết định chủ dự án). `clause_number` và bản ghi `risk_labels=[]` chỉ là đề xuất hợp đồng trong mock; câu hiển thị "cần xem xét" do N5 đặt, chờ N3/N4 chốt schema. Backend dev không chạy tại 127.0.0.1:8000 nên chưa smoke API. |
 
 ## 2026-11-06 T1/T2 acceptance-threshold readout
 

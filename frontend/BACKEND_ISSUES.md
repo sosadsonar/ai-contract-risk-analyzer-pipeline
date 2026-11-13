@@ -49,9 +49,11 @@
 - TDD §5.3: ghi rõ quy ước `stage`/`progress` ở trạng thái cuối (hiện backend trả `stage="ASSEMBLY"` khi COMPLETED, `progress={0,0}` khi EXPIRED; frontend chấp nhận cả hai).
 - SRS §6.2: `SESSION_NOT_ACCEPTING_UPLOAD` — ghi "ngoài phạm vi demo" nếu không có luồng upload vào phiên cũ.
 
-### Mâu thuẫn Phụ lục E vs TDD §5.9 về cụm từ "an toàn" [Chờ nhóm duyệt]
-**Phát hiện:** `messages.ts` mục `NO_RISK` hiện có câu "Kết quả không đồng nghĩa hợp đồng an toàn" — đây là phủ định hợp lệ theo Phụ lục E (TDD Phụ lục E: "Kết quả không đồng nghĩa hợp đồng an toàn").
-Tuy nhiên TDD §5.9 yêu cầu "không dùng từ 'an toàn'" một cách tuyệt đối.
-**Giải thích N5:** Phụ lục E chính nó dùng cụm "không ... an toàn" dưới dạng phủ định, còn §5.9 cấm khẳng định "hợp đồng an toàn". Hai điều này không nhất quán.
-**Quyết định tạm:** Giữ nguyên theo Phụ lục E (phủ định). Chờ nhóm duyệt để xác nhận hoặc đổi câu.
-**File liên quan:** `frontend/src/lib/messages.ts` dòng `NO_RISK`.
+## Đã chốt: câu NO_RISK theo TDD §5.9 (chủ dự án quyết định)
+
+`messages.ts` dùng đúng câu "Không phát hiện rủi ro trong phạm vi phân tích."; disclaimer được hiển thị riêng. Catalog và các trang không dùng cụm từ bị cấm trong thông báo.
+
+## Câu hỏi hợp đồng cho N3/N4
+
+1. X-23 cần `clause_number` trong `final_result_v1.clauses` để UI hiện số Điều. Schema hiện chưa có trường này. Mock thêm tạm; khi gọi backend thật mà thiếu, UI hiện "Điều khoản thứ N".
+2. Cần chốt cách biểu diễn bản ghi "nghi ngờ, cần xem xét" trong `final_result_v1`: schema hiện yêu cầu `risk_labels` không rỗng. Backend `export_docx` và UI đang tạm nhận diện bằng `risk_labels=[]` cùng `severity=null`; chỉ mock phát bản ghi này. N3/N4 cần thống nhất contract trước khi backend thật phát dữ liệu.

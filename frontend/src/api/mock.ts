@@ -4,6 +4,9 @@
 // - "scan"   → REJECTED (NO_EXTRACTABLE_TEXT)
 // - "fail"   → FAILED (AI_TIMEOUT ở 2 lần đầu, bấm Retry lần 2 sẽ sang COMPLETED)
 // - "norisk" → COMPLETED nhưng không có rủi ro (risks = [])
+// - "related" → hai điều khoản mâu thuẫn có liên kết hai chiều
+// - "review" → một bản ghi nghi ngờ, cần xem xét
+// - "emoji" → canonical text có ký tự ngoài BMP
 // - còn lại  → COMPLETED (có đủ HIGH, MEDIUM đa nhãn, và INSUFFICIENT_EVIDENCE)
 import { DATA_NOTICE, DISCLAIMER } from "../lib/notices";
 import { ApiError } from "./client";
@@ -60,6 +63,7 @@ function buildSample(id: string, role: Role, fileName: string): FinalResult {
     "Điều 3. Khi nghỉ việc, người lao động phải hoàn trả toàn bộ chi phí đào tạo và không được làm việc cho bất kỳ doanh nghiệp cùng ngành nào trong 24 tháng.\n\n",
     "Điều 4. Thưởng cuối năm phụ thuộc vào đánh giá nội bộ của công ty mà không quy định tiêu chí cụ thể.\n",
   ];
+  if (fileName.includes("emoji")) parts[1] = parts[1].replace("Người lao động", "Người lao động 📄");
   let cursor = 0;
   const labelsByIdx = [
     ["CONTRACT_TERM", "COMPENSATION_BENEFITS"],
@@ -71,6 +75,8 @@ function buildSample(id: string, role: Role, fileName: string): FinalResult {
     const len = Array.from(p).length; // đếm theo Unicode code point
     const c = {
       clause_id: `cl_000${i + 1}`,
+      // Đề xuất hợp đồng, chưa có trong final_result_v1: chỉ mock cung cấp clause_number.
+      clause_number: String(i + 1),
       original_text: p,
       start_char: cursor,
       end_char: cursor + len,
@@ -82,7 +88,7 @@ function buildSample(id: string, role: Role, fileName: string): FinalResult {
 
   const isNoRisk = fileName.includes("norisk") || fileName.includes("clean");
 
-  return {
+  const sample: FinalResult = {
     schema_version: "final_result_v1",
     offset_unit: "unicode_code_point",
     session_id: id,
@@ -108,8 +114,7 @@ function buildSample(id: string, role: Role, fileName: string): FinalResult {
         },
         {
           clause_id: "cl_0003",
-          // TODO X-15: Nhãn POST_EMPLOYMENT_RESTRICTION sẽ đổi thành IP_CONFIDENTIALITY_NONCOMPETE
-          // sau khi N3 merge PR taxonomy (PROGRESS.md §3.2 X-15). Không tự đổi trước khi X-15 merge.
+          // Giữ nhãn POST_EMPLOYMENT_RESTRICTION theo quyết định của chủ dự án.
           risk_labels: ["TRAINING_COMMITMENT", "POST_EMPLOYMENT_RESTRICTION"],
           risk_basis: [
             { label: "TRAINING_COMMITMENT", basis_type: "UNFAVORABLE" },
@@ -143,6 +148,7 @@ function buildSample(id: string, role: Role, fileName: string): FinalResult {
         citation_id: "BLLD2019:art26",
         document_name: "Bộ luật Lao động 2019",
         article: "26",
+        clause: "1",
         content: "Tiền lương của người lao động trong thời gian thử việc do hai bên thỏa thuận nhưng ít nhất phải bằng 85% mức lương của công việc đó.",
       },
       {
@@ -161,6 +167,47 @@ function buildSample(id: string, role: Role, fileName: string): FinalResult {
       severity_rubric_version: "severity_v01",
     },
   };
+
+  if (fileName.includes("related")) {
+    const relatedParts = [
+      "Điều 3. Lương thử việc bằng 70% mức lương của công việc.\n\n",
+      "Điều 7. Lương thử việc bằng 90% mức lương của công việc.\n",
+    ];
+    const firstLength = Array.from(relatedParts[0]).length;
+    sample.canonical_text = relatedParts.join("");
+    const relatedClauses = [
+      { clause_id: "cl_0001", clause_number: "3", original_text: relatedParts[0], start_char: 0,
+        end_char: firstLength, clause_labels: ["COMPENSATION_BENEFITS"] },
+      { clause_id: "cl_0002", clause_number: "7", original_text: relatedParts[1], start_char: firstLength,
+        end_char: firstLength + Array.from(relatedParts[1]).length, clause_labels: ["COMPENSATION_BENEFITS"] },
+    ];
+    sample.clauses = relatedClauses;
+    sample.risks = [
+      { clause_id: "cl_0001", risk_labels: ["PROBATION"],
+        risk_basis: [{ label: "PROBATION", basis_type: "LEGAL_VIOLATION" }],
+        severity: "HIGH", evidence_status: "SUPPORTED", citation_ids: ["BLLD2019:art26"],
+        related_clause_ids: ["cl_0002"],
+        explanation: "Mức lương thử việc 70% thấp hơn mức 85% trong căn cứ được trích và mâu thuẫn với Điều 7 của hợp đồng." },
+      { clause_id: "cl_0002", risk_labels: ["PROBATION"],
+        risk_basis: [{ label: "PROBATION", basis_type: "AMBIGUOUS" }],
+        severity: null, evidence_status: "INSUFFICIENT_EVIDENCE", citation_ids: [],
+        related_clause_ids: ["cl_0001"],
+        explanation: "Mức lương thử việc ở Điều 7 mâu thuẫn với Điều 3; cần đọc hai điều khoản cùng nhau." },
+    ];
+    sample.citations = [{ citation_id: "BLLD2019:art26", document_name: "Bộ luật Lao động 2019",
+      article: "26", clause: "1",
+      content: "Tiền lương thử việc ít nhất bằng 85% mức lương của công việc." }];
+  }
+
+  if (fileName.includes("review")) {
+    // Đề xuất hợp đồng, chưa có trong final_result_v1: risk_labels rỗng + severity null là NEEDS_REVIEW.
+    sample.risks = [{ clause_id: "cl_0001", risk_labels: [], risk_basis: [], severity: null,
+      evidence_status: "INSUFFICIENT_EVIDENCE", citation_ids: [],
+      explanation: "Điều khoản này có thể có rủi ro nhưng hệ thống chưa kết luận được; cần xem xét thủ công." }];
+    sample.citations = [];
+  }
+
+  return sample;
 }
 
 export async function getResult(id: string): Promise<FinalResult> {

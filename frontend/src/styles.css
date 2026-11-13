@@ -285,6 +285,11 @@ button:disabled {
   border-bottom: 2px dashed #6b7280;
 }
 
+.hl-review {
+  background: #f3f4f6;
+  border: 2px dashed #6b7280;
+}
+
 .hl-active {
   box-shadow: 0 0 0 2px var(--ink);
 }
@@ -310,6 +315,22 @@ button:disabled {
   box-shadow: 0 0 0 2px var(--accent);
 }
 
+.risk-card-review {
+  border: 2px dashed #6b7280;
+}
+
+.risk-card-review.risk-card-active {
+  border-style: dashed;
+}
+
+.related-link {
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  font: inherit;
+}
+
 .risk-card-head {
   display: flex;
   justify-content: space-between;
@@ -322,6 +343,11 @@ button:disabled {
   font-weight: 600;
   font-size: 0.875rem;
   color: var(--muted);
+}
+
+.clause-tag small {
+  display: block;
+  font-weight: 400;
 }
 
 .badge {
