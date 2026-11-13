@@ -1,7 +1,8 @@
-"""Development sample API; demo/eval fail closed until real stages are integrated."""
+"""Session API with an explicit opt-in for the product runner."""
 import asyncio
 import secrets
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 
@@ -14,16 +15,23 @@ from app.ops.rate_limit import SlidingWindowLimiter
 from app.session.cleanup import CleanupScheduler
 from app.session.lock import ProcessingLease
 from app.session.orchestrator import Orchestrator
+from app.session.product_factory import make_product_runner_factory
 from app.session.store import InMemorySessionStore
 
 settings = load_settings()
 validate_for_env(settings)
-if settings.APP_ENV != "dev":
+if settings.APP_ENV != "dev" and not settings.PRODUCT_RUNNER_ENABLED:
     raise RuntimeError("Pipeline chưa tích hợp; không thể chạy sample trong demo/eval")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    runner_factory = (
+        make_product_runner_factory(
+            settings, Path(settings.LEGAL_CORPUS_PATH),
+            ledger_factory=lambda: app.state.quota,
+        ) if settings.PRODUCT_RUNNER_ENABLED else None
+    )
     db = init_db(settings.OPS_DB_PATH)
     app.state.settings = settings
     app.state.db = db
@@ -31,6 +39,8 @@ async def lifespan(app: FastAPI):
     app.state.lease = ProcessingLease()
     app.state.orchestrator = Orchestrator(app.state.store, app.state.lease)
     app.state.quota = DailyQuota(db, settings.DAILY_LLM_CALL_QUOTA, settings.SESSION_CALL_RESERVE)
+    if runner_factory is not None:
+        app.state.pipeline_runner_factory = runner_factory
     app.state.rate = SlidingWindowLimiter(db, settings.RATE_LIMIT_HMAC_SALT or secrets.token_hex(32),
                                          settings.RATE_LIMIT_UPLOADS, settings.RATE_LIMIT_WINDOW_SECONDS)
     app.state.cleanup = CleanupScheduler(app.state.orchestrator, settings.SESSION_TTL_MINUTES,
@@ -56,4 +66,5 @@ app.include_router(sessions_router)
 
 @app.get("/")
 def root():
-    return {"message": "AI Contract Risk Analyzer API (dev sample only)"}
+    mode = "product runner" if settings.PRODUCT_RUNNER_ENABLED else "dev sample"
+    return {"message": f"AI Contract Risk Analyzer API ({mode})"}

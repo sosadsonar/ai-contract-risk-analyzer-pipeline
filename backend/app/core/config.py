@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     APP_ENV: Literal["dev", "demo", "eval"] = "dev"
+    PRODUCT_RUNNER_ENABLED: bool = False
+    LEGAL_CORPUS_PATH: str = "data/legal_corpus"
+    APP_COMMIT: str | None = None
     GEMINI_API_KEY: str | None = None
     GEMINI_MODEL_ID: str | None = None
     DEV_LLM_PROVIDER: Literal["gemini", "local"] = "gemini"
@@ -50,6 +53,11 @@ def load_settings() -> Settings:
 
 def validate_for_env(s: Settings) -> None:
     """Reject invalid deployment configuration before serving requests."""
+    if s.PRODUCT_RUNNER_ENABLED:
+        if not s.GEMINI_MODEL_ID:
+            raise ValueError("Product runner requires a pinned model ID")
+        if s.DEV_LLM_PROVIDER == "gemini" and not s.GEMINI_API_KEY:
+            raise ValueError("Product runner requires Gemini credentials")
     if s.APP_ENV != "dev":
         if s.DEV_LLM_PROVIDER == "local":
             raise ValueError("Local provider is only available in dev")

@@ -4,19 +4,20 @@ Thay `document_router` + `CLAUSE_PATTERN` cũ (`utils/text_processing.py`): khô
 chọn Pipeline A/B theo tỉ lệ heading. Luôn chạy parser; không có heading đáng tin cậy thì
 `segmenter` rơi về fallback paragraph (§11.3).
 
-5 pattern (mỗi pattern neo ở đầu dòng):
+6 pattern (mỗi pattern neo ở đầu dòng):
   1. article   `Điều 5. Tiêu đề`
   2. decimal   `5.1 ...`, `5.1.2 ...` (sâu tối đa 4 cấp)
   3. numbered  `1. ...` / `1) ...`
   4. lettered  `a) ...` / `a. ...`
   5. dash      `- ...`, `– ...`, `• ...`
+  6. plus      `+ ...` (mục con trong nhiều mẫu hợp đồng)
 
 Hàm thuần: không đụng I/O, không import api/session. Offset = Unicode code point trên
 masked_text (cùng độ dài canonical_text, INV-01).
 
 Quy tắc độ tin cậy (TDD §11.2: "chỉ thành clause riêng khi rule list đủ tin cậy"):
   - article, decimal: luôn tin cậy (trừ dạng số có dấu phân cách hàng nghìn: `2.000.000 đồng`).
-  - numbered, lettered, dash: chỉ giữ khi nhóm anh em cùng cha có >= 2 mục; riêng numbered /
+  - numbered, lettered, dash, plus: chỉ giữ khi nhóm anh em cùng cha có >= 2 mục; riêng numbered /
     lettered còn phải đánh số liên tiếp (1,2,3 / a,b,c) và bắt đầu từ mục đầu (1 / a).
     Mục lẻ loi nằm lại trong clause hiện tại, không tạo ranh giới.
   - Heading có `start` rơi vào trong placeholder PII (`boundary_guard` = False) bị BỎ (TDD §10.3,
@@ -29,17 +30,18 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Optional
 
-STRUCTURE_PARSER_VERSION = "structure_parser_v1"
+STRUCTURE_PARSER_VERSION = "structure_parser_v1.1"
 
-# ---- 5 pattern (TDD §11.2). Chạy theo từng dòng; group "body" là phần sau marker. ----
-_ARTICLE = re.compile(r"^[ \t]*Điều[ \t]+(?P<num>\d+[A-Za-z]?)[ \t]*[.:\-]?[ \t]*(?P<body>.*)$")
+# ---- 6 pattern (TDD §11.2 plus D1 Dev extension). Chạy theo từng dòng. ----
+_ARTICLE = re.compile(r"^[ \t]*(?:Điều|DIEU)[ \t]+(?P<num>\d+[A-Za-z]?)[ \t]*[.:\-]?[ \t]*(?P<body>.*)$", re.I)
 _DECIMAL = re.compile(r"^[ \t]*(?P<num>\d+(?:\.\d+){1,3})[ \t]*[.)\-]?[ \t]+(?P<body>\S.*)$")
 _NUMBERED = re.compile(r"^[ \t]*(?P<num>\d{1,3})[.)][ \t]+(?P<body>\S.*)$")
 _LETTERED = re.compile(r"^[ \t]*(?P<num>[a-zA-ZđĐ])[.)][ \t]+(?P<body>\S.*)$")
-_DASH = re.compile(r"^[ \t]*[-–•][ \t]+(?P<body>\S.*)$")
+_DASH = re.compile(r"^[ \t]*[-–—•][ \t]+(?P<body>\S.*)$")
+_PLUS = re.compile(r"^[ \t]*\+[ \t]+(?P<body>\S.*)$")
 
-ARTICLE, DECIMAL, NUMBERED, LETTERED, DASH = "article", "decimal", "numbered", "lettered", "dash"
-_WEAK_KINDS = (NUMBERED, LETTERED, DASH)
+ARTICLE, DECIMAL, NUMBERED, LETTERED, DASH, PLUS = "article", "decimal", "numbered", "lettered", "dash", "plus"
+_WEAK_KINDS = (NUMBERED, LETTERED, DASH, PLUS)
 
 # Chữ cái liệt kê tiếng Việt (có đ giữa d và e) và dạng ASCII — chấp nhận cả hai cách đánh.
 _ALPHA_VN = "abcdđeghiklmnopqrstuvxy"
@@ -73,8 +75,8 @@ def _is_thousands_number(num: str) -> bool:
     return all(len(g) == 3 and g.isdigit() for g in groups[1:])
 
 
-def _candidates(text: str) -> list[tuple[int, str, Optional[str], int]]:
-    """Mọi dòng khớp 1 trong 5 pattern: (start, kind, number, decimal_depth)."""
+def _candidates(text: str, allow_plus: bool = False) -> list[tuple[int, str, Optional[str], int]]:
+    """Candidate headings; the sixth (`+`) pattern is opt-in for Dev evaluation."""
     out: list[tuple[int, str, Optional[str], int]] = []
     for line_start, line in _line_start_iter(text):
         stripped = line.lstrip(" \t")
@@ -101,6 +103,9 @@ def _candidates(text: str) -> list[tuple[int, str, Optional[str], int]]:
             continue
         if _DASH.match(line):
             out.append((start, DASH, None, 0))
+            continue
+        if allow_plus and _PLUS.match(line):
+            out.append((start, PLUS, None, 0))
     return out
 
 
@@ -146,8 +151,8 @@ def _letter_follows(prev: str, cur: str) -> bool:
 
 
 def _sequence_ok(kind: str, numbers: list[Optional[str]]) -> bool:
-    """numbered: 1,2,3...; lettered: a,b,c...; dash: không có thứ tự."""
-    if kind == DASH:
+    """numbered: 1,2,3...; lettered: a,b,c...; dash/plus: không có thứ tự."""
+    if kind in (DASH, PLUS):
         return True
     if kind == NUMBERED:
         nums = [int(n) for n in numbers if n is not None]
@@ -173,14 +178,18 @@ def _drop_unreliable(cands, assigned) -> set[int]:
 
 
 def parse_structure(
-    masked_text: str, boundary_guard: Callable[[int], bool] = lambda pos: True
+    masked_text: str, boundary_guard: Callable[[int], bool] = lambda pos: True, *,
+    allow_plus: bool = False, allowed_plus_positions: set[int] | None = None,
 ) -> list[HeadingMark]:
     """Trả danh sách `HeadingMark` đã chấp nhận, sắp theo `start` tăng dần.
 
     `boundary_guard(pos)` (xem `app.privacy.masker.boundary_guard`) phải trả False nếu `pos` nằm
     chặt bên trong một placeholder PII; marker đó bị bỏ.
+    `allow_plus` chỉ bật cho phép thử D1 Dev; mặc định giữ hành vi cũ.
     """
-    cands = [c for c in _candidates(masked_text) if boundary_guard(c[0])]
+    cands = [c for c in _candidates(masked_text, allow_plus=allow_plus)
+             if boundary_guard(c[0]) and (c[1] != PLUS or allowed_plus_positions is None
+                                           or c[0] in allowed_plus_positions)]
 
     # Lặp tới khi ổn định: bỏ nhóm yếu có thể làm đổi cha của các marker còn lại.
     for _ in range(len(cands) + 1):

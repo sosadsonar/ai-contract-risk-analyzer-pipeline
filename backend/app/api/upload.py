@@ -1,5 +1,5 @@
 """Streaming multipart parser with strict aggregate and file byte budgets."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from email.message import Message
 
 from python_multipart import MultipartParser
@@ -15,9 +15,10 @@ class Upload:
     file_bytes: int = 0
     file_seen: bool = False
     error: str | None = None
+    file_content: bytes | None = field(default=None, repr=False)
 
 
-async def parse_upload(request: Request, file_limit: int, on_role) -> Upload:
+async def parse_upload(request: Request, file_limit: int, on_role, *, capture_file: bool = False) -> Upload:
     upload = Upload()
     content_type, params = parse_options_header(request.headers.get("content-type", "").encode())
     boundary = params.get(b"boundary")
@@ -30,6 +31,7 @@ async def parse_upload(request: Request, file_limit: int, on_role) -> Upload:
     header_value = bytearray()
     role_value = bytearray()
     total = 0
+    captured = bytearray() if capture_file else None
 
     def field_start():
         nonlocal field, headers, role_value
@@ -48,6 +50,8 @@ async def parse_upload(request: Request, file_limit: int, on_role) -> Upload:
         message["content-disposition"] = headers.get(b"content-disposition", b"").decode("latin-1")
         field = message.get_param("name", header="content-disposition") or ""
         if field == "file":
+            if upload.file_seen:
+                upload.error = "UNSUPPORTED_FILE_TYPE"
             upload.file_seen = True
             upload.filename = message.get_param("filename", header="content-disposition")
 
@@ -60,6 +64,8 @@ async def parse_upload(request: Request, file_limit: int, on_role) -> Upload:
             upload.file_bytes += len(payload)
             if upload.file_bytes > file_limit:
                 upload.error = "FILE_TOO_LARGE"
+            elif captured is not None:
+                captured.extend(payload)
             if len(upload.signature) < 5:
                 upload.signature += bytes(payload[:5 - len(upload.signature)])
 
@@ -102,4 +108,6 @@ async def parse_upload(request: Request, file_limit: int, on_role) -> Upload:
         or (upload.filename.lower().endswith(".docx") and upload.signature.startswith(b"PK\x03\x04"))
     )):
         upload.error = "UNSUPPORTED_FILE_TYPE"
+    if not upload.error and captured is not None:
+        upload.file_content = bytes(captured)
     return upload

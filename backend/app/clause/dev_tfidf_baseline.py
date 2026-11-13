@@ -4,6 +4,7 @@ The feature map and neighbor count are fixed here; no T1/T2 label, keyword
 proposal, validation score, or test-derived tuning enters model fitting.
 """
 
+import re
 import unicodedata
 from dataclasses import dataclass
 from typing import Sequence
@@ -14,6 +15,35 @@ from sklearn.metrics.pairwise import linear_kernel
 
 def _normalize(text: str) -> str:
     return unicodedata.normalize("NFC", text).casefold()
+
+
+_SECURITY_WORKING_CONDITIONS = re.compile(
+    r"ký\s+quỹ|đặt\s+cọc|tiền\s+bảo\s+đảm|giữ\s+bản\s+chính"
+)
+
+
+def add_source_working_conditions(
+    texts: Sequence[str], predictions: Sequence[Sequence[str]]
+) -> tuple[tuple[str, ...], ...]:
+    """Add a Dev-only source signal without changing the frozen TF-IDF model.
+
+    Risk taxonomy v0.1 associates deposit and original-document retention
+    with the WORKING_CONDITIONS clause label. Keep the model's leading label
+    and add at most one source-derived second label on matching clauses.
+    """
+    if len(texts) != len(predictions):
+        raise ValueError("Dev clause texts and predictions must align")
+    result = []
+    for text, labels in zip(texts, predictions):
+        if not labels:
+            raise ValueError("Dev clause prediction must contain a label")
+        if _SECURITY_WORKING_CONDITIONS.search(_normalize(text)):
+            retained = tuple(dict.fromkeys(labels[:2]))
+            result.append(retained if "WORKING_CONDITIONS" in retained
+                          else (labels[0], "WORKING_CONDITIONS"))
+        else:
+            result.append(tuple(labels))
+    return tuple(result)
 
 
 @dataclass

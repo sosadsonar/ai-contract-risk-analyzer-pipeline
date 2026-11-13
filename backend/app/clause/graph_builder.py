@@ -1,7 +1,6 @@
-"""Clause Graph builder — cạnh NEXT + PARENT_OF (TDD §12.1, C-14 (a), FR-31).
+"""Clause Graph builder — NEXT, PARENT_OF and source-only REFERS_TO (TDD §12.1).
 
-Phạm vi W4: chỉ NEXT và PARENT_OF. REFERS_TO (regex, loại trừ dẫn chiếu pháp luật) làm ở W5
-(C-14 (b)); tham số `masked_text` đã có sẵn trong chữ ký để khỏi đổi API khi đó.
+REFERS_TO is opt-in when masked_text is supplied; legal-document references are excluded.
 
 Bất biến:
   INV-08  graph CHỈ chứa `clause_id` + `edge_type` — không text, không offset, không số điều.
@@ -16,6 +15,7 @@ Hàm thuần: không I/O, không import `api/` hay `session/`. Diagnostic cũng 
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
@@ -24,6 +24,11 @@ from app.core.enums import ClauseEdgeType
 from app.domain.errors import PipelineInternalError
 
 CLAUSE_GRAPH_VERSION = "clause_graph_v1"
+_ARTICLE_HEADING = re.compile(r"(?i)^\s*(?:Điều|DIEU)\s+(\d+[a-z]?)\b")
+_REFERENCE = re.compile(r"(?i)(?:(?:Khoản|Mục)\s+(?P<sub>\d+(?:\.\d+)?)\s+)?"
+                        r"(?:Điều|DIEU)\s+(?P<article>\d+[a-z]?)\b")
+_EXTERNAL_LAW = re.compile(r"(?i)\b(?:bộ\s+luật|luật|nghị\s+định|thông\s+tư|"
+                           r"pháp\s+lệnh|quyết\s+định|hiến\s+pháp|văn\s+bản\s+pháp\s+luật)\b")
 
 
 @dataclass(frozen=True)
@@ -85,7 +90,7 @@ class ClauseGraph:
 
 def build_clause_graph(
     clauses: Sequence[SegmentedClause],
-    masked_text: Optional[str] = None,  # dành cho REFERS_TO (W5); W4 chưa dùng, không đọc
+    masked_text: Optional[str] = None,
 ) -> tuple[ClauseGraph, list[Diagnostic]]:
     """Dựng Clause Graph từ kết quả segmentation (thứ tự văn bản).
 
@@ -127,9 +132,70 @@ def build_clause_graph(
             raise PipelineInternalError("CLAUSE_GRAPH: level cha phải nhỏ hơn level con")
         edges.append(ClauseEdge(parent, c.clause_id, ClauseEdgeType.PARENT_OF))
 
+    if masked_text is not None:
+        edges.extend(_reference_edges(clauses, masked_text, diagnostics))
+
     graph = ClauseGraph(node_ids=tuple(ids), edges=tuple(edges))
     _validate(graph)
     return graph, diagnostics
+
+
+def _reference_edges(
+    clauses: Sequence[SegmentedClause], masked_text: str, diagnostics: list[Diagnostic],
+) -> list[ClauseEdge]:
+    """Resolve only unique within-contract references, without storing source text."""
+    article_ids: dict[str, list[str]] = {}
+    for c in clauses:
+        if not (0 <= c.start_char < c.end_char <= len(masked_text)):
+            raise PipelineInternalError("CLAUSE_GRAPH: masked span invalid")
+        first_line = masked_text[c.start_char:c.end_char].split("\n", 1)[0]
+        heading = _ARTICLE_HEADING.match(first_line)
+        if c.structure.level == 1 and heading:
+            article_ids.setdefault(heading.group(1).lower(), []).append(c.clause_id)
+
+    sub_ids: dict[tuple[str, str], list[str]] = {}
+    for c in clauses:
+        parent = c.structure.parent_clause_id
+        if not parent or not c.structure.number:
+            continue
+        parents = [number for number, ids in article_ids.items() if parent in ids]
+        if len(parents) != 1:
+            continue
+        article = parents[0]
+        number = c.structure.number.lower()
+        if number.startswith(article + "."):
+            number = number[len(article) + 1:]
+        sub_ids.setdefault((article, number), []).append(c.clause_id)
+
+    out: list[ClauseEdge] = []
+    seen: set[tuple[str, str]] = set()
+    reported: set[tuple[str, str]] = set()
+    for c in clauses:
+        text = masked_text[c.start_char:c.end_char]
+        for match in _REFERENCE.finditer(text):
+            # The clause's own opening heading is not a cross-reference.
+            if match.start() == 0 and _ARTICLE_HEADING.match(text):
+                continue
+            before = text[max(0, match.start() - 36):match.start()].split("\n")[-1]
+            after = text[match.end():match.end() + 64].split("\n", 1)[0]
+            if _EXTERNAL_LAW.search(before) or _EXTERNAL_LAW.search(after):
+                continue
+            article = match.group("article").lower()
+            sub = match.group("sub")
+            targets = (sub_ids.get((article, sub.lower()), []) if sub
+                       else article_ids.get(article, []))
+            code = ("UNRESOLVED_REFERENCE" if not targets else
+                    "AMBIGUOUS_REFERENCE" if len(targets) > 1 else None)
+            if code:
+                if (c.clause_id, code) not in reported:
+                    diagnostics.append(Diagnostic(code, c.clause_id))
+                    reported.add((c.clause_id, code))
+                continue
+            target = targets[0]
+            if target != c.clause_id and (c.clause_id, target) not in seen:
+                out.append(ClauseEdge(c.clause_id, target, ClauseEdgeType.REFERS_TO))
+                seen.add((c.clause_id, target))
+    return out
 
 
 def _validate(graph: ClauseGraph) -> None:

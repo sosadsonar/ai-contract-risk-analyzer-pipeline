@@ -20,8 +20,8 @@ from __future__ import annotations
 
 import asyncio
 import re
-from dataclasses import dataclass, field
-from typing import Callable, Optional
+from dataclasses import dataclass, field, replace
+from typing import Callable, Mapping, Optional
 
 from app.ai.prompts.risk_v1 import (
     BASIS_TYPE_DEFINITIONS,
@@ -32,6 +32,8 @@ from app.ai.prompts.risk_v1 import (
     prompt_pin,
 )
 from app.ai.provider import CallLedger, LLMProvider, call_with_retry
+from app.clause.context_resolver import ContextResolutionTrace, resolve_context
+from app.clause.graph_builder import ClauseGraph
 from app.core.enums import Role
 from app.domain.errors import AiOutputInvalid, StageCancelled
 from app.risk.taxonomy import (
@@ -89,6 +91,48 @@ class RiskItemIn:
                 for r in self.related_clauses
             ],
         }
+
+
+def attach_graph_context(
+    items: list[RiskItemIn],
+    graph: ClauseGraph,
+    masked_clauses: Mapping[str, str],
+    *,
+    max_related: int = 3,
+    max_context_chars: int = 6000,
+) -> list[RiskItemIn]:
+    """Prepare masked related clauses for the M2 request without mutating inputs."""
+    return [
+        replace(
+            item,
+            related_clauses=[
+                RelatedClause(c.clause_id, c.relation, c.masked_text)
+                for c in resolve_context(
+                    graph,
+                    item.clause_id,
+                    masked_clauses,
+                    max_related=max_related,
+                    max_context_chars=max_context_chars,
+                )
+            ],
+        )
+        for item in items
+    ]
+
+
+def build_context_traces(
+    items: list[RiskItemIn], *, included_in_risk_request: bool = True,
+) -> list[dict]:
+    """Ephemeral TDD §12.3 diagnostics: IDs and counts only, never clause text."""
+    return [
+        ContextResolutionTrace(
+            target_clause_id=item.clause_id,
+            related=tuple((r.clause_id, r.relation) for r in item.related_clauses),
+            included_in_risk_request=included_in_risk_request,
+            context_chars=sum(len(r.masked_text) for r in item.related_clauses),
+        ).to_dict()
+        for item in items
+    ]
 
 
 @dataclass(frozen=True)

@@ -40,6 +40,12 @@ def test_real_draft_corpus_indexes_source_checked_article14_reference():
     assert GraphNeighbor("BLLD2019:art14:cl2", "REFERS_TO", "MANUAL", "FORWARD") in graph.neighbors(
         "BLLD2019:art14:cl1", as_of=date(2022, 1, 1),
     )
+    assert GraphNeighbor("BLLD2019:art21:cl1:ptc", "GUIDES", "MANUAL", "FORWARD") in graph.neighbors(
+        "BLLD2019:art17:cl3", as_of=date(2022, 1, 1),
+    )
+    assert GraphNeighbor("BLLD2019:art17:cl2", "GUIDES", "MANUAL", "FORWARD") in graph.neighbors(
+        "BLLD2019:art21:cl1:ptg", as_of=date(2022, 1, 1),
+    )
 
 
 def test_traversal_retains_edge_direction_and_date_filter(fake_corpus):
@@ -69,11 +75,14 @@ def test_draft_requires_opt_in_and_only_curated_edges_enter_graph(fake_corpus):
     draft = replace(load_corpus(DATA), release_status="DRAFT")
     with pytest.raises(LegalCorpusConflict, match="awaits Data/Legal reviewer"):
         DataGraph(draft)
-    assert DataGraph(draft, allow_draft=True).relations == (
-        GraphRelation(
-            "BLLD2019:art14:cl1", "BLLD2019:art14:cl2", "REFERS_TO", "MANUAL",
-        ),
-    )
+    relations = DataGraph(draft, allow_draft=True).relations
+    assert len(relations) == 5
+    assert GraphRelation(
+        "BLLD2019:art14:cl1", "BLLD2019:art14:cl2", "REFERS_TO", "MANUAL",
+    ) in relations
+    assert GraphRelation(
+        "BLLD2019:art17:cl3", "BLLD2019:art21:cl1:ptc", "GUIDES", "MANUAL",
+    ) in relations
 
 
 def test_unknown_node_has_no_neighbors(fake_corpus):
