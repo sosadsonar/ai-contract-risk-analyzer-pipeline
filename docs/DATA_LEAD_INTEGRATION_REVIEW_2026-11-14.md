@@ -45,3 +45,8 @@ và checksum bất biến của `dev_injection_candidate.py`.
 Repo Data có PR #19/#20 đang mở và nhánh Data Lead địa phương lệch `main`;
 đây là luồng review riêng. Không cập nhật submodule sang một commit Data chưa
 được nhóm duyệt và push.
+
+Pipeline PR #33 của luồng UI/DOCX đang mở. Đối chiếu 14/11: chỉ trùng đường dẫn
+`backend/app/api/routes/sessions.py`; phép thử ghép Git hai đầu nhánh hiện tại
+không báo xung đột. Reviewer vẫn cần kiểm tra hành vi route sau khi PR nào đó
+được merge trước; kiểm tra lại tính mergeable trên HEAD mới trước merge.
