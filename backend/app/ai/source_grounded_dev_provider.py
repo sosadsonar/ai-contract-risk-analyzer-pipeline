@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 
 from app.ai.provider import LLMResponse
-from app.clause.dev_tfidf_baseline import DevTfidfBaseline
+from app.clause.dev_tfidf_baseline import DevTfidfBaseline, add_source_working_conditions
 from app.risk.dev_injection_candidate import _DOCUMENT
 from app.risk.dev_m2_baseline import detect_dev_m2_risks
 
@@ -47,7 +47,7 @@ class SourceGroundedDevProvider:
         self.request_count += 1
         if request["schema_version"] == "clause_classification_request_v1":
             texts = [item["masked_text"] for item in request["items"]]
-            labels = self.clause_model.predict(texts)
+            labels = add_source_working_conditions(texts, self.clause_model.predict(texts))
             data = {"items": [
                 {"clause_id": item["clause_id"], "clause_labels": list(row)}
                 for item, row in zip(request["items"], labels)

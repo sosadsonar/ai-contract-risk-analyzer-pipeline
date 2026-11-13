@@ -193,3 +193,37 @@ def test_approved_corpus_retrieval_populates_risk_candidates():
     assert session.result["citations"]
     assert all("BLLD2019:art17" in item["candidate_ids"]
                for request in risk.requests for item in request["items"])
+
+
+def test_runner_uses_legal_graph_when_enabled(monkeypatch):
+    import app.session.pipeline_runner as module
+
+    store, lease = InMemorySessionStore(), ProcessingLease()
+    session = store.create(Role.EMPLOYEE)
+    assert lease.try_acquire(session.session_id) == session.session_id
+    clause, risk = FakeProvider("clause"), FakeProvider("risk", "BLLD2019:art17")
+    cfg = SimpleNamespace(GEMINI_MODEL_ID="fake-model", CLAUSE_BATCH_SIZE=20,
+                          RISK_BATCH_SIZE=6, LLM_PARALLELISM=1,
+                          LLM_TIMEOUT_SECONDS=5, LLM_AUTO_RETRY=0,
+                          CLAUSE_GRAPH_MAX_RELATED=3,
+                          CLAUSE_GRAPH_MAX_CONTEXT_CHARS=6000,
+                          DATA_GRAPH_ENABLED=True, RETRIEVAL_FINAL_K=1,
+                          GRAPH_MAX_NEIGHBORS_PER_SEED=4,
+                          GRAPH_MAX_CHILDREN_PER_SEED=2)
+    corpus = _corpus()
+    retriever = BaselineRetriever(corpus, final_k=1, seed_k=1)
+    called = []
+    original = module.get_candidates
+
+    def record_graph_call(*args):
+        called.append(args[1])
+        return original(*args)
+
+    monkeypatch.setattr(module, "get_candidates", record_graph_call)
+    runner = make_pipeline_runner(SOURCE, clause, risk, {}, InMemoryLedger(), cfg,
+                                  corpus=corpus, retriever=retriever)
+    asyncio.run(Orchestrator(store, lease, pipeline_runner=runner).run(session))
+    assert session.status == SessionStatus.COMPLETED
+    assert called and all(graph is not None for graph in called)
+    assert all("BLLD2019:art17" in item["candidate_ids"]
+               for request in risk.requests for item in request["items"])

@@ -20,6 +20,7 @@ from app.clause.segmenter import segment
 from app.domain.errors import AiOutputInvalid, StageCancelled
 from app.integrations.risk_assembler import AssemblerContext, assemble_risk_output
 from app.legal.corpus_loader import LegalCorpus
+from app.legal.data_graph import DataGraph, get_candidates
 from app.privacy.masker import mask
 from app.session.final_result import build_final_result_v1, resolve_app_commit
 from app.session.store import Session
@@ -70,6 +71,8 @@ def make_pipeline_runner(
     """Bind a canonical source to an async runner without persisting it in Session."""
     if retriever is not None and corpus is None:
         raise ValueError("retrieval requires a validated legal corpus")
+    legal_graph = (DataGraph(corpus) if retriever is not None
+                   and getattr(cfg, "DATA_GRAPH_ENABLED", False) else None)
 
     async def run(session: Session, *, cancel: Callable[[], bool]) -> dict:
         if cancel():
@@ -88,13 +91,19 @@ def make_pipeline_runner(
         analysis_date = date.fromisoformat(session.analysis_date)
         if retriever is not None:
             for item in classified.items:
-                retrieved = retriever.retrieve(all_masked[item.clause_id], item.clause_labels,
-                                               as_of=analysis_date)
-                for candidate in retrieved.baseline_pool:
+                if legal_graph is None:
+                    selected_candidates = retriever.retrieve(
+                        all_masked[item.clause_id], item.clause_labels,
+                        as_of=analysis_date).baseline_pool
+                else:
+                    selected_candidates, _ = get_candidates(
+                        retriever, legal_graph, all_masked[item.clause_id],
+                        item.clause_labels, analysis_date, cfg)
+                for candidate in selected_candidates:
                     catalog[candidate.citation_id] = LegalCandidate(
                         candidate.citation_id, candidate.content,
                         candidate.document_name, candidate.article)
-                ids[item.clause_id] = [c.citation_id for c in retrieved.baseline_pool]
+                ids[item.clause_id] = [c.citation_id for c in selected_candidates]
         risk_items = [RiskItemIn(item.clause_id, all_masked[item.clause_id], item.clause_labels,
                                  list(ids.get(item.clause_id, ())))
                       for item in classified.items]

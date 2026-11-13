@@ -7,6 +7,33 @@ The branch inventories below are local commits reachable from `HEAD` but absent
 from the locally cached `origin/main` at the time of this report. Re-fetch and
 compare before any remote action because remote branches may have advanced.
 
+## v11 local update — 14/11/2026
+
+The new adjudicated D2 v13 v02 CSV has a verified SHA-256 receipt and is
+stored only in the Data repo's ignored restricted intake. Its A/B agreement
+is 39/40 (κ 0.93103); judge/adjudicated agreement is 40/40. The source-grounded
+Dev runner matches every reviewed row **40/40** in span, masked quote, risk
+label, role, citation and explanation. The earlier v10 35/40 crosswalk is
+historical evidence for the prior packet and runner.
+
+The Dev-only clause-label overlay retains the TF-IDF leading label and adds
+`WORKING_CONDITIONS` for source-visible security/deposit phrases. The legal
+map seeds that label at Article 17 clause 1, and the existing verified
+`REFERS_TO` edge brings clause 2 into Graph On. The runner now uses the same
+one-hop graph retrieval when configured; Graph Off retains baseline behavior.
+The manifest checksum and `corpus_version=legal_corpus_2026-11-14_v02` pin
+the new map; graph adjacency retains its previous version.
+M8-primary Dev is **66/74 Off, 74/74 On**, with D1 oracle **8/14 Off, 14/14
+On**. There is no D2 oracle or new held-out score. The frozen Article 17
+detector remains byte-identical. The current product M2 and held-out M1/M6
+acceptance gates remain open.
+
+Only named v11 source, tests, corpus receipt, metadata-only reports and these
+handoff documents belong in the scoped local commit. The private ratings CSV
+and restricted Gold remain ignored; preserve all unrelated dirty files. No
+push or merge is part of this update. The v11 commit SHA is supplied in the
+delivery message because a commit cannot include its own SHA.
+
 ## v10 local update — 14/11/2026
 
 The approved private D1 worksheet v05 and restricted D2 v13 M6 ratings were

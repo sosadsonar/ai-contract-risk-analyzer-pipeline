@@ -15,7 +15,7 @@ from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
 
-from app.clause.dev_tfidf_baseline import DevTfidfBaseline
+from app.clause.dev_tfidf_baseline import DevTfidfBaseline, add_source_working_conditions
 from app.legal.baseline_retriever import BaselineRetriever
 from app.legal.corpus_loader import load_corpus
 from app.legal.data_graph import DataGraph, get_candidates
@@ -99,7 +99,7 @@ def evaluate(data_root: Path, corpus_root: Path) -> dict:
             for index, (clause_id, citation_id) in enumerate(citations):
                 span = spans[clause_id]
                 query = masked[span["start_char"]:span["end_char"]]
-                labels = model.predict([query])[0]
+                labels = add_source_working_conditions([query], model.predict([query]))[0]
                 retrieved = retriever.retrieve(query, labels, as_of=as_of)
                 off = retrieved.baseline_pool
                 on, did_fallback = get_candidates(retriever, graph, query, labels,

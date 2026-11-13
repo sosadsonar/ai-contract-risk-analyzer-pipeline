@@ -11,6 +11,11 @@ class FixedClauseModel:
         return tuple(("EMPLOYEE_OBLIGATIONS_DISCIPLINE",) for _ in texts)
 
 
+class TerminationClauseModel:
+    def predict(self, texts):
+        return tuple(("TERMINATION",) for _ in texts)
+
+
 def _call(provider, request):
     return asyncio.run(provider.generate_structured(
         model_id="local-dev", messages=[{}, {"content": json.dumps(request)}],
@@ -47,6 +52,18 @@ def test_local_provider_does_not_emit_on_benign_source():
                                   "masked_text": "Hai bên thực hiện hợp đồng theo pháp luật.",
                                   "candidate_ids": []}]})
     assert result == {"schema_version": "risk_output_v2", "items": []}
+
+
+def test_local_clause_output_keeps_termination_and_adds_security_condition():
+    provider = SourceGroundedDevProvider(TerminationClauseModel())
+    result = _call(provider, {
+        "schema_version": "clause_classification_request_v1",
+        "items": [{"clause_id": "cl_0001",
+                   "masked_text": "Khoản tiền ký quỹ được hoàn trả sau khi hoàn thành hợp đồng."}],
+    })
+    assert result["items"][0]["clause_labels"] == [
+        "TERMINATION", "WORKING_CONDITIONS",
+    ]
 
 
 def test_original_document_uses_article_17_clause_1_and_review_explanation():

@@ -1,8 +1,8 @@
-corpus_version: legal_corpus_draft_2026-10-28
+corpus_version: legal_corpus_2026-11-14_v02
 graph_version: data_graph_2026-11-13_v02
 timezone: Asia/Ho_Chi_Minh
 release_status: APPROVED
 checksums:
   provisions.jsonl: f8a3b6b5bd34d0352da1dad05e156b246cd78e470386c5634732073151dfb44b
   edges.jsonl: bce0f9dcf457f130493816ff3e3281268abaf2c1b760696cb49452fe91f9e098
-  label_map.yaml: abb5576f5735b92f7569141826775171c5020eaa09d8484f003dcdbeef5aac9e
+  label_map.yaml: e9b652af68e25ea55f2d7bf32599256aea9a2d1cf4afda416ef880f2a4dc89ad

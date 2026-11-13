@@ -148,7 +148,10 @@ def audit(data_root: Path, corpus_root: Path) -> dict:
                           LLM_PARALLELISM=1, LLM_TIMEOUT_SECONDS=5,
                           LLM_AUTO_RETRY=0, CLAUSE_GRAPH_MAX_RELATED=3,
                           CLAUSE_GRAPH_MAX_CONTEXT_CHARS=6000,
-                          MAX_CLAUSES=150, TEMPERATURE=0.0)
+                          MAX_CLAUSES=150, TEMPERATURE=0.0,
+                          DATA_GRAPH_ENABLED=True, RETRIEVAL_FINAL_K=8,
+                          GRAPH_MAX_NEIGHBORS_PER_SEED=4,
+                          GRAPH_MAX_CHILDREN_PER_SEED=2)
     counts = Counter()
     citation_total = citation_valid = quote_total = quote_valid = 0
     supported = insufficient = 0
@@ -246,7 +249,7 @@ def audit(data_root: Path, corpus_root: Path) -> dict:
                                 "explanation": risk["explanation"],
                             })
     review_path = (restricted / "M6_D2_dev_candidate_review_v13" /
-                   "D2_40_v13_ratings_minh_adjudicated.csv")
+                   "D2_40_v13_ratings_minh_adjudicated_v02.csv")
     with review_path.open(encoding="utf-8-sig", newline="") as stream:
         review_rows = list(csv.DictReader(stream))
     for row in review_rows:
@@ -259,6 +262,7 @@ def audit(data_root: Path, corpus_root: Path) -> dict:
         "corpus_version": corpus.corpus_version,
         "graph_version": corpus.graph_version,
         "source_sha256_by_document": source_hashes,
+        "m6_review_packet_sha256": hashlib.sha256(review_path.read_bytes()).hexdigest(),
         "counts": dict(counts),
         "m3a_candidate_effective_citations": {
             "valid": citation_valid, "total": citation_total,
