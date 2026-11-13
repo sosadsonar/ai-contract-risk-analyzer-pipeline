@@ -8,6 +8,43 @@ Macro-F1 on only two supported T1 risk labels, below 0.80; the 21-label M2 model
 is not yet evaluated. The 40-output human agreement is from D2 Dev and is not
 the final M6 acceptance sample. No T1/T2 source text is reproduced here.
 
+## v8 Dev-only integration and M8 audit
+
+- The HTTP session route can now bind `make_pipeline_runner()` when
+  `PRODUCT_RUNNER_ENABLED=true`. It captures a size-limited PDF in memory,
+  extracts and checks it, loads the approved closed corpus, uses the configured
+  provider and the persistent `DailyQuota` call ledger, and stores
+  `final_result_v1` in `session.result`. The flag defaults to false, preserving
+  the old sample route. An injected fake-provider route test verified
+  `UPLOADED -> VALIDATING -> PROCESSING -> COMPLETED`. No live Gemini call was
+  made. PDF is the only supported real-runner upload type here.
+- `version_pins.app_commit` now chooses `APP_COMMIT` environment/config, then
+  the repository's 40-character Git HEAD. It uses `dev-unpinned` only when no
+  `.git` exists. The route test compared the pin with actual local HEAD. The
+  deployed process still needs `APP_COMMIT` set when Git metadata is absent.
+- M8-primary Dev remains **66/74 (0.89189)** for both Graph Off and Graph On.
+  The six D1 misses are `HDLD001_C024/C025`, `HDLD002_C025/C026`, and
+  `HDLD003_C012/C013`, all with Gold citation `BLLD2019:art21:cl1:ptc`.
+  The two D2 misses are the two role rows for `HDLD003/d2seg_0024`, Gold
+  citation `BLLD2019:art17:cl2`. Of the six D1 misses, three rank 7/8 and
+  three are absent from the top eight; the two D2 rows are absent from the top
+  eight. Every miss has zero direct clause-label map weight and is unreachable
+  from current graph seeds. The only manual graph edge links Article 14 clauses.
+- M8-oracle-labels can be run **only on D1's 14 adjudicated clause-label items**:
+  Graph Off **8/14**, Graph On **8/14**. Six D1 misses persist with oracle
+  labels, so D1's observed retrieval gap is not caused by the local M7 label
+  predictor. D2 has injection/segmentation Gold but no adjudicated clause-label
+  Gold; a 74-case oracle result would be mislabeled evidence. No legal mapping
+  or graph edge was added without source-backed review of its general validity.
+- Four D1 Dev `final_result_v1` envelopes generated with fake providers yielded
+  **168/168** complete M6 review-shaped rows, so 40 can be selected structurally.
+  These are synthetic risk judgments and are **not** a new human-rated 40-output
+  packet. Review rows include source quotes and must stay in restricted storage.
+- v8 checks: Pipeline full `.venv` pytest exit 0 (16 private-submodule skips),
+  Data full `.venv` pytest **143 passed, 2 subtests passed** with the Pipeline
+  repo on `PYTHONPATH`; Ruff exit 0 on both complete worktrees; scoped Git
+  whitespace check exit 0. No T1/T2 source was accessed or re-evaluated.
+
 | Metric | Dev evidence | Held-out evidence | Acceptance interpretation |
 | --- | --- | --- | --- |
 | M1, IoU ≥ 0.80 | D2 v02: 228/250 TP, 253 predicted, F1 **0.90656**. D1 full granularity: 151/329 TP, F1 0.54710. | T1 rules_v1.3: 229/842 TP, 390 predicted, F1 **0.37175**. | Dev D2 passes; T1 does not. D1/D2/T1 annotation granularity differs. |
@@ -26,7 +63,7 @@ the final M6 acceptance sample. No T1/T2 source text is reproduced here.
 - Data repo `T1_m2_risk_gold_v02/manifest.json` declares 1,494 reviewed role rows, 3 positive risk items, 17 corpus-scope exclusions and 190 segmentation-only CONTEXT role references. The M2 packet itself has zero CONTEXT rows. The frozen T1 evaluator passes `excluded_corpus_scope_regions` into the scorer, excludes CONTEXT candidate rows, and reports zero excluded-overlap predictions and zero partial-overlap warnings. Its prediction boundaries come from the pre-existing AI-proposed `T1_segmentation_candidate_v01` (747 CLAUSE rows), not segmentation Gold.
 - T1 source bytes were read only in memory for hash verification and the one requested inference pass; HDLD006 required NFC normalization to match its canonical Gold hash. No T1/T2 contract text was printed or put in any report. No detector rule was edited after that pass.
 - `dev_injection_candidate.py` SHA-256 remains `a6d7a1fb2663511764606d0ad9075246df423a282eb96c406fca342c6644f438`. Frozen `dev_m2_baseline.py` SHA-256 for this T1 pass: `22dd956fd87b3b12f06c78cace91228b5248d6432332fa52cc028dba6e510087`.
-- `make_pipeline_runner()` on all four D1 contracts now produces `final_result_v1` **after** masked provider calls. Its 168 risk records have `risk_basis`, 168/168 valid taxonomy severity, 168/168 validated citation IDs and 168/168 exact quotes; all clause spans match the canonical source. The envelope has the TDD spelling `offset_unit="unicode_code_point"`, original source only at the final result boundary, and all 11 `version_pins` keys. Provider payloads passed a PII absence check. Fake risk outputs prove the assembly route only; the default Orchestrator still uses a mock unless this runner is injected. The `app_commit` pin defaults to `dev-unpinned` until deployment supplies a real hash.
+- `make_pipeline_runner()` on all four D1 contracts now produces `final_result_v1` **after** masked provider calls. Its 168 risk records have `risk_basis`, 168/168 valid taxonomy severity, 168/168 validated citation IDs and 168/168 exact quotes; all clause spans match the canonical source. The envelope has the TDD spelling `offset_unit="unicode_code_point"`, original source only at the final result boundary, and all 11 `version_pins` keys. Provider payloads passed a PII absence check. Fake risk outputs prove the assembly route only. In v8, the configured product route calls this runner; the default route remains a mock. The `app_commit` pin resolves to the real Git HEAD in this worktree.
 - The frozen T1 JSON's actual label breakdown is `WORKING_HOURS_OVERTIME` 0 TP/0 FP/2 FN (F1 0) and `BONUS_BENEFITS` 1 TP/1 FP/0 FN (F1 0.6667). Five FP have Gold support 0; one `BONUS_BENEFITS` FP has Gold support 1. These aggregates conflict with the v7 instruction's proposed attribution. We copied only the already saved JSON counts into `per_label_readout_note`; no T1 source, Gold clause text, or new T1 prediction run was used. Clause-ID attribution cannot be proven from the aggregate JSON.
 - M8's paired Dev query uses the approved Gold citation ID and a D1-trained TF-IDF clause-label predictor. Two role items for one D2 injection reuse the same query; confidence intervals and scores must be read with that correlation and in-sample training in mind.
 
@@ -51,5 +88,5 @@ the final M6 acceptance sample. No T1/T2 source text is reproduced here.
 
 1. Establish one accepted clause annotation granularity for T1 M1, then fix segmentation on Dev and run a newly frozen held-out evaluation.
 2. Build and evaluate the actual 21-label M2 risk pipeline with sufficient adjudicated support; do not tune the frozen Dev heuristic to the T1 miss metadata.
-3. Inject the completed `final_result_v1` runner into the actual product route, supply a real deployment `app_commit` pin, and run M3a/M4 with independent real outputs. Review retrieval graph usefulness on Dev before another held-out run.
+3. Deploy the opt-in route with a pinned build SHA, real provider/call-ledger verification and independent real-output M3a/M4 review. Adjudicate any proposed Article 21/17 clause-label mappings or graph edges before changing the approved corpus; obtain D2 clause-label Gold for a complete oracle M8 diagnostic.
 4. Complete a separately scoped 40-output M6 human review if the D2 Dev packet is not accepted as the formal sample.

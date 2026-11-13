@@ -7,6 +7,29 @@ The branch inventories below are local commits reachable from `HEAD` but absent
 from the locally cached `origin/main` at the time of this report. Re-fetch and
 compare before any remote action because remote branches may have advanced.
 
+## v8 local update
+
+Pipeline commit `44006c0` adds the opt-in session route, bounded PDF runner
+factory, real Git `app_commit` pin, M6 result-row projection, Dev-only M8
+primary/oracle diagnostic, tests and metadata-only reports. The Data branch has
+no v8 changes. `PRODUCT_RUNNER_ENABLED=false` remains the default. The v8
+route test uses fake providers and makes no Gemini request. Do not advertise it
+as a production M2 accuracy result.
+
+M8-primary is 66/74 Graph Off and Graph On. Six D1 misses persist under D1
+oracle clause labels (8/14 hits in each graph mode); D2 has no adjudicated
+clause-label Gold, so the 74-case oracle score is unavailable. All eight
+primary misses have zero direct map weight and cannot be reached from the
+current graph seeds. The approved 16-node corpus and its checksums were not
+changed. Proposed law mappings/edges require source-backed legal review.
+
+The M6 projection yielded 168 complete review-shaped rows from four D1 Dev
+envelopes with fake risk judgments, enough to select 40 structurally. It did
+not create new human ratings or change the prior 40-output D2 Dev review.
+Full `.venv` tests pass on both repos (Pipeline exit 0, 16 skips; Data 143
+passed and 2 subtests), full Ruff checks are green, and staged whitespace
+check is clean. T1/T2 were not opened or rerun.
+
 - Data: `D:\DHCN\Nam3_Ky1\CVDKHMT\ai-contract-risk-analyzer`, branch `codex/data-intake-status-2026-10-27`.
 - Pipeline: `D:\DHCN\Nam3_Ky1\CVDKHMT\ai-contract-risk-analyzer-pipeline-eval-integration`, branch `codex/d1-m7-handoff-2026-11-09`.
 - GitHub read on 13/11/2026: [Data PR #19](https://github.com/24021368-DucAnh/ai-contract-risk-analyzer/pull/19) is **open**, head `15f4247801f6adc3241d996769803d66229cfacf`, base `main`; [Data PR #20](https://github.com/24021368-DucAnh/ai-contract-risk-analyzer/pull/20) is **open**, head `eb259a3b7d9274e7d874f6fc2e0d7cfca1d8058d`, base `main`. They are not the same head as this local Data branch.
@@ -52,6 +75,8 @@ compare before any remote action because remote branches may have advanced.
 | `237ecb917d41ede7e719dd443fc43191f0979a5b` | 2026-11-13 | feat(eval): restore privacy validation and record Dev/T1 diagnostics |
 | `2af8539885bd6eaa74c68b4dcb575f31c96cf6f8` | 2026-11-13 | docs(eval): summarize project acceptance and open gates |
 | `b35f427bec93927b4cd52d48055293e66cf354e9` | 2026-11-13 | feat(result): assemble final result envelope and close tracked lint |
+| `28759b051138cc5bbb0cf7c44ca44e7c1e3bfa7d` | 2026-11-13 | docs(eval): record v7 acceptance and PR handoff |
+| `44006c0` | 2026-11-13 | feat(pipeline): wire opt-in product runner and audit Dev M8 |
 
 The commit containing this handoff document is necessarily reported in the delivery
 message; a commit cannot contain its own hash. All restricted Gold and review CSVs
