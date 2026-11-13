@@ -19,7 +19,7 @@ Quy tắc:
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -57,6 +57,7 @@ class CitationRef:
     article: str
     content: str
     missing: bool = False  # True nếu citation_id không có trong citations dict
+    clause: str | None = None  # X-16: tên/số điều khoản pháp lý liên quan
 
 
 @dataclass
@@ -84,6 +85,10 @@ class RiskItem:
     explanation: str
     evidence_status: str
     citations: list[CitationRef]
+    # X-16 / C-21(b): các trường bổ sung với default backward-compatible
+    clause_number: str | None = None                           # số/tên điều khoản ("Điều 1" v.v.)
+    related_clause_numbers: list[str] = field(default_factory=list)  # điều khoản liên quan
+    needs_review: bool = False  # True khi không có risk_labels VÀ severity là null
 
 
 @dataclass
@@ -127,6 +132,7 @@ def _resolve_citation(cid: str, citation_map: dict[str, dict[str, Any]]) -> Cita
             article=c.get("article", ""),
             content=c.get("content", ""),
             missing=False,
+            clause=c.get("clause"),  # X-16: trường tùy chọn
         )
     logger.warning("citation_id '%s' không tìm thấy trong citations; ghi missing=True", cid)
     return CitationRef(
@@ -142,6 +148,7 @@ def _build_risk_item(
     risk: dict[str, Any],
     clause_map: dict[str, dict[str, Any]],
     citation_map: dict[str, dict[str, Any]],
+    clause_order_map: dict[str, int] | None = None,
 ) -> RiskItem | None:
     """
     Xây dựng RiskItem từ một entry trong final_result_v1.risks.
@@ -175,11 +182,29 @@ def _build_risk_item(
         for citation_id in risk.get("citation_ids", [])
     ]
 
+    # X-16: related_clause_ids → tra cứu clause_number từ clause_map (id lạ an toàn bỏ qua)
+    related_clause_numbers: list[str] = []
+    for related_id in risk.get("related_clause_ids", []):
+        related_clause = clause_map.get(related_id)
+        if related_clause is not None:
+            cn = related_clause.get("clause_number")
+            if cn:
+                related_clause_numbers.append(cn)
+            elif clause_order_map and related_id in clause_order_map:
+                related_clause_numbers.append(f"Điều khoản thứ {clause_order_map[related_id]}")
+
+    # clause_number của clause chính
+    clause_number: str | None = clause.get("clause_number")
+
+    # needs_review: không có risk_labels VÀ severity là null
+    risk_labels_list = list(risk.get("risk_labels", []))
+    needs_review = (not risk_labels_list) and (severity_raw is None)
+
     return RiskItem(
         clause_id=cid,
         clause_quote=clause.get("original_text", ""),
         clause_start_char=clause.get("start_char", 0),
-        risk_labels=list(risk.get("risk_labels", [])),
+        risk_labels=risk_labels_list,
         risk_basis=risk_basis_items,
         severity_raw=severity_raw,
         severity_label=severity_label,
@@ -187,6 +212,9 @@ def _build_risk_item(
         explanation=risk.get("explanation", ""),
         evidence_status=evidence_status,
         citations=citations,
+        clause_number=clause_number,
+        related_clause_numbers=related_clause_numbers,
+        needs_review=needs_review,
     )
 
 
@@ -225,8 +253,12 @@ def build_report_model(final_result: dict[str, Any]) -> ReportModel:
     )
 
     # Xây map để tra nhanh
+    clause_list = final_result.get("clauses", [])
     clause_map: dict[str, dict[str, Any]] = {
-        c["clause_id"]: c for c in final_result.get("clauses", []) if "clause_id" in c
+        c["clause_id"]: c for c in clause_list if "clause_id" in c
+    }
+    clause_order_map: dict[str, int] = {
+        c["clause_id"]: idx + 1 for idx, c in enumerate(clause_list) if "clause_id" in c
     }
     citation_map: dict[str, dict[str, Any]] = {
         c["citation_id"]: c
@@ -238,7 +270,7 @@ def build_report_model(final_result: dict[str, Any]) -> ReportModel:
     raw_risks: list[dict[str, Any]] = final_result.get("risks", [])
     risk_items: list[RiskItem] = []
     for raw_risk in raw_risks:
-        item = _build_risk_item(raw_risk, clause_map, citation_map)
+        item = _build_risk_item(raw_risk, clause_map, citation_map, clause_order_map)
         if item is not None:
             risk_items.append(item)
 

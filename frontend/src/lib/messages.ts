@@ -1,5 +1,5 @@
 // Catalog thông báo tiếng Việt theo error_code (TDD Phụ lục E + SRS 6.2). Không hiển thị mã kỹ thuật một mình.
-const MESSAGES: Record<string, string> = {
+export const MESSAGES: Record<string, string> = {
   SYSTEM_BUSY: "Hệ thống đang xử lý một hợp đồng khác. Vui lòng thử lại sau.",
   QUOTA_EXCEEDED: "Hệ thống đã đạt giới hạn phân tích hiện tại. Vui lòng thử lại sau.",
   RATE_LIMITED: "Bạn gửi yêu cầu quá nhanh. Vui lòng chờ rồi thử lại.",
@@ -16,7 +16,7 @@ const MESSAGES: Record<string, string> = {
   AI_OUTPUT_INVALID: "Kết quả AI không đúng định dạng kỹ thuật. Bạn có thể thử lại nếu phiên cho phép.",
   REJECTED: "Tệp đã bị từ chối; muốn thử tệp khác cần mở phiên mới.",
   INSUFFICIENT_EVIDENCE: "Chưa đủ căn cứ pháp lý trong kho luật.",
-  NO_RISK: "Không phát hiện rủi ro trong phạm vi phân tích. Kết quả không đồng nghĩa hợp đồng an toàn.",
+  NO_RISK: "Không phát hiện rủi ro trong phạm vi phân tích.",
   EXPIRED: "Phiên đã kết thúc và dữ liệu phiên đã được xóa.",
   // Các mã bổ sung từ SRS 6.2 & TDD §5.8:
   ROLE_REQUIRED: "Vui lòng chọn vai trò trước khi tải hợp đồng.",
