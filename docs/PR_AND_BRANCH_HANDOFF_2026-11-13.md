@@ -30,6 +30,32 @@ Full `.venv` tests pass on both repos (Pipeline exit 0, 16 skips; Data 143
 passed and 2 subtests), full Ruff checks are green, and staged whitespace
 check is clean. T1/T2 were not opened or rerun.
 
+## v9 local update
+
+The user approved four `MANUAL` legal edges in the closed 16-node corpus.
+The M8 Dev paired run still scores 66/74 Graph Off and On; D1 oracle remains
+8/14 in both modes. Actual top-three seeds do not reach any of the eight
+missed Gold citations through the approved one-hop edges. Do not describe the
+new edges as an observed Recall@5 gain. The proposed D2 oracle source path is
+absent; the 306-row processed v07 file is a mixed D1/T1 inventory and cannot
+be promoted to D2 Gold.
+
+The Dev source-grounded local provider yielded 18 D1 risk-label tuples in 17
+items, and 58 D2 Article 17 tuples among 76 D2 tuples. It verified 80/80
+emitted citation IDs for corpus membership/effectivity and 92/92 source quote
+offsets. The historical M6 packet shares exact masked spans with 40/40
+legacy-geometry outputs, but not with the current v1.3 runner (0 exact spans);
+its explanation text matches 0/40 outputs even in legacy geometry. A new
+human review is required before assigning those ratings to current outputs.
+
+Boundary disclosure: a metadata-only inventory check loaded the mixed
+`data/processed/clauses_v07.csv` before its T1 rows were identified. No T1
+contract text/label was printed, scored or used to tune code. This was not
+fully compliant with v9's no-read wording; no further T1/T2 access occurred.
+
+The v9 commit hash is reported in the delivery message because this document
+cannot contain its own commit hash. No push or merge is authorized here.
+
 - Data: `D:\DHCN\Nam3_Ky1\CVDKHMT\ai-contract-risk-analyzer`, branch `codex/data-intake-status-2026-10-27`.
 - Pipeline: `D:\DHCN\Nam3_Ky1\CVDKHMT\ai-contract-risk-analyzer-pipeline-eval-integration`, branch `codex/d1-m7-handoff-2026-11-09`.
 - GitHub read on 13/11/2026: [Data PR #19](https://github.com/24021368-DucAnh/ai-contract-risk-analyzer/pull/19) is **open**, head `15f4247801f6adc3241d996769803d66229cfacf`, base `main`; [Data PR #20](https://github.com/24021368-DucAnh/ai-contract-risk-analyzer/pull/20) is **open**, head `eb259a3b7d9274e7d874f6fc2e0d7cfca1d8058d`, base `main`. They are not the same head as this local Data branch.

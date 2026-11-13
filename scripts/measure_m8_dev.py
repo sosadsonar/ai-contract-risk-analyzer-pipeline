@@ -124,6 +124,7 @@ def evaluate(data_root: Path, corpus_root: Path) -> dict:
                         neighbor.citation_id == citation_id
                         for seed in retrieved.seeds
                         for neighbor in graph.neighbors(seed.citation_id, as_of=as_of)),
+                    "graph_seed_citation_ids": [row.citation_id for row in retrieved.seeds],
                 }
                 if dataset == "D1":
                     oracle_labels = labels_by_id[clause_id]
@@ -149,8 +150,17 @@ def evaluate(data_root: Path, corpus_root: Path) -> dict:
     oracle_metric = evaluate_retrieval(oracle_cases, final_k=8, k=5)
     missed = [item for item in case_details
               if item["primary_off_rank"] is None or item["primary_off_rank"] > 5]
+    gained = [item["case_id"] for item in case_details
+              if (item["primary_off_rank"] is None or item["primary_off_rank"] > 5)
+              and item["primary_on_rank"] is not None and item["primary_on_rank"] <= 5]
+    lost = [item["case_id"] for item in case_details
+            if item["primary_off_rank"] is not None and item["primary_off_rank"] <= 5
+            and (item["primary_on_rank"] is None or item["primary_on_rank"] > 5)]
     return {"status": "DEV_IN_SAMPLE_CLAUSE_LABEL_PREDICTIONS",
+            "corpus_version": corpus.corpus_version,
+            "graph_version": corpus.graph_version,
             "gold_counts": dict(counts), "final_k": 8, "k": 5,
+            "seed_k": 3,
             "graph_off": vars(metric.graph_off), "graph_on": vars(metric.graph_on),
             "graph_added_candidate_count": metric.graph_added_candidate_count,
             "graph_fallback_count": fallback,
@@ -161,7 +171,14 @@ def evaluate(data_root: Path, corpus_root: Path) -> dict:
                                  "graph_off": vars(oracle_metric.graph_off),
                                  "graph_on": vars(oracle_metric.graph_on),
                                  "total": len(oracle_cases)},
+            "m8_oracle_d1_plus_d2_clauses_v07": {
+                "status": "UNAVAILABLE",
+                "reason": "D2_v02/clauses_v07.csv adjudicated source is absent; "
+                          "a pending mixed-source v07 file is not D2 Gold.",
+            },
             "primary_missed_cases": missed,
+            "primary_graph_gained_case_ids": gained,
+            "primary_graph_lost_case_ids": lost,
             "oracle_label_coverage": {"D1": len(oracle_cases), "D2": 0},
             "limitations": [
                 "D1-trained clause-label model is evaluated on D1 and D2 derivatives; this is not held-out M8.",

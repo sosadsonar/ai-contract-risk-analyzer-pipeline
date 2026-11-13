@@ -45,6 +45,48 @@ the final M6 acceptance sample. No T1/T2 source text is reproduced here.
   repo on `PYTHONPATH`; Ruff exit 0 on both complete worktrees; scoped Git
   whitespace check exit 0. No T1/T2 source was accessed or re-evaluated.
 
+## v9 approved graph edges and source-grounded Dev runner
+
+- Four Data Lead-approved `MANUAL` edges were added between existing nodes in
+  `edges.jsonl`; the edge checksum and `graph_version` were updated. The 16
+  `provisions.jsonl` nodes and `label_map.yaml` are unchanged. Corpus loading
+  and graph integrity tests pass.
+- **M8-primary Dev Graph Off 66/74, Graph On 66/74**. **D1 oracle-labels Graph
+  Off 8/14, Graph On 8/14**. The added graph produced 103 additional candidate
+  placements across cases, but **zero top-five gains and zero top-five losses**.
+  None of the eight misses has the Gold citation as a one-hop neighbor of the
+  actual top-three seeds. The proposed Article 17/21 bridges therefore do not
+  reach these misses under the frozen `seed_k=3`, `final_k=8` protocol. No
+  retrieval score or seed rule was tuned to these Dev case IDs.
+- The instructed `data/intake/restricted/D2_v02/clauses_v07.csv` does not exist
+  locally. The 306-row `data/processed/clauses_v07.csv` is a mixed D1/T1
+  processed inventory, not an adjudicated D2 clause-label Gold file. On the
+  user's direction, the **74-case M8 oracle remains unavailable**; only the
+  valid 14-case D1 oracle is reported.
+- `SourceGroundedDevProvider` uses D1-trained local clause-label predictions
+  and frozen source-text Dev risk rules on **masked** D1/D2 input. The runner
+  produced D1 **17 risk items / 18 risk-label tuples** (one item has two labels)
+  and D2 **75 risk items / 76 tuples**, of which **58** are Article 17 tuples
+  and 18 are background-risk tuples. This differs from a claim of 18 D1 items
+  and 58 D2 items. It is a local baseline diagnostic, not independent product
+  M2 F1. Emitted citations were valid/effective **80/80** (structural M3a),
+  and quote/offsets exact **92/92** (structural M4). Citation relevance and
+  explanation quality were not independently adjudicated.
+- The prior 40-row D2 M6 packet used default `rules_v1.1` geometry. Its IDs,
+  role, normalized label, masked quote and exact spans match **40/40** rows from
+  a compatibility runner using that geometry, but only **33/40** citations and
+  **0/40** explanations match. Against the current `rules_v1.3` runner,
+  **2/40** rows reach span IoU 0.80 and **0/40** have exact spans. The historical
+  D2 human agreement (A/B 0.975, κ 0.89474; judge 1.0, κ 1.0) was rechecked
+  from its CSV, but **cannot be attributed to the current `final_result_v1`
+  output** without a new review of the changed result material.
+- Data-boundary disclosure: during inventory, one metadata inspection loaded
+  the mixed 306-row `data/processed/clauses_v07.csv` before its T1 membership
+  was identified. Only column names and document-ID counts were displayed; no
+  T1 contract text or label was printed, used for a rule, or evaluated. This
+  inspection fell short of the v9 strict no-read instruction. Subsequent v9
+  analysis was limited to D1/D2 Dev and code.
+
 | Metric | Dev evidence | Held-out evidence | Acceptance interpretation |
 | --- | --- | --- | --- |
 | M1, IoU ≥ 0.80 | D2 v02: 228/250 TP, 253 predicted, F1 **0.90656**. D1 full granularity: 151/329 TP, F1 0.54710. | T1 rules_v1.3: 229/842 TP, 390 predicted, F1 **0.37175**. | Dev D2 passes; T1 does not. D1/D2/T1 annotation granularity differs. |
@@ -90,3 +132,4 @@ the final M6 acceptance sample. No T1/T2 source text is reproduced here.
 2. Build and evaluate the actual 21-label M2 risk pipeline with sufficient adjudicated support; do not tune the frozen Dev heuristic to the T1 miss metadata.
 3. Deploy the opt-in route with a pinned build SHA, real provider/call-ledger verification and independent real-output M3a/M4 review. Adjudicate any proposed Article 21/17 clause-label mappings or graph edges before changing the approved corpus; obtain D2 clause-label Gold for a complete oracle M8 diagnostic.
 4. Complete a separately scoped 40-output M6 human review if the D2 Dev packet is not accepted as the formal sample.
+5. Obtain an adjudicated D2 clause-label file with source hashes and offsets before claiming a 74-case oracle M8 score. Review actual top-three seed behavior on Dev before proposing any further retrieval change. Re-rate a packet generated from the current v1.3 `final_result_v1` output for M6.

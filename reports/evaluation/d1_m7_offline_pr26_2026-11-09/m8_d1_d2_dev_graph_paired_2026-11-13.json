@@ -1,11 +1,14 @@
 {
   "status": "DEV_IN_SAMPLE_CLAUSE_LABEL_PREDICTIONS",
+  "corpus_version": "legal_corpus_draft_2026-10-28",
+  "graph_version": "data_graph_2026-11-13_v02",
   "gold_counts": {
     "D1": 14,
     "D2": 60
   },
   "final_k": 8,
   "k": 5,
+  "seed_k": 3,
   "graph_off": {
     "hits": 66,
     "total": 74,
@@ -22,7 +25,7 @@
     "ci95_high": 0.9591836734693877,
     "valid_replicate_count": 1000
   },
-  "graph_added_candidate_count": 18,
+  "graph_added_candidate_count": 103,
   "graph_fallback_count": 0,
   "bootstrap_cluster_count": 7,
   "m8_primary": {
@@ -64,6 +67,10 @@
     },
     "total": 14
   },
+  "m8_oracle_d1_plus_d2_clauses_v07": {
+    "status": "UNAVAILABLE",
+    "reason": "D2_v02/clauses_v07.csv adjudicated source is absent; a pending mixed-source v07 file is not D2 Gold."
+  },
   "primary_missed_cases": [
     {
       "case_id": "D1:HDLD001:2",
@@ -73,14 +80,19 @@
         "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
       ],
       "primary_off_rank": 8,
-      "primary_on_rank": 8,
+      "primary_on_rank": null,
       "gold_label_weight": 0.0,
       "gold_reachable_from_graph_seeds": false,
+      "graph_seed_citation_ids": [
+        "BLLD2019:art13:cl1",
+        "BLLD2019:art21:cl1:ptđ",
+        "BLLD2019:art17:cl2"
+      ],
       "oracle_clause_labels": [
         "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
       ],
       "oracle_off_rank": 8,
-      "oracle_on_rank": 8
+      "oracle_on_rank": null
     },
     {
       "case_id": "D1:HDLD001:3",
@@ -93,6 +105,11 @@
       "primary_on_rank": null,
       "gold_label_weight": 0.0,
       "gold_reachable_from_graph_seeds": false,
+      "graph_seed_citation_ids": [
+        "BLLD2019:art13:cl1",
+        "BLLD2019:art14:cl1",
+        "BLLD2019:art13:cl2"
+      ],
       "oracle_clause_labels": [
         "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
       ],
@@ -107,14 +124,19 @@
         "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
       ],
       "primary_off_rank": 8,
-      "primary_on_rank": 8,
+      "primary_on_rank": null,
       "gold_label_weight": 0.0,
       "gold_reachable_from_graph_seeds": false,
+      "graph_seed_citation_ids": [
+        "BLLD2019:art13:cl1",
+        "BLLD2019:art21:cl1:ptđ",
+        "BLLD2019:art17:cl2"
+      ],
       "oracle_clause_labels": [
         "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
       ],
       "oracle_off_rank": 8,
-      "oracle_on_rank": 8
+      "oracle_on_rank": null
     },
     {
       "case_id": "D1:HDLD002:3",
@@ -127,6 +149,11 @@
       "primary_on_rank": null,
       "gold_label_weight": 0.0,
       "gold_reachable_from_graph_seeds": false,
+      "graph_seed_citation_ids": [
+        "BLLD2019:art13:cl1",
+        "BLLD2019:art14:cl1",
+        "BLLD2019:art13:cl2"
+      ],
       "oracle_clause_labels": [
         "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
       ],
@@ -141,14 +168,19 @@
         "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
       ],
       "primary_off_rank": 7,
-      "primary_on_rank": 7,
+      "primary_on_rank": 8,
       "gold_label_weight": 0.0,
       "gold_reachable_from_graph_seeds": false,
+      "graph_seed_citation_ids": [
+        "BLLD2019:art13:cl1",
+        "BLLD2019:art21:cl1:ptđ",
+        "BLLD2019:art17:cl2"
+      ],
       "oracle_clause_labels": [
         "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
       ],
       "oracle_off_rank": 7,
-      "oracle_on_rank": 7
+      "oracle_on_rank": 8
     },
     {
       "case_id": "D1:HDLD003:3",
@@ -161,6 +193,11 @@
       "primary_on_rank": null,
       "gold_label_weight": 0.0,
       "gold_reachable_from_graph_seeds": false,
+      "graph_seed_citation_ids": [
+        "BLLD2019:art13:cl1",
+        "BLLD2019:art14:cl1",
+        "BLLD2019:art13:cl2"
+      ],
       "oracle_clause_labels": [
         "EMPLOYEE_OBLIGATIONS_DISCIPLINE"
       ],
@@ -177,7 +214,12 @@
       "primary_off_rank": null,
       "primary_on_rank": null,
       "gold_label_weight": 0.0,
-      "gold_reachable_from_graph_seeds": false
+      "gold_reachable_from_graph_seeds": false,
+      "graph_seed_citation_ids": [
+        "BLLD2019:art13:cl1",
+        "BLLD2019:art13:cl2",
+        "BLLD2019:art14:cl1"
+      ]
     },
     {
       "case_id": "D2:HDLD003:7",
@@ -189,9 +231,16 @@
       "primary_off_rank": null,
       "primary_on_rank": null,
       "gold_label_weight": 0.0,
-      "gold_reachable_from_graph_seeds": false
+      "gold_reachable_from_graph_seeds": false,
+      "graph_seed_citation_ids": [
+        "BLLD2019:art13:cl1",
+        "BLLD2019:art13:cl2",
+        "BLLD2019:art14:cl1"
+      ]
     }
   ],
+  "primary_graph_gained_case_ids": [],
+  "primary_graph_lost_case_ids": [],
   "oracle_label_coverage": {
     "D1": 14,
     "D2": 0
