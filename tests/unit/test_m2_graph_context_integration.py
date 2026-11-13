@@ -14,8 +14,6 @@ import asyncio
 import json
 from types import SimpleNamespace
 
-import pytest
-
 from app.ai.provider import InMemoryLedger, LLMResponse
 from app.ai.risk_adapter import (
     LegalCandidate,

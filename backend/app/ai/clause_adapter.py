@@ -23,8 +23,8 @@ from app.ai.prompts.clause_v1 import (
     prompt_pin,
 )
 from app.ai.provider import CallLedger, LLMProvider, call_with_retry
-from app.clause.taxonomy import DATA_TAXONOMY_VERSION, validate_labels
 from app.clause.eligibility import is_eligible_clause_for_classification, source_position_metadata
+from app.clause.taxonomy import DATA_TAXONOMY_VERSION, validate_labels
 from app.domain.errors import AiOutputInvalid, StageCancelled
 
 _CLAUSE_ID = re.compile(r"^cl_[0-9]{4}$")

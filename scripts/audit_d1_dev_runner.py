@@ -89,6 +89,15 @@ def audit(data_root: Path, corpus_root: Path) -> dict:
         if session.status != SessionStatus.COMPLETED:
             raise ValueError("D1 Dev runner did not complete")
         result = session.result
+        if (result["schema_version"] != "final_result_v1"
+                or result["offset_unit"] != "unicode_code_point"
+                or result["canonical_text"] != source
+                or len(result["version_pins"]) != 11):
+            raise ValueError("D1 final result envelope is incomplete")
+        for clause_row in result["clauses"]:
+            if (source[clause_row["start_char"]:clause_row["end_char"]]
+                    != clause_row["original_text"]):
+                raise ValueError("D1 final clause quote does not match source")
         result_versions[doc] = result["schema_version"]
         request_count += len(clause.requests) + len(risk.requests)
         for request in clause.requests + risk.requests:
@@ -97,7 +106,7 @@ def audit(data_root: Path, corpus_root: Path) -> dict:
                 token = source[pii.start:pii.end]
                 if len(token) >= 8 and token in payload:
                     raise ValueError("canonical PII reached a provider request")
-        for row in result["risk_records"]:
+        for row in result["risks"]:
             total_quotes += 1
             valid_quotes += source[row["start_char"]:row["end_char"]] == row["quote"]
             total_risk_basis += 1
@@ -129,7 +138,7 @@ def audit(data_root: Path, corpus_root: Path) -> dict:
             "valid": valid_severity, "total": total_severity,
         },
         "limitations": [
-            "make_pipeline_runner returns dev_pipeline_result_v1, not product final_result_v1.",
+            "make_pipeline_runner returns final_result_v1 after masked provider calls complete.",
             "The providers emit synthetic labels and citations; no semantic M2/M3a accuracy is measured.",
         ],
     }

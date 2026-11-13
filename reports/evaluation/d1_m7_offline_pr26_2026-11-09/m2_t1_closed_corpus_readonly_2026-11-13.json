@@ -314,5 +314,26 @@
     "T1 segmentation candidates are AI-proposed inputs, not Gold boundaries.",
     "The detector is a frozen Dev heuristic, not the product risk classifier.",
     "CONTEXT scope units are segmentation-only and absent from the M2 packet."
-  ]
+  ],
+  "per_label_readout_note": {
+    "WORKING_HOURS_OVERTIME": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 2,
+      "f1": 0.0,
+      "gold_support": 2
+    },
+    "BONUS_BENEFITS": {
+      "tp": 1,
+      "fp": 1,
+      "fn": 0,
+      "f1": 0.6666666666666666,
+      "gold_support": 1
+    },
+    "false_positive_support_breakdown": {
+      "zero_gold_support": 5,
+      "positive_gold_support": 1
+    },
+    "note": "Derived solely from the existing aggregate score JSON. The v7 proposed per-label attribution conflicts with this frozen artifact; clause-ID attribution cannot be verified from aggregate counts without other T1 data."
+  }
 }

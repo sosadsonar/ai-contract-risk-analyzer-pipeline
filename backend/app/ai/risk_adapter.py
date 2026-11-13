@@ -21,9 +21,6 @@ import re
 from dataclasses import dataclass, field, replace
 from typing import Callable, Mapping, Optional
 
-from app.clause.context_resolver import ContextResolutionTrace, resolve_context
-from app.clause.graph_builder import ClauseGraph
-
 from app.ai.prompts.risk_v1 import (
     BASIS_TYPE_DEFINITIONS,
     OUTPUT_SCHEMA_VERSION,
@@ -33,6 +30,8 @@ from app.ai.prompts.risk_v1 import (
     prompt_pin,
 )
 from app.ai.provider import CallLedger, LLMProvider, call_with_retry
+from app.clause.context_resolver import ContextResolutionTrace, resolve_context
+from app.clause.graph_builder import ClauseGraph
 from app.core.enums import Role
 from app.domain.errors import AiOutputInvalid, StageCancelled
 from app.risk.taxonomy import (

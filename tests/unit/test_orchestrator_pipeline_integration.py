@@ -85,9 +85,11 @@ def test_injected_runner_completes_with_masked_context_and_internal_reference():
     runner = make_pipeline_runner(SOURCE, clause, risk, {}, InMemoryLedger(), cfg)
     asyncio.run(Orchestrator(store, lease, pipeline_runner=runner).run(session))
     assert session.status == SessionStatus.COMPLETED
-    assert session.result["schema_version"] == "dev_pipeline_result_v1"
-    assert session.result["merged"]["schema_version"] == "risk_merged_v1"
-    assert session.result["risk_records"]
+    assert session.result["schema_version"] == "final_result_v1"
+    assert session.result["offset_unit"] == "unicode_code_point"
+    assert session.result["canonical_text"] == SOURCE
+    assert session.result["risks"]
+    assert len(session.result["version_pins"]) == 11
     assert clause.requests and risk.requests
     for request in clause.requests + risk.requests:
         payload = json.dumps(request, ensure_ascii=False)
@@ -96,7 +98,7 @@ def test_injected_runner_completes_with_masked_context_and_internal_reference():
     assert any(related["relation"] == "REFERS_TO"
                for request in risk.requests for item in request["items"]
                for related in item["related_clauses"])
-    assert any(record["related_clause_ids"] for record in session.result["risk_records"])
+    assert any(record["related_clause_ids"] for record in session.result["risks"])
 
 
 def test_injected_runner_observes_cancel_callback():
@@ -146,8 +148,8 @@ def _run_with_citation(citation_id, *, corpus=None):
 
 def test_valid_citation_is_assembled_with_code_severity_and_canonical_quote():
     result = _run_with_citation("BLLD2019:art17")
-    assert result["merged"]["citations"]
-    for record in result["risk_records"]:
+    assert result["citations"]
+    for record in result["risks"]:
         assert record["severity"] == "HIGH"  # taxonomy table, never FakeProvider
         assert record["citation_ids"] == ["BLLD2019:art17"]
         assert SOURCE[record["start_char"]:record["end_char"]] == record["quote"]
@@ -155,8 +157,8 @@ def test_valid_citation_is_assembled_with_code_severity_and_canonical_quote():
 
 def test_outside_candidate_citation_is_dropped_and_severity_cleared():
     result = _run_with_citation("OUTSIDE_CANDIDATE")
-    assert result["merged"]["citations"] == []
-    for record in result["risk_records"]:
+    assert result["citations"] == []
+    for record in result["risks"]:
         assert record["citation_ids"] == []
         assert record["evidence_status"] == "INSUFFICIENT_EVIDENCE"
         assert record["severity"] is None
@@ -166,8 +168,8 @@ def test_outside_candidate_citation_is_dropped_and_severity_cleared():
 def test_expired_citation_is_dropped_and_severity_cleared():
     result = _run_with_citation("BLLD2019:art17",
                                 corpus=_corpus(effective_to=date(2022, 12, 31)))
-    assert result["merged"]["citations"] == []
-    for record in result["risk_records"]:
+    assert result["citations"] == []
+    for record in result["risks"]:
         assert record["citation_ids"] == []
         assert record["evidence_status"] == "INSUFFICIENT_EVIDENCE"
         assert record["severity"] is None
@@ -188,6 +190,6 @@ def test_approved_corpus_retrieval_populates_risk_candidates():
                                   corpus=corpus, retriever=retriever)
     asyncio.run(Orchestrator(store, lease, pipeline_runner=runner).run(session))
     assert session.status == SessionStatus.COMPLETED
-    assert session.result["merged"]["citations"]
+    assert session.result["citations"]
     assert all("BLLD2019:art17" in item["candidate_ids"]
                for request in risk.requests for item in request["items"])

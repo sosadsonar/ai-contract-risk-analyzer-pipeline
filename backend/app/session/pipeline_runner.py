@@ -1,8 +1,8 @@
 """Explicit dev/eval runner for local preprocessing and injected LLM providers.
 
-The product session store has no contract text. The caller owns the canonical source
-and provider/ledger lifecycle. It is not activated by the default Orchestrator
-constructor and does not produce the product final_result_v1 envelope.
+The caller owns the canonical source and provider/ledger lifecycle. This runner
+is opt-in; its result enters the in-memory session only after masked provider
+calls finish.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ from app.domain.errors import AiOutputInvalid, StageCancelled
 from app.integrations.risk_assembler import AssemblerContext, assemble_risk_output
 from app.legal.corpus_loader import LegalCorpus
 from app.privacy.masker import mask
+from app.session.final_result import build_final_result_v1
 from app.session.store import Session
 
 _ADVICE = re.compile(
@@ -150,11 +151,24 @@ def make_pipeline_runner(
         assembled = assemble_risk_output(upstream, validated, ctx, canonical_text=canonical_text)
         related_ids = {item.clause_id: [c.clause_id for c in item.related_clauses]
                        for item in related}
-        records = [dict(clause, quote=clause["original_text"],
-                        related_clause_ids=related_ids.get(clause["clause_id"], []))
-                   for clause in assembled.merged["clauses"]]
-        return {"schema_version": "dev_pipeline_result_v1",
-                "merged": assembled.merged, "risk_records": records,
-                "diagnostics": assembled.diagnostics}
+        pins = {
+            "extraction_version": getattr(cfg, "EXTRACTION_VERSION", "caller_canonical_v1"),
+            "clause_taxonomy_version": classified.taxonomy_version,
+            "risk_taxonomy_version": output.risk_taxonomy_version,
+            "severity_rubric_version": output.severity_rubric_version,
+            "corpus_version": corpus.corpus_version if corpus else "not_loaded",
+            "data_graph_version": corpus.graph_version if corpus else "not_loaded",
+            "clause_prompt_version": classified.prompt_version,
+            "risk_prompt_version": output.prompt_version,
+            "model_id": output.model_id,
+            "temperature": getattr(cfg, "GEMINI_TEMPERATURE", 0.0),
+            "app_commit": getattr(cfg, "APP_COMMIT", "dev-unpinned"),
+        }
+        return build_final_result_v1(
+            session_id=str(session.session_id), role=session.role.value,
+            analysis_date=session.analysis_date, canonical_text=canonical_text,
+            clauses=upstream, merged=assembled.merged,
+            related_clause_ids=related_ids, version_pins=pins,
+        )
 
     return run

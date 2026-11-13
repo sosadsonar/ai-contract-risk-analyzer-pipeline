@@ -15,8 +15,8 @@ Hàm thuần: không I/O, không import `api/` hay `session/`. Diagnostic cũng 
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 from typing import Optional, Sequence
 
 from app.clause.segmenter import SegmentedClause

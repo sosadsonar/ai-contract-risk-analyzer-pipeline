@@ -1,5 +1,4 @@
 import pytest
-
 from app.ai.risk_adapter import RiskItemIn, attach_graph_context
 from app.clause.context_resolver import resolve_context
 from app.clause.graph_builder import ClauseEdge, ClauseGraph
