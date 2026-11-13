@@ -91,6 +91,8 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
     all_predicted: list[RiskRecord] = []
     d2_gold: list[RiskRecord] = []
     d2_predicted: list[RiskRecord] = []
+    d1_gold: list[RiskRecord] = []
+    d1_predicted: list[RiskRecord] = []
     segment_counts = Counter()
     source_hashes = {}
     citation_total = citation_valid = quote_total = quote_valid = 0
@@ -113,15 +115,17 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
             spans = {item["gold_clause_ref"]: item for item in geometry["segments"]}
             doc_id = f"{dataset}:{doc}"
             if dataset == "D1":
-                risk_gold = _read_json(restricted / "D1_m2_risk_gold_v02" /
+                risk_gold = _read_json(restricted / "D1_m2_risk_gold_v03" /
                                        f"{doc}.risk_gold.json")
                 if risk_gold["status"] != "GOLD_ADJUDICATED":
                     raise ValueError("D1 risk Gold is not adjudicated")
                 for item in risk_gold["items"]:
                     span = spans[item["clause_id"]]
-                    all_gold.append(RiskRecord(item["clause_id"], item["role"],
-                                               item["risk_label"], item["basis_type"],
-                                               span["start_char"], span["end_char"], doc_id))
+                    record = RiskRecord(item["clause_id"], item["role"],
+                                        item["risk_label"], item["basis_type"],
+                                        span["start_char"], span["end_char"], doc_id)
+                    all_gold.append(record)
+                    d1_gold.append(record)
             else:
                 injections = _read_json(restricted / "D2_injection_gold_v01" /
                                         f"{doc}.injected_error_gold.json")
@@ -141,11 +145,14 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
                     record = RiskRecord(clause.clause_id, role, label,
                                         basis, clause.start_char,
                                         clause.end_char, doc_id)
-                    all_predicted.append(record)
-                    if dataset == "D2":
+                    if dataset == "D1":
+                        d1_predicted.append(record)
+                        all_predicted.append(record)
+                    elif label in _CITATIONS:
                         d2_predicted.append(record)
-                        if label == "UNILATERAL_CHANGE":
-                            labels_without_d2_gold[label] += 1
+                        all_predicted.append(record)
+                    else:
+                        labels_without_d2_gold[label] += 1
                     quote_total += 1
                     quote_valid += (clause.original_text == source[clause.start_char:clause.end_char])
                     for cid in _CITATIONS.get(label, ()):
@@ -155,19 +162,20 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
                             provision and provision.effective_from <= as_of
                             and (provision.effective_to is None or as_of <= provision.effective_to)
                         )
-    if len(d2_gold) != 60 or len(all_gold) != 66:
+    if len(d2_gold) != 60 or len(all_gold) != 74:
         raise ValueError("approved Dev Gold support changed")
     return {
-        "scope": "D1_D2_DEV_ARTICLE17_PLUS_SIX_D1_RISK_ITEMS",
+        "scope": "D1_D2_DEV_ARTICLE17_PLUS_FOURTEEN_D1_RISK_ITEMS",
         "classifier": "FROZEN_M5_ARTICLE17_PLUS_SOURCE_ONLY_UNILATERAL_DEV_RULE_NOT_PRODUCT_M2",
-        "gold_policy": "D1_M2_V02_PLUS_RATIFIED_D2_TWO_ROLE_INJECTION_V01_ON_D2_SEG_V02",
+        "gold_policy": "D1_M2_V03_PLUS_RATIFIED_D2_TWO_ROLE_INJECTION_V01_ON_D2_SEG_V02",
         "as_of": as_of.isoformat(),
         "source_sha256_by_document": source_hashes,
         "segment_counts": dict(segment_counts),
-        "d2_dev": evaluate_risk_classification(d2_gold, d2_predicted),
-        "combined_dev": evaluate_risk_classification(all_gold, all_predicted),
-        "gold_tuple_counts": {"d2": len(d2_gold), "combined": len(all_gold)},
-        "predicted_tuple_counts": {"d2": len(d2_predicted), "combined": len(all_predicted)},
+        "d2_dev": evaluate_risk_classification(d2_gold, d2_predicted, require_gold_spans=True),
+        "d1_dev": evaluate_risk_classification(d1_gold, d1_predicted, require_gold_spans=True),
+        "combined_dev": evaluate_risk_classification(all_gold, all_predicted, require_gold_spans=True),
+        "gold_tuple_counts": {"d1": len(d1_gold), "d2": len(d2_gold), "combined": len(all_gold)},
+        "predicted_tuple_counts": {"d1": len(d1_predicted), "d2": len(d2_predicted), "combined": len(all_predicted)},
         "predictions_on_d2_labels_without_gold": dict(labels_without_d2_gold),
         "m3a_local_rule_citation_proxy": {
             "status": "STATIC_ARTICLE17_MAPPING_CORPUS_EFFECTIVITY_ONLY_NOT_MODEL_CITATIONS",
@@ -182,7 +190,7 @@ def evaluate_dev(data_root: Path, corpus_root: Path, *, as_of: date) -> dict:
             "D2 two-role labels are an explicitly ratified Dev evaluation policy derived from verified injected cases.",
             "UNILATERAL_CHANGE is a separate source-only Dev heuristic; neither detector is an independent M2 model.",
             "D2 Gold covers Article 17 labels only; predicted UNILATERAL_CHANGE "
-            "on D2 is counted as FP by the unfiltered metric although D2 has no annotation for it.",
+            "on D2 is excluded from this label-scoped metric because D2 has no annotation for it.",
             "M3a counts static law citations assigned by rule label, not citations selected by an LLM.",
             "M4 checks the local segmentation quote invariant, not a product response envelope.",
             "D1 and D2 share underlying base documents; the combined score is not independent-sample evidence.",

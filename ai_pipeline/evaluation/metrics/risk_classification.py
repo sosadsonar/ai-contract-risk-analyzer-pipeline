@@ -23,6 +23,7 @@ class RiskRecord:
     start_char: int | None = None
     end_char: int | None = None
     document_id: str = ""
+    offset_quality: str = "EXACT"
 
 
 def map_dev_candidate_to_risk_labels(
@@ -105,10 +106,78 @@ def _wilson(successes: int, total: int) -> tuple[float, float] | None:
     return max(0.0, center - margin), min(1.0, center + margin)
 
 
+def _merged_excluded_regions(regions: Sequence[dict]) -> dict[tuple[str, str], list[tuple[int, int]]]:
+    grouped: dict[tuple[str, str], list[tuple[int, int]]] = {}
+    for region in regions:
+        start, end = region["start_char"], region["end_char"]
+        if not isinstance(start, int) or not isinstance(end, int) or start < 0 or end <= start:
+            raise ValueError("invalid excluded scope region")
+        key = (region["document_id"].removeprefix("T1:"), region["role"])
+        grouped.setdefault(key, []).append((start, end))
+    for key, intervals in grouped.items():
+        merged = []
+        for start, end in sorted(intervals):
+            if merged and start - merged[-1][1] <= 15:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+            else:
+                merged.append((start, end))
+        grouped[key] = merged
+    return grouped
+
+
 def evaluate_risk_classification(
     gold: Sequence[RiskRecord], predicted: Sequence[RiskRecord],
+    *, require_gold_spans: bool = False,
+    excluded_scope_regions: Sequence[dict] = (),
 ) -> dict:
     """Score all 21 labels; zero-support labels receive F1=0 in all-label macro."""
+    merged_regions = _merged_excluded_regions(excluded_scope_regions)
+
+    excluded_gold = sum(
+        item.offset_quality == "CONTEXT" or
+        (require_gold_spans and (item.start_char is None or item.end_char is None))
+        for item in gold
+    )
+    gold = [item for item in gold if item.offset_quality != "CONTEXT" and
+            (not require_gold_spans or
+             (item.start_char is not None and item.end_char is not None))]
+
+    def within_scope(records: Sequence[RiskRecord]) -> tuple[list[RiskRecord], list[dict], list[dict]]:
+        included = []
+        excluded = []
+        warnings = []
+        for item in records:
+            regions = merged_regions.get((item.document_id.removeprefix("T1:"), item.role), [])
+            if not regions:
+                included.append(item)
+                continue
+            if item.start_char is None or item.end_char is None:
+                raise ValueError("cannot check scope exclusion without a span")
+            overlaps = [(max(0, min(item.end_char, end) - max(item.start_char, start)),
+                         end - start, start, end) for start, end in regions]
+            overlaps = [part for part in overlaps if part[0] > 0]
+            if not overlaps:
+                included.append(item)
+            else:
+                length = item.end_char - item.start_char
+                total_intersection = sum(part[0] for part in overlaps)
+                above = total_intersection / length >= 0.5 or any(
+                    intersection / region_length >= 0.5 or
+                    intersection / (length + region_length - intersection) >= 0.5
+                    for intersection, region_length, _, _ in overlaps)
+                entry = {"document_id": item.document_id, "clause_id": item.clause_id,
+                         "role": item.role, "risk_label": item.risk_label,
+                         "start_char": item.start_char, "end_char": item.end_char,
+                         "intersection_chars": total_intersection}
+                if above:
+                    excluded.append(entry)
+                else:
+                    included.append(item)
+                    warnings.append(entry)
+        return included, excluded, warnings
+
+    gold, scope_excluded_gold, gold_overlap_warnings = within_scope(gold)
+    predicted, scope_excluded_predicted, pred_overlap_warnings = within_scope(predicted)
     gold_spans, pred_spans = _validate(gold), _validate(predicted)
     mapping = _align_clauses(gold_spans, pred_spans)
     gold_keys = {(r.document_id, r.clause_id, r.role, r.risk_label) for r in gold}
@@ -156,6 +225,16 @@ def evaluate_risk_classification(
         "gold_label_coverage": {"present": len(present), "total": len(RISK_LABELS)},
         "full_taxonomy_coverage": len(present) == len(RISK_LABELS),
         "alignment_pairs": len(mapping),
+        "excluded_gold_unalignable": excluded_gold,
+        "excluded_scope_gold_records": len(scope_excluded_gold),
+        "excluded_scope_predicted_records": len(scope_excluded_predicted),
+        "merged_excluded_regions": [
+            {"document_id": doc, "role": role, "start_char": start, "end_char": end}
+            for (doc, role), intervals in sorted(merged_regions.items())
+            for start, end in intervals],
+        "excluded_overlap_predictions": scope_excluded_predicted,
+        "partial_excluded_overlap_warnings": pred_overlap_warnings,
+        "partial_excluded_gold_overlap_warnings": gold_overlap_warnings,
         "basis_type_accuracy": basis_correct / len(tp_keys) if tp_keys else None,
         "basis_type_ci95": _wilson(basis_correct, len(tp_keys)),
         "basis_type_support": len(tp_keys),

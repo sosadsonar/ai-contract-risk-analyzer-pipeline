@@ -78,3 +78,59 @@ def test_legacy_m5_label_bridge_is_explicit():
         ("EMPLOYER", "DEPOSIT_DOCUMENT_HELD"),
     )) == (("EMPLOYEE", "DISCIPLINE_OBLIGATION"),
            ("EMPLOYER", "DEPOSIT_DOCUMENT_HELD"))
+
+
+def test_context_and_null_gold_spans_are_excluded_from_span_scoring():
+    gold = [
+        RiskRecord("context", "EMPLOYEE", "PROBATION", "AMBIGUOUS",
+                   document_id="D1", offset_quality="CONTEXT"),
+        RiskRecord("null", "EMPLOYEE", "PROBATION", "AMBIGUOUS",
+                   document_id="D1"),
+        RiskRecord("exact", "EMPLOYEE", "PROBATION", "AMBIGUOUS",
+                   10, 30, "D1"),
+    ]
+    result = evaluate_risk_classification(
+        gold, [RiskRecord("exact", "EMPLOYEE", "PROBATION", "AMBIGUOUS",
+                          10, 30, "D1")], require_gold_spans=True)
+    assert result["excluded_gold_unalignable"] == 2
+    assert result["micro_counts"] == {"tp": 1, "fp": 0, "fn": 0}
+
+
+def test_closed_corpus_scope_excludes_contained_prediction():
+    region = {"document_id": "HDLD005", "role": "EMPLOYEE",
+              "start_char": 100, "end_char": 200}
+    result = evaluate_risk_classification(
+        [RiskRecord("gold", "EMPLOYEE", "PROBATION", "AMBIGUOUS",
+                    10, 50, "T1:HDLD005")],
+        [RiskRecord("pred", "EMPLOYEE", "PROBATION", "AMBIGUOUS",
+                    110, 180, "T1:HDLD005")],
+        require_gold_spans=True, excluded_scope_regions=[region])
+    assert result["excluded_scope_predicted_records"] == 1
+    assert result["micro_counts"] == {"tp": 0, "fp": 0, "fn": 1}
+
+
+def test_closed_corpus_scope_warns_on_small_partial_overlap():
+    region = {"document_id": "HDLD005", "role": "EMPLOYEE",
+              "start_char": 100, "end_char": 200}
+    result = evaluate_risk_classification(
+        [], [RiskRecord("pred", "EMPLOYEE", "PROBATION", "AMBIGUOUS",
+                        75, 110, "T1:HDLD005")],
+        excluded_scope_regions=[region])
+    assert result["micro_counts"]["fp"] == 1
+    assert len(result["partial_excluded_overlap_warnings"]) == 1
+
+
+def test_closed_corpus_scope_excludes_majority_overlap_and_merges_nearby_regions():
+    regions = [{"document_id": "HDLD005", "role": "EMPLOYEE",
+                "start_char": 100, "end_char": 120},
+               {"document_id": "HDLD005", "role": "EMPLOYEE",
+                "start_char": 130, "end_char": 160}]
+    result = evaluate_risk_classification(
+        [], [RiskRecord("pred", "EMPLOYEE", "PROBATION", "AMBIGUOUS",
+                        90, 170, "T1:HDLD005")],
+        excluded_scope_regions=regions)
+    assert result["merged_excluded_regions"] == [
+        {"document_id": "HDLD005", "role": "EMPLOYEE",
+         "start_char": 100, "end_char": 160}]
+    assert result["micro_counts"]["fp"] == 0
+    assert len(result["excluded_overlap_predictions"]) == 1
