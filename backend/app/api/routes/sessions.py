@@ -1,14 +1,14 @@
 """Session lifecycle HTTP contract; results are explicitly dev samples."""
-import io
 from uuid import UUID
 
-from docx import Document
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 
 from app.api.errors import api_error
 from app.api.upload import parse_upload
 from app.core.enums import Role, SessionStatus
+from app.result.export_docx import export_docx
+from app.result.report_model import build_report_model
 from app.session.store import Session, utcnow
 
 router = APIRouter(prefix="/api/v1/sessions", tags=["sessions"])
@@ -148,24 +148,13 @@ def export(request: Request, session_id: str, format: str = "docx"):
     if format != "docx":
         return api_error(501, "FEATURE_NOT_ENABLED")
     result = session.result
-    report = Document()
-    report.add_heading("Phân tích rủi ro hợp đồng lao động", 0)
-    for clause in result["clauses"]:
-        report.add_heading(clause["clause_id"], level=1)
-        report.add_paragraph(clause["original_text"])
-        for risk in result["risks"]:
-            if risk["clause_id"] == clause["clause_id"]:
-                report.add_paragraph(f"Rủi ro: {', '.join(risk['risk_labels'])} ({risk['severity']})")
-                report.add_paragraph(risk["explanation"])
-                report.add_paragraph(f"Căn cứ: {', '.join(risk['citation_ids'])}")
-    for citation in result["citations"]:
-        report.add_paragraph(f"{citation['citation_id']}: {citation['content']}")
-    report.add_paragraph(result["disclaimer"])
-    report.add_paragraph(result["data_notice"])
-    buffer = io.BytesIO()
-    report.save(buffer)
-    return Response(buffer.getvalue(), media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # noqa: E501
-                    headers={"Content-Disposition": 'attachment; filename="report.docx"'})
+    model = build_report_model(result)
+    docx_bytes = export_docx(model)
+    return Response(
+        docx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": 'attachment; filename="report.docx"'},
+    )
 
 
 @router.delete("/{session_id}")
