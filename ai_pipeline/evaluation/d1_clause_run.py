@@ -158,7 +158,7 @@ def summarize(runs: list[ContractRun], d1: dict[str, tuple[str, list[GoldSpan]]]
         labels = {i.clause_id: tuple(i.clause_labels) for i in (r.output.items if r.output else [])}
         for c in r.segmentation.clauses:
             seg_pred.append((c.start_char + base, c.end_char + base))
-            if r.output:
+            if r.output and c.clause_id in labels:
                 pred_all.append(PredClause(c.start_char + base, c.end_char + base, labels[c.clause_id]))
         edges = r.graph.edges
         per_contract.append({
@@ -166,6 +166,7 @@ def summarize(runs: list[ContractRun], d1: dict[str, tuple[str, list[GoldSpan]]]
             "canonical_chars": r.canonical_len,
             "pii_spans": r.pii_spans,
             "clauses": len(r.segmentation.clauses),
+            "classified_clauses": len(r.output.items) if r.output else 0,
             "segmentation_warnings": len(r.segmentation.warnings),
             "gold_exact_spans": len(gold),
             "graph_next": sum(e.edge_type == ClauseEdgeType.NEXT for e in edges),

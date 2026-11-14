@@ -17,7 +17,7 @@ def create(client, data=b"%PDF-1.4"):
     return client.post(BASE, data={"role": "EMPLOYEE"}, files={"file": ("x.pdf", data)})
 
 
-def test_role_gate_and_file_boundaries():
+def test_role_gate_and_file_boundaries(sample_mode):
     with TestClient(app) as client:
         assert client.post(BASE, files={"file": ("x.pdf", b"%PDF-")}).json()["error"]["code"] == "ROLE_REQUIRED"
         assert len(app.state.store.sessions) == 0
@@ -36,7 +36,7 @@ def test_role_gate_and_file_boundaries():
         assert client.get(f"{BASE}/{sid}/result").status_code == 409
 
 
-def test_busy_precedes_session_creation_and_retry_counter():
+def test_busy_precedes_session_creation_and_retry_counter(sample_mode):
     with TestClient(app) as client:
         first = create(client).json()["session_id"]
         second = create(client)
@@ -58,7 +58,7 @@ def test_busy_precedes_session_creation_and_retry_counter():
         assert app.state.store.get(session.session_id) is None
 
 
-def test_status_does_not_extend_ttl_but_result_does():
+def test_status_does_not_extend_ttl_but_result_does(sample_mode):
     with TestClient(app) as client:
         sid = create(client).json()["session_id"]
         session = app.state.store.get(UUID(sid))
@@ -70,7 +70,7 @@ def test_status_does_not_extend_ttl_but_result_does():
         assert session.last_activity_at > before
 
 
-def test_simultaneous_lease_attempts_only_one_owner():
+def test_simultaneous_lease_attempts_only_one_owner(sample_mode):
     with TestClient(app) as client:
         barrier = threading.Barrier(2)
         lease = app.state.lease

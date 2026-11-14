@@ -1,5 +1,6 @@
 """X-24: parser Điều/Khoản, mở rộng label_map nháp, nút Điều-tiêu-đề không làm seed BM25."""
 
+import os
 import json
 import sys
 from datetime import date
@@ -76,5 +77,5 @@ def test_cli_outputs_jsonl(tmp_path):
     src.write_text(TEXT, encoding="utf-8")
     res = subprocess.run([sys.executable, str(ROOT / "scripts/parse_legal_text.py"), str(src), "--document-id", "TEST",
                           "--document-name", "Luật thử", "--version", "v", "--effective-from", "2021-01-01"],
-                         capture_output=True, text=True, check=True)
+                         capture_output=True, text=True, encoding="utf-8", env= {**os.environ, "PYTHONUTF8": "1"}, check=True)
     assert len([json.loads(x) for x in res.stdout.splitlines()]) == 7

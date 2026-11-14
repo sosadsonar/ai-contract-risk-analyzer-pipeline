@@ -52,7 +52,7 @@ def _ctx(role="EMPLOYEE", citations=None):
         citations = [{"citation_id": "BLLD2019:art17"}, {"citation_id": "BLLD2019:art26"}]
     return AssemblerContext(
         session_id="s1", role=role, clause_stage={"prompt_version": "c1"},
-        citations=citations, model_id="m", prompt_version="risk_prompt_v1",
+        citations=citations, model_id="m", prompt_version="risk_prompt_v2",
     )
 
 
@@ -60,7 +60,7 @@ def test_happy_path_flat_span_pins_from_ctx_and_only_used_citations():
     res = assemble_risk_output(_upstream(), _ai(_item("cl_0002")), _ctx(), canonical_text=TEXT)
     m = res.merged
     assert m["schema_version"] == "risk_merged_v1"
-    assert (m["model_id"], m["prompt_version"]) == ("m", "risk_prompt_v1")
+    assert (m["model_id"], m["prompt_version"]) == ("m", "risk_prompt_v2")
     assert m["risk_taxonomy_version"] == "risk_taxonomy_v01"
     assert m["citations"] == [{"citation_id": "BLLD2019:art17"}]
     c = m["clauses"][0]

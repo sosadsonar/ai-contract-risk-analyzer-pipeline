@@ -11,7 +11,7 @@ _PINS = {
     "corpus_version": "legal_corpus_2026-10-12",
     "data_graph_version": "legal_graph_2026-10-12",
     "clause_prompt_version": "clause_prompt_v1",
-    "risk_prompt_version": "risk_prompt_v1",
+    "risk_prompt_version": "risk_prompt_v2",
     "model_id": "fake-model",
     "temperature": 0.0,
     "app_commit": "test-commit",
