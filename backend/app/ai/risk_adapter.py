@@ -1,8 +1,15 @@
 """Risk Analysis adapter — LLM #2 (TDD §15, C-15 khung, W3).
 
-Trạng thái W3: KHUNG chạy được với provider mock/Gemini/local; chưa chạy trên D1, chưa nối orchestrator.
-Chưa có (tuần 5, C-15 a): detect_advice, detect_unsupported_reference, sanitize_explanation,
-citation_validator, resolve ngày hiệu lực. Adapter chỉ kiểm cấu trúc và ràng buộc chéo của schema.
+C-15 (a) (W5): ngoài kiểm cấu trúc, adapter kiểm NGỮ NGHĨA trong cùng cơ chế retry ≤1 có phản hồi
+(TDD §15.3, §15.5, X-22):
+  * (nhãn, basis_type, vai trò) rơi vào ô '-' của taxonomy;
+  * explanation có lời khuyên (`detect_advice`) hoặc dẫn chiếu luật không khớp citation đã chọn
+    (`detect_unsupported_reference`, chỉ tính citation thuộc candidate của clause).
+Lần đầu vi phạm ⇒ ValueError có phản hồi (chỉ ID/nhãn/mã, không text) ⇒ retry. Lần cuối vẫn vi phạm:
+  * gỡ nhãn sai tổ hợp; hết nhãn ⇒ `need_review=True` (bản ghi "nghi ngờ, cần xem xét": INSUFFICIENT,
+    severity null, không citation; assembler giữ clause, UI hiện thẻ nét đứt);
+  * xóa câu vi phạm bằng `sanitize_explanation`; rỗng ⇒ AiOutputInvalid (FAILED).
+Citation validator (lọc theo candidate + hiệu lực, hạ INSUFFICIENT) chạy SAU adapter, ở pipeline.
 
 Bất biến:
   INV-04  ra ngoài chỉ có masked_text, nhãn clause, candidate (nội dung luật công khai), role; không
@@ -20,7 +27,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Callable, Optional
 
 from app.ai.prompts.risk_v1 import (
@@ -34,11 +41,14 @@ from app.ai.prompts.risk_v1 import (
 from app.ai.provider import CallLedger, LLMProvider, call_with_retry
 from app.core.enums import Role
 from app.domain.errors import AiOutputInvalid, StageCancelled
+from app.risk.lint import lint_explanation, sanitize_explanation
 from app.risk.taxonomy import (
     MAX_RISK_LABELS_PER_CLAUSE,
     RISK_LABEL_SET,
     RISK_TAXONOMY_VERSION,
     SEVERITY_RUBRIC_VERSION,
+    invalid_labels_for_role,
+    severity_for,
 )
 
 _CLAUSE_ID = re.compile(r"^cl_[0-9]{4}$")
@@ -100,6 +110,10 @@ class RiskItemOut:
     evidence_status: str
     explanation: str
     related_clause_ids: list[str] = field(default_factory=list)
+    # Không thuộc risk_output_v2 (model không trả): backend đặt khi tổ hợp nhãn/basis/vai trò vẫn sai sau retry.
+    need_review: bool = False
+    labels_dropped: list[str] = field(default_factory=list)
+    sanitized: bool = False
 
     def to_dict(self) -> dict:
         out = {
@@ -113,6 +127,45 @@ class RiskItemOut:
         if self.related_clause_ids:  # vắng khi rỗng: đầu ra cũ không đổi
             out["related_clause_ids"] = list(self.related_clause_ids)
         return out
+
+
+def allowed_basis(label: str, role: str) -> list[str]:
+    return [b for b in BASIS_TYPE_DEFINITIONS if severity_for(label, b, role) is not None]
+
+
+def semantic_problems(role: str, items: list[RiskItemOut], batch: list[RiskItemIn]) -> list[str]:
+    """Phản hồi cho retry (chỉ ID, nhãn, mã — KHÔNG text hợp đồng/explanation)."""
+    candidates = {b.clause_id: set(b.candidate_ids) for b in batch}
+    problems: list[str] = []
+    for it in items:
+        for label in invalid_labels_for_role(it.risk_labels, it.basis_type, role):
+            allowed = ", ".join(allowed_basis(label, role)) or "không loại nào (không phải rủi ro của vai trò này)"
+            problems.append(f"{it.clause_id}: {label} không dùng với {it.basis_type} cho {role}; được phép: {allowed}")
+        valid_cites = [c for c in it.citation_ids if c in candidates.get(it.clause_id, set())]
+        for code in lint_explanation(it.explanation, valid_cites):
+            problems.append(f"{it.clause_id}: explanation vi phạm {code}")
+    return problems
+
+
+def finalize_items(role: str, items: list[RiskItemOut], batch: list[RiskItemIn]) -> list[RiskItemOut]:
+    """Lần cuối (không còn retry): gỡ nhãn sai, đánh need_review, sanitize câu vi phạm."""
+    candidates = {b.clause_id: set(b.candidate_ids) for b in batch}
+    out: list[RiskItemOut] = []
+    for it in items:
+        bad = invalid_labels_for_role(it.risk_labels, it.basis_type, role)
+        if bad and len(bad) == len(it.risk_labels):
+            it = replace(it, need_review=True, labels_dropped=list(bad), evidence_status="INSUFFICIENT_EVIDENCE",
+                         citation_ids=[])
+        elif bad:
+            it = replace(it, risk_labels=[x for x in it.risk_labels if x not in bad], labels_dropped=list(bad))
+        valid_cites = [c for c in it.citation_ids if c in candidates.get(it.clause_id, set())]
+        if lint_explanation(it.explanation, valid_cites):
+            cleaned = sanitize_explanation(it.explanation, valid_cites)
+            if cleaned is None:
+                raise AiOutputInvalid(f"explanation rỗng sau sanitize ở {it.clause_id}")
+            it = replace(it, explanation=cleaned, sanitized=True)
+        out.append(it)
+    return out
 
 
 @dataclass(frozen=True)
@@ -155,7 +208,8 @@ def _related_ids(it: dict, clause: RiskItemIn) -> list[str]:
         raise ValueError(f"related_clause_ids phải là mảng cl_NNNN ở {cid}")
     if len(set(rel)) != len(rel):
         raise ValueError(f"related_clause_ids bị trùng ở {cid}")
-    allowed = {r.clause_id for r in clause.related_clauses}
+    # FR-32: chỉ cặp có cạnh Clause Graph; context chung (COMMON_*, FR-33) không phải quan hệ mâu thuẫn.
+    allowed = {r.clause_id for r in clause.related_clauses if not r.relation.startswith("COMMON_")}
     if any(x == cid or x not in allowed for x in rel):
         raise ValueError(f"related_clause_ids ngoài context hoặc tự tham chiếu ở {cid}")
     return list(rel)
@@ -269,8 +323,21 @@ async def analyze_risks(
     resp_model: dict[int, str] = {}
     outside = 0
 
+    retries = min(max(int(cfg.LLM_AUTO_RETRY), 0), 1)
+
     async def run(idx: int, batch: list[RiskItemIn]) -> None:
         nonlocal outside
+        attempts = {"n": 0}
+
+        def validate(data: dict, b: list[RiskItemIn] = batch) -> list[RiskItemOut]:
+            strict = attempts["n"] < retries  # còn lượt retry ⇒ vi phạm ngữ nghĩa thì xin model sửa
+            attempts["n"] += 1
+            parsed_items = validate_batch_response(data, b)
+            problems = semantic_problems(role, parsed_items, b)
+            if problems and strict:
+                raise ValueError("; ".join(problems))
+            return finalize_items(role, parsed_items, b)
+
         async with sem:
             if cancel is not None and cancel():
                 raise StageCancelled()
@@ -281,9 +348,11 @@ async def analyze_risks(
                 messages=build_messages(_batch_request(role, batch, candidates)),
                 response_schema=RESPONSE_SCHEMA,
                 timeout_s=cfg.LLM_TIMEOUT_SECONDS,
-                validate=lambda data, b=batch: validate_batch_response(data, b),
+                validate=validate,
                 max_retries=cfg.LLM_AUTO_RETRY,
             )
+            if cancel is not None and cancel():  # callback muộn sau End bị bỏ
+                raise StageCancelled()
             allowed = {b.clause_id: set(b.candidate_ids) for b in batch}
             outside += sum(1 for r in parsed for c in r.citation_ids if c not in allowed[r.clause_id])
             results[idx] = parsed

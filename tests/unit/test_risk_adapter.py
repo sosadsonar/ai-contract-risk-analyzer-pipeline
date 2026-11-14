@@ -72,7 +72,7 @@ def test_happy_path_batches_orders_and_pins():
     out = run(analyze_risks("EMPLOYEE", [item(1), item(2), item(3)], CANDS, p, led, CFG))
     assert [i.clause_id for i in out.items] == ["cl_0001", "cl_0002", "cl_0003"]
     assert len(p.calls) == 2
-    assert out.model_id == "m-test" and out.prompt_version.startswith("risk_prompt_v1+")
+    assert out.model_id == "m-test" and out.prompt_version.startswith("risk_prompt_v2+")
     assert out.pins()["severity_rubric_version"] == "severity_v01"
     assert set(out.to_dict()) == {"schema_version", "items"}
     assert out.citations_outside_candidate == 0

@@ -75,6 +75,6 @@ def test_local_model_risk_output_passes_validation():
     for it in out.items:  # có thể rỗng nếu model cho là không rủi ro; nếu có thì phải hợp lệ
         assert set(it.risk_labels) <= RISK_LABEL_SET
         assert it.clause_id in {i.clause_id for i in RISK_ITEMS}
-    assert out.prompt_version.startswith("risk_prompt_v1+")
+    assert out.prompt_version.startswith("risk_prompt_v2+")
     _write("risk", {"model": MODEL, "calls": ledger.calls, "citations_outside_candidate": out.citations_outside_candidate,  # noqa: E501
                     **out.to_dict()})

@@ -163,7 +163,7 @@ async def call_with_retry(
                 attempt += 1
                 msgs = list(messages) + [{
                     "role": "user",
-                    "content": "Phản hồi trước không hợp lệ: " + str(e)[:300]
+                    "content": "Phản hồi trước không hợp lệ: " + str(e)[:1200]
                     + ". Trả lại JSON đúng schema, chỉ gồm các trường được yêu cầu.",
                 }]
                 continue
