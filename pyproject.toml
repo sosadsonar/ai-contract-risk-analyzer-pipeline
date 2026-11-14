@@ -24,8 +24,7 @@ classifiers = [
 dependencies = [
     # AI & Core Pipeline
     "pydantic>=2.0",        # Data validation & Structured Output (Cực quan trọng)
-    "ollama>=0.1.0",        # SDK gọi model Qwen-2.5 local
-    "requests>=2.31.0",     # Gọi REST API cho Gemini free tier
+    "requests>=2.31.0",     # Transport REST cho Gemini (gemini_client) và Ollama dev (dev_local_client)
     
     # Backend & API (Cho nhóm Backend)
     "fastapi>=0.100.0",
@@ -35,11 +34,6 @@ dependencies = [
     "watchfiles>=0.21.0",   # Auto-reload cho uvicorn
     "websockets>=12.0",     # Hỗ trợ WebSocket cho uvicorn
     
-    # Database & ORM
-    "sqlalchemy>=2.0.0",    # ORM quản lý cơ sở dữ liệu
-    "alembic>=1.12.0",      # Quản lý migration cơ sở dữ liệu
-    "psycopg>=3.1.0",       # PostgreSQL driver (v3)
-    "psycopg-binary>=3.1.0",
     
     # Document Processing & Utilities
     "pymupdf>=1.24.0",      # Xử lý và trích xuất text từ PDF hợp đồng
@@ -59,7 +53,6 @@ dev = [
     "pytest-asyncio>=0.24",
     "httpx>=0.28",
     "ruff>=0.1.0",          # Linter & Formatter code siêu nhanh (Thay thế Flake8/Black)
-    "jupyter>=1.0.0",       # Để chạy các file .ipynb EDA dữ liệu
 ]
 test = [
     "pytest-asyncio>=1.4.1"
@@ -102,5 +95,6 @@ markers = [
 pythonpath = [".", "backend"]
 testpaths = [
     "tests",
+    "backend/tests",
 ]
 asyncio_mode = "auto"
