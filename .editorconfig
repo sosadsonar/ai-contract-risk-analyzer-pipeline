@@ -1,0 +1,10 @@
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+
+# Corpus luật được ghim checksum theo byte LF (.gitattributes, manifest.yaml). Editor KHÔNG được đổi sang CRLF;
+# nếu checksum lệch trên Windows: `git checkout -- data/legal_corpus` (hoặc `git add --renormalize`), KHÔNG băm lại.
+[data/legal_corpus/**]
+end_of_line = lf
