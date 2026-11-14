@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     CLAUSE_GRAPH_MAX_CONTEXT_CHARS: int = Field(default=6000, gt=0)
     SCOPE_TITLE_SCAN_CHARS: int = Field(default=1000, gt=0)
     TEMPERATURE: float = Field(default=0.0, ge=0)
+    # OI-05 §2.4: giá model có nguồn (URL + ngày hiệu lực trong LLM_PRICE_SOURCE). Không có default:
+    # giá chưa kiểm chứng thì để trống, cost ghi 0.0 = chưa biết.
+    LLM_PRICE_INPUT_USD_PER_MTOK: float | None = Field(default=None, ge=0)
+    LLM_PRICE_OUTPUT_USD_PER_MTOK: float | None = Field(default=None, ge=0)
+    LLM_PRICE_SOURCE: str | None = None
     WEB_CONCURRENCY: int = Field(default=1, ge=1)
 
 
