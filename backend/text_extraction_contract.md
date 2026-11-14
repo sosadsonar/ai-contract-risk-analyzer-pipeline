@@ -182,8 +182,12 @@ markers verbatim; it never exports level/parent/numbering kind. Changes from v1:
 
 Because canonical text can differ from v1, the version is `extract_docx_v2`;
 spans/offsets computed on v1 text must be recomputed, never reused.
-`structure_parser_v2` recognises Roman numerals (`roman`) and `+` (as `dash`)
-without relaxing weak-group rules; singleton/broken groups are a documented
+`structure_parser_v2` recognises Roman numerals (`roman`) without relaxing
+weak-group rules. **Amended at the 14/11 merge:** `+` is its own `plus` kind
+(a child level under `-`), recognised only when `allow_plus` is on; the product
+pipeline uses segmentation `rules_v1.3` (`+` gated by a parent block of at least
+160 characters, plus blank-line paragraph split), the configuration the Data Lead
+measured on D1/D2 Dev. N3 must amend the wording of OI-11 §2 accordingly; singleton/broken groups are a documented
 limitation. Unsupported automatic formats stay unmaterialized. OI-11 is **not
 CLOSED** until N2 supplies verified real DOCX fixtures/expected canonical text
 and N5 confirms highlight (OPEN_ISSUES_HANDLE_v4 §6.4).

@@ -48,7 +48,8 @@ class Settings(BaseSettings):
     LLM_PRICE_SOURCE: str | None = None
     WEB_CONCURRENCY: int = Field(default=1, ge=1)
     LEGAL_CORPUS_DIR: str = "data/legal_corpus"
-    APP_COMMIT: str = "unknown"  # demo: đặt bằng `git rev-parse HEAD` (EV-07)
+    # EV-07: SHA 40 ký tự; trống ⇒ `resolve_app_commit` đọc `git rev-parse HEAD` (không có .git ⇒ "dev-unpinned").
+    APP_COMMIT: str | None = None
 
 
 def load_settings() -> Settings:

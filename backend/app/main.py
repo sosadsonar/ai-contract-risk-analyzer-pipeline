@@ -31,6 +31,7 @@ from app.ops.runlog import RunLogWriter
 from app.ops.session_ledger import SessionLedger
 from app.pipeline import PipelineDeps
 from app.session.cleanup import CleanupScheduler
+from app.session.final_result import resolve_app_commit
 from app.session.lock import ProcessingLease
 from app.session.orchestrator import Orchestrator, make_pipeline_runner
 from app.session.store import InMemorySessionStore
@@ -74,10 +75,11 @@ def build_runner(cfg: Settings, quota: DailyQuota, runlog: RunLogWriter):
     if cfg.APP_ENV == "dev" and cfg.DEV_LLM_PROVIDER == "fake" and not cfg.GEMINI_MODEL_ID:
         run_cfg = cfg.model_copy(update={"GEMINI_MODEL_ID": FAKE_MODEL_ID})
     corpus, retriever, graph = load_legal(cfg)
+    app_commit = resolve_app_commit(cfg)  # EV-07, tính một lần lúc khởi động
 
     def deps_for(session):
         return PipelineDeps(run_cfg, provider, SessionLedger(quota, runlog, session.session_id), corpus,
-                            retriever, graph, cfg.APP_COMMIT)
+                            retriever, graph, app_commit)
 
     return make_pipeline_runner(deps_for)
 

@@ -50,6 +50,8 @@ async def parse_upload(request: Request, file_limit: int, on_role) -> Upload:
         message["content-disposition"] = headers.get(b"content-disposition", b"").decode("latin-1")
         field = message.get_param("name", header="content-disposition") or ""
         if field == "file":
+            if upload.file_seen:
+                upload.error = "UNSUPPORTED_FILE_TYPE"
             upload.file_seen = True
             upload.filename = message.get_param("filename", header="content-disposition")
 

@@ -1,142 +1,254 @@
-"""M2 (risk classification macro-F1), M2b (độ chính xác basis_type) và M9 (giải thích đúng) — BRD §8.3.
+"""M2/M2b evaluation of (clause, role, risk label), with optional span alignment.
 
-* M2: đơn vị chấm là bộ ba (điều khoản, vai trò, risk label) theo tài liệu. Báo per-class; macro-F1 CHỈ tính
-  nhãn có support (gold) ≥ `min_support` (mặc định 5). Ngưỡng nghiệm thu ≥ 0.80 trên T1 (không tune trên T1).
-* M2b: trên các bộ ba đã khớp ở M2, tỷ lệ basis_type dự đoán = gold. Báo kèm khoảng tin cậy; chưa có ngưỡng
-  (OI-09). Severity không có chỉ số riêng (tra bảng từ nhãn, basis, vai trò).
-* M9: mỗi output có nhãn chấm ĐÚNG / ĐÚNG_MỘT_PHẦN / SAI (người chấm; judge chỉ khi M6 đạt). Chỉ số chính
-  = ĐÚNG / tổng (≥ 80% tạm); báo thêm tỷ lệ ĐÚNG_MỘT_PHẦN. Mẫu 40 output dùng chung với M3b.
-
-Khoảng tin cậy: cluster bootstrap theo document, seed cố định. `clause_ref` phải đã được căn chỉnh gold ↔
-pipeline trước (alignment.py, IoU ≥ 0.5); module này không tự căn chỉnh span.
+BRD §8.3 M2: chỉ số nghiệm thu là `macro_f1_min_support` — macro-F1 CHỈ trên nhãn có gold support ≥ 5
+(`MIN_SUPPORT`). `macro_f1_present_labels` (support ≥ 1) và `macro_f1_all_21_labels` là chẩn đoán.
+M2b báo khoảng tin cậy Wilson (BRD ghi bootstrap — xem DATA_LEAD_INTEGRATION_REVIEW; chưa đổi để giữ số đã
+báo cáo). M9 nằm ở `explanation_quality.py`.
 """
 
 from __future__ import annotations
 
+import math
 from collections import Counter
 from dataclasses import dataclass
-from typing import Iterable
+from statistics import NormalDist
+from typing import Sequence
 
-from ai_pipeline.evaluation.metrics.bootstrap import bootstrap_cluster_interval
+from app.core.enums import BasisType, Role
+from app.risk.taxonomy import RISK_LABELS
+
+from ai_pipeline.evaluation.metrics.alignment import greedy_align_spans, span_iou
 
 MIN_SUPPORT = 5
-M9_LABELS = ("CORRECT", "PARTIAL", "WRONG")
 
 
 @dataclass(frozen=True)
-class RiskTriple:
-    document_id: str
-    clause_ref: str
+class RiskRecord:
+    clause_id: str
     role: str
     risk_label: str
-    basis_type: str = ""
-
-    @property
-    def key(self) -> tuple[str, str, str, str]:
-        return (self.document_id, self.clause_ref, self.role, self.risk_label)
-
-
-def _per_class(gold: list[RiskTriple], pred: list[RiskTriple]) -> dict[str, dict]:
-    gold_keys = {g.key for g in gold}
-    pred_keys = {p.key for p in pred}
-    labels = sorted({k[3] for k in gold_keys | pred_keys})
-    out: dict[str, dict] = {}
-    for label in labels:
-        g = {k for k in gold_keys if k[3] == label}
-        p = {k for k in pred_keys if k[3] == label}
-        tp, fp, fn = len(g & p), len(p - g), len(g - p)
-        precision = tp / (tp + fp) if tp + fp else 0.0
-        recall = tp / (tp + fn) if tp + fn else 0.0
-        f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-        out[label] = {"support": len(g), "tp": tp, "fp": fp, "fn": fn,
-                      "precision": precision, "recall": recall, "f1": f1}
-    return out
+    basis_type: str
+    start_char: int | None = None
+    end_char: int | None = None
+    document_id: str = ""
+    offset_quality: str = "EXACT"
 
 
-def _macro(per_class: dict[str, dict], min_support: int) -> float | None:
-    scored = [v["f1"] for v in per_class.values() if v["support"] >= min_support]
-    return sum(scored) / len(scored) if scored else None
+def map_dev_candidate_to_risk_labels(
+    candidates: tuple[tuple[str, str], ...],
+) -> tuple[tuple[str, str], ...]:
+    """Legacy M5 label bridge only; never synthesize M2 Gold from clause labels."""
+    mapping = {"EMPLOYEE_OBLIGATIONS_DISCIPLINE": "DISCIPLINE_OBLIGATION",
+               "DEPOSIT_DOCUMENT_HELD": "DEPOSIT_DOCUMENT_HELD"}
+    return tuple((role, mapping[label]) for role, label in candidates)
 
 
-def _check(rows: list[RiskTriple], name: str) -> None:
-    keys = [r.key for r in rows]
-    if len(keys) != len(set(keys)):
-        raise ValueError(f"{name}: duplicate (document, clause, role, label) triple")
-    if any(not r.document_id or not r.clause_ref or not r.role or not r.risk_label for r in rows):
-        raise ValueError(f"{name}: empty field in triple")
+def _validate(records: Sequence[RiskRecord]) -> dict[tuple[str, str], tuple[int, int] | None]:
+    spans: dict[tuple[str, str], tuple[int, int] | None] = {}
+    seen: set[tuple[str, str, str, str]] = set()
+    for item in records:
+        if not item.clause_id or item.role not in {r.value for r in Role}:
+            raise ValueError("invalid clause ID or role")
+        if item.risk_label not in RISK_LABELS or item.basis_type not in {b.value for b in BasisType}:
+            raise ValueError("invalid risk label or basis type")
+        triple = (item.document_id, item.clause_id, item.role, item.risk_label)
+        if triple in seen:
+            raise ValueError("duplicate risk triple")
+        seen.add(triple)
+        if (item.start_char is None) != (item.end_char is None):
+            raise ValueError("incomplete span")
+        span = None if item.start_char is None else (item.start_char, item.end_char)
+        if span is not None:
+            span_iou(span, span)
+        key = (item.document_id, item.clause_id)
+        if key in spans and spans[key] != span:
+            raise ValueError("inconsistent clause span")
+        spans[key] = span
+    return spans
 
 
-def evaluate_risk_classification(gold: Iterable[RiskTriple], pred: Iterable[RiskTriple], *,
-                                 min_support: int = MIN_SUPPORT, iterations: int = 1000,
-                                 random_seed: int = 0) -> dict:
-    gold, pred = list(gold), list(pred)
-    _check(gold, "gold")
-    _check(pred, "pred")
-    per_class = _per_class(gold, pred)
-    clusters: dict[str, list[tuple[str, RiskTriple]]] = {}
-    for g in gold:
-        clusters.setdefault(g.document_id, []).append(("g", g))
-    for p in pred:
-        clusters.setdefault(p.document_id, []).append(("p", p))
+def _align_clauses(gold_spans, pred_spans) -> dict[tuple[str, str], tuple[str, str]]:
+    mapped = {key: key for key in pred_spans if key in gold_spans}
+    docs = {key[0] for key in gold_spans} | {key[0] for key in pred_spans}
+    for doc in docs:
+        gold_keys = [key for key, span in gold_spans.items()
+                     if key[0] == doc and key not in mapped.values() and span is not None]
+        pred_keys = [key for key, span in pred_spans.items()
+                     if key[0] == doc and key not in mapped and span is not None]
+        if gold_keys and pred_keys:
+            pairs = greedy_align_spans([gold_spans[key] for key in gold_keys],
+                                       [pred_spans[key] for key in pred_keys], threshold=0.5)
+            mapped.update({pred_keys[pi]: gold_keys[gi] for gi, pi in pairs})
+            used_gold = {gi for gi, _ in pairs}
+            used_pred = {pi for _, pi in pairs}
+            containment_candidates = []
+            for gi, gold_key in enumerate(gold_keys):
+                if gi in used_gold:
+                    continue
+                gs, ge = gold_spans[gold_key]
+                for pi, pred_key in enumerate(pred_keys):
+                    if pi in used_pred:
+                        continue
+                    ps, pe = pred_spans[pred_key]
+                    overlap = max(0, min(ge, pe) - max(gs, ps))
+                    coverage = overlap / (ge - gs)
+                    if coverage >= 0.8:
+                        containment_candidates.append(
+                            (-coverage, -span_iou((gs, ge), (ps, pe)), gi, pi))
+            for _, _, gi, pi in sorted(containment_candidates):
+                if gi not in used_gold and pi not in used_pred:
+                    mapped[pred_keys[pi]] = gold_keys[gi]
+                    used_gold.add(gi)
+                    used_pred.add(pi)
+    return mapped
 
-    def macro(rows):
-        return _macro(_per_class([r for t, r in rows if t == "g"], [r for t, r in rows if t == "p"]), min_support)
 
-    ci = bootstrap_cluster_interval(clusters, macro, iterations=iterations, random_seed=random_seed)
+def _wilson(successes: int, total: int) -> tuple[float, float] | None:
+    if not total:
+        return None
+    z = NormalDist().inv_cdf(0.975)
+    p = successes / total
+    denominator = 1 + z * z / total
+    center = (p + z * z / (2 * total)) / denominator
+    margin = z * math.sqrt(p * (1 - p) / total + z * z / (4 * total * total)) / denominator
+    return max(0.0, center - margin), min(1.0, center + margin)
+
+
+def _merged_excluded_regions(regions: Sequence[dict]) -> dict[tuple[str, str], list[tuple[int, int]]]:
+    grouped: dict[tuple[str, str], list[tuple[int, int]]] = {}
+    for region in regions:
+        start, end = region["start_char"], region["end_char"]
+        if not isinstance(start, int) or not isinstance(end, int) or start < 0 or end <= start:
+            raise ValueError("invalid excluded scope region")
+        key = (region["document_id"].removeprefix("T1:"), region["role"])
+        grouped.setdefault(key, []).append((start, end))
+    for key, intervals in grouped.items():
+        merged = []
+        for start, end in sorted(intervals):
+            if merged and start - merged[-1][1] <= 15:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+            else:
+                merged.append((start, end))
+        grouped[key] = merged
+    return grouped
+
+
+def evaluate_risk_classification(
+    gold: Sequence[RiskRecord], predicted: Sequence[RiskRecord],
+    *, require_gold_spans: bool = False,
+    excluded_scope_regions: Sequence[dict] = (),
+) -> dict:
+    """Score all 21 labels; zero-support labels receive F1=0 in all-label macro."""
+    merged_regions = _merged_excluded_regions(excluded_scope_regions)
+
+    excluded_gold = sum(
+        item.offset_quality == "CONTEXT" or
+        (require_gold_spans and (item.start_char is None or item.end_char is None))
+        for item in gold
+    )
+    gold = [item for item in gold if item.offset_quality != "CONTEXT" and
+            (not require_gold_spans or
+             (item.start_char is not None and item.end_char is not None))]
+
+    def within_scope(records: Sequence[RiskRecord]) -> tuple[list[RiskRecord], list[dict], list[dict]]:
+        included = []
+        excluded = []
+        warnings = []
+        for item in records:
+            regions = merged_regions.get((item.document_id.removeprefix("T1:"), item.role), [])
+            if not regions:
+                included.append(item)
+                continue
+            if item.start_char is None or item.end_char is None:
+                raise ValueError("cannot check scope exclusion without a span")
+            overlaps = [(max(0, min(item.end_char, end) - max(item.start_char, start)),
+                         end - start, start, end) for start, end in regions]
+            overlaps = [part for part in overlaps if part[0] > 0]
+            if not overlaps:
+                included.append(item)
+            else:
+                length = item.end_char - item.start_char
+                total_intersection = sum(part[0] for part in overlaps)
+                above = total_intersection / length >= 0.5 or any(
+                    intersection / region_length >= 0.5 or
+                    intersection / (length + region_length - intersection) >= 0.5
+                    for intersection, region_length, _, _ in overlaps)
+                entry = {"document_id": item.document_id, "clause_id": item.clause_id,
+                         "role": item.role, "risk_label": item.risk_label,
+                         "start_char": item.start_char, "end_char": item.end_char,
+                         "intersection_chars": total_intersection}
+                if above:
+                    excluded.append(entry)
+                else:
+                    included.append(item)
+                    warnings.append(entry)
+        return included, excluded, warnings
+
+    gold, scope_excluded_gold, gold_overlap_warnings = within_scope(gold)
+    predicted, scope_excluded_predicted, pred_overlap_warnings = within_scope(predicted)
+    gold_spans, pred_spans = _validate(gold), _validate(predicted)
+    mapping = _align_clauses(gold_spans, pred_spans)
+    gold_keys = {(r.document_id, r.clause_id, r.role, r.risk_label) for r in gold}
+    pred_keys = {(mapping.get((r.document_id, r.clause_id),
+                              (r.document_id, "__unmatched__" + r.clause_id))[0],
+                  mapping.get((r.document_id, r.clause_id),
+                              (r.document_id, "__unmatched__" + r.clause_id))[1],
+                  r.role, r.risk_label) for r in predicted}
+    tp_keys = gold_keys & pred_keys
+    fp_keys = pred_keys - gold_keys
+    fn_keys = gold_keys - pred_keys
+    support = Counter(r.risk_label for r in gold)
+    pred_support = Counter(r.risk_label for r in predicted)
+    tp, fp, fn = (Counter(key[3] for key in keys) for keys in (tp_keys, fp_keys, fn_keys))
+    per_label = {}
+    for label in RISK_LABELS:
+        t, f_p, f_n = tp[label], fp[label], fn[label]
+        precision = t / (t + f_p) if t + f_p else 0.0
+        recall = t / (t + f_n) if t + f_n else 0.0
+        f1 = 2 * t / (2 * t + f_p + f_n) if 2 * t + f_p + f_n else 0.0
+        per_label[label] = {"tp": t, "fp": f_p, "fn": f_n,
+                            "precision": precision, "recall": recall, "f1": f1,
+                            "gold_support": support[label], "pred_support": pred_support[label]}
+    totals = {"tp": len(tp_keys), "fp": len(fp_keys), "fn": len(fn_keys)}
+    denom = 2 * totals["tp"] + totals["fp"] + totals["fn"]
+    present = [label for label in RISK_LABELS if support[label] > 0]
+    scored = [label for label in RISK_LABELS if support[label] >= MIN_SUPPORT]
+    gold_basis = {(r.document_id, r.clause_id, r.role, r.risk_label): r.basis_type for r in gold}
+    pred_basis = {}
+    for r in predicted:
+        mapped = mapping.get((r.document_id, r.clause_id))
+        if mapped is not None:
+            pred_basis[(*mapped, r.role, r.risk_label)] = r.basis_type
+    basis_correct = sum(gold_basis[key] == pred_basis[key] for key in tp_keys)
     return {
-        "metric": "M2", "macro_f1": _macro(per_class, min_support), "macro_f1_ci95": [ci.low, ci.high],
-        "min_support": min_support, "per_class": per_class,
-        "macro_labels": sorted(k for k, v in per_class.items() if v["support"] >= min_support),
-        "labels_below_min_support": sorted(k for k, v in per_class.items() if 0 < v["support"] < min_support),
-        "gold_triples": len(gold), "predicted_triples": len(pred), "documents": len(clusters),
+        "per_label": per_label,
+        "macro_f1_present_labels": (sum(per_label[label]["f1"] for label in present) / len(present)
+                                    if present else None),
+        "macro_f1_all_21_labels": sum(row["f1"] for row in per_label.values()) / len(RISK_LABELS),
+        "macro_f1_min_support": (sum(per_label[label]["f1"] for label in scored) / len(scored)
+                                 if scored else None),
+        "min_support": MIN_SUPPORT,
+        "labels_min_support": scored,
+        "micro_counts": totals,
+        "micro_precision": totals["tp"] / (totals["tp"] + totals["fp"])
+        if totals["tp"] + totals["fp"] else 0.0,
+        "micro_recall": totals["tp"] / (totals["tp"] + totals["fn"])
+        if totals["tp"] + totals["fn"] else 0.0,
+        "micro_f1": 2 * totals["tp"] / denom if denom else 0.0,
+        "gold_label_coverage": {"present": len(present), "total": len(RISK_LABELS)},
+        "full_taxonomy_coverage": len(present) == len(RISK_LABELS),
+        "alignment_pairs": len(mapping),
+        "excluded_gold_unalignable": excluded_gold,
+        "excluded_scope_gold_records": len(scope_excluded_gold),
+        "excluded_scope_predicted_records": len(scope_excluded_predicted),
+        "merged_excluded_regions": [
+            {"document_id": doc, "role": role, "start_char": start, "end_char": end}
+            for (doc, role), intervals in sorted(merged_regions.items())
+            for start, end in intervals],
+        "excluded_overlap_predictions": scope_excluded_predicted,
+        "partial_excluded_overlap_warnings": pred_overlap_warnings,
+        "partial_excluded_gold_overlap_warnings": gold_overlap_warnings,
+        "basis_type_accuracy": basis_correct / len(tp_keys) if tp_keys else None,
+        "basis_type_ci95": _wilson(basis_correct, len(tp_keys)),
+        "basis_type_support": len(tp_keys),
     }
-
-
-def evaluate_basis_type(gold: Iterable[RiskTriple], pred: Iterable[RiskTriple], *,
-                        iterations: int = 1000, random_seed: int = 0) -> dict:
-    """M2b: chỉ trên bộ ba khớp ở M2."""
-    gold_by = {g.key: g for g in gold}
-    matched = [(gold_by[p.key], p) for p in pred if p.key in gold_by]
-    if any(not g.basis_type or not p.basis_type for g, p in matched):
-        raise ValueError("basis_type required on matched triples")
-    correct = sum(g.basis_type == p.basis_type for g, p in matched)
-    clusters: dict[str, list[bool]] = {}
-    for g, p in matched:
-        clusters.setdefault(g.document_id, []).append(g.basis_type == p.basis_type)
-    ci = bootstrap_cluster_interval(clusters, lambda rows: sum(rows) / len(rows) if rows else None,
-                                    iterations=iterations, random_seed=random_seed)
-    confusion = Counter((g.basis_type, p.basis_type) for g, p in matched)
-    return {"metric": "M2b", "matched": len(matched), "correct": correct,
-            "accuracy": correct / len(matched) if matched else None, "accuracy_ci95": [ci.low, ci.high],
-            "confusion": {f"{a}->{b}": n for (a, b), n in sorted(confusion.items())}}
-
-
-@dataclass(frozen=True)
-class ExplanationRating:
-    output_id: str
-    document_id: str
-    rating: str  # CORRECT | PARTIAL | WRONG
-    rater: str = ""
-
-
-def evaluate_explanation_quality(ratings: Iterable[ExplanationRating], *, iterations: int = 1000,
-                                 random_seed: int = 0) -> dict:
-    """M9: tỷ lệ ĐÚNG (chính) và ĐÚNG_MỘT_PHẦN trên mẫu đã chấm."""
-    rows = list(ratings)
-    ids = [r.output_id for r in rows]
-    if len(ids) != len(set(ids)):
-        raise ValueError("one rating per output (adjudicate disagreements before scoring)")
-    if any(r.rating not in M9_LABELS for r in rows):
-        raise ValueError(f"rating must be one of {M9_LABELS}")
-    counts = Counter(r.rating for r in rows)
-    clusters: dict[str, list[ExplanationRating]] = {}
-    for r in rows:
-        clusters.setdefault(r.document_id, []).append(r)
-    ci = bootstrap_cluster_interval(
-        clusters, lambda rs: sum(x.rating == "CORRECT" for x in rs) / len(rs) if rs else None,
-        iterations=iterations, random_seed=random_seed)
-    total = len(rows)
-    return {"metric": "M9", "total": total, "counts": {k: counts.get(k, 0) for k in M9_LABELS},
-            "correct_rate": counts["CORRECT"] / total if total else None,
-            "partial_rate": counts["PARTIAL"] / total if total else None,
-            "correct_rate_ci95": [ci.low, ci.high]}

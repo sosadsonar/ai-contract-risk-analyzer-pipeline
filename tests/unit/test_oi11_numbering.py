@@ -11,6 +11,7 @@ from app.clause.structure_parser import (
     DASH,
     LETTERED,
     NUMBERED,
+    PLUS,
     ROMAN,
     STRUCTURE_PARSER_VERSION,
     parse_structure,
@@ -128,16 +129,20 @@ def test_letters_that_look_roman_stay_lettered():
     assert marks == []
 
 
-def test_plus_bullet_is_dash_variant():
-    marks = parse_structure("+ Lương cơ bản\n+ Phụ cấp\n- Thưởng\n• Khác")
-    assert {m.kind for m in marks} == {DASH} and len(marks) == 4
+def test_plus_bullet_is_own_child_level_when_enabled():
+    """Merge 14/11 (sửa OI-11 §2): `+` là kind PLUS riêng, cấp con dưới `-`; chỉ nhận khi allow_plus."""
+    text = "- Nhóm việc một:\n+ Lương cơ bản\n+ Phụ cấp\n- Nhóm việc hai.\n• Khác"
+    marks = parse_structure(text, allow_plus=True)
+    assert [(m.kind, m.level, m.parent_index) for m in marks] == [
+        (DASH, 1, None), (PLUS, 2, 0), (PLUS, 2, 0), (DASH, 1, None), (DASH, 1, None)]
+    assert [m.kind for m in parse_structure(text)] == [DASH, DASH, DASH]  # mặc định không nhận `+`
 
 
 @pytest.mark.parametrize("text", [
     "I. Chỉ một mục La Mã",          # singleton
     "I. Một\nIII. Ba",               # đứt chuỗi
     "II. Hai\nIII. Ba",              # không bắt đầu từ I
-    "+ Chỉ một dòng cộng",            # singleton dash
+    "+ Chỉ một dòng cộng",            # singleton plus (và mặc định không nhận `+`)
     "1. Một\n3. Ba",                 # numbered đứt chuỗi (giữ quy tắc cũ)
 ])
 def test_weak_group_limits_unchanged(text):
@@ -218,7 +223,8 @@ def test_bullet_formats_materialized_and_parsed(tmp_path, symbol, expected):
     _item(doc, "Phụ cấp ăn trưa", num_id, 0)
     text = _extract(doc, tmp_path).canonical_text
     assert text == f"HỢP ĐỒNG LAO ĐỘNG\n{expected} Lương cơ bản\n{expected} Phụ cấp ăn trưa"
-    assert [m.kind for m in parse_structure(text)] == [DASH, DASH]
+    expected_kind = PLUS if symbol == "+" else DASH
+    assert [m.kind for m in parse_structure(text, allow_plus=True)] == [expected_kind, expected_kind]
 
 
 def test_typed_numbering_kept_verbatim(tmp_path):

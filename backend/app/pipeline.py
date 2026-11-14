@@ -26,7 +26,7 @@ from typing import Any, Callable, Optional
 from app.ai.clause_adapter import ClauseOutput, classify_clauses, masked_items_from_segmentation
 from app.ai.provider import CallLedger, LLMProvider
 from app.ai.risk_adapter import LegalCandidate, RelatedClause, RiskItemIn, RiskOutput, analyze_risks
-from app.clause.context_resolver import resolve_context
+from app.clause.context_resolver import build_masked_clause_map, resolve_risk_context
 from app.clause.graph_builder import ClauseGraph, build_clause_graph
 from app.clause.segmenter import SegmentationResult, segment
 from app.clause.taxonomy import DATA_TAXONOMY_VERSION
@@ -46,6 +46,7 @@ from app.risk.lint import lint_explanation, sanitize_explanation
 from app.risk.taxonomy import RISK_TAXONOMY_VERSION, SEVERITY_RUBRIC_VERSION
 
 PIPELINE_VERSION = "pipeline_v1"
+INELIGIBLE_LABEL = "OTHER"
 INSUFFICIENT_FALLBACK = "Chưa đủ căn cứ pháp lý trong kho luật đóng để kết luận chắc chắn về điều khoản này."
 LOCAL_STAGES = (Stage.EXTRACTION, Stage.SCOPE_PRECHECK, Stage.PII_MASKING, Stage.SEGMENTATION, Stage.CLAUSE_GRAPH)
 AI_STAGES = (Stage.CLAUSE_CLASSIFICATION, Stage.LEGAL_RETRIEVAL, Stage.RISK_ANALYSIS,
@@ -159,8 +160,11 @@ async def analyze(
             return art
 
         enter(Stage.SEGMENTATION)
+        # rules_v1.3 (Data Lead, D1/D2 Dev): `+` là cấp con có cổng khối cha ≥ 160 ký tự + tách đoạn sau
+        # dòng trống. Cấu hình này là cấu hình đã đo M1/M2 Dev (merge 14/11, sửa OI-11 §2).
         art.segmentation = await asyncio.to_thread(
-            segment, canonical, art.masking.masked_text, art.masking.pii_spans, max_clauses=cfg.MAX_CLAUSES)
+            segment, canonical, art.masking.masked_text, art.masking.pii_spans, max_clauses=cfg.MAX_CLAUSES,
+            enable_plus_lists=True, enable_blank_line_paragraphs=True)
         if done(Stage.SEGMENTATION, art):
             return art
 
@@ -173,7 +177,7 @@ async def analyze(
 
     masked_text = art.masking.masked_text
     clauses = art.segmentation.clauses
-    masked_by_id = {c.clause_id: masked_text[c.start_char:c.end_char] for c in clauses}
+    masked_by_id = build_masked_clause_map(art.segmentation, masked_text)
 
     # ---------------- PROCESSING
     enter(Stage.CLAUSE_CLASSIFICATION)
@@ -181,13 +185,16 @@ async def analyze(
         masked_items_from_segmentation(art.segmentation, masked_text), deps.provider, deps.ledger, cfg,
         cancel=check_cancel)
     labels_by_id = {i.clause_id: list(i.clause_labels) for i in art.clause_output.items}
+    # Clause không đủ điều kiện phân loại (phần mở đầu trước Điều 1, khối chữ ký, dòng chỉ có tiêu đề —
+    # `app.clause.eligibility`) không gửi LLM #1/#2; trong kết quả mang nhãn OTHER (schema cần ≥ 1 nhãn).
+    analyzed = [c for c in clauses if c.clause_id in labels_by_id]
     if done(Stage.CLAUSE_CLASSIFICATION, art):
         return art
 
     enter(Stage.LEGAL_RETRIEVAL)
     catalog: dict[str, LegalCandidate] = {}
     provision_clause: dict[str, Optional[str]] = {}
-    for c in clauses:
+    for c in analyzed:
         ids: list[str] = []
         if deps.retriever is not None:
             pool, fallback = get_candidates(deps.retriever, deps.data_graph, masked_by_id[c.clause_id],
@@ -205,10 +212,10 @@ async def analyze(
 
     enter(Stage.RISK_ANALYSIS)
     items: list[RiskItemIn] = []
-    for c in clauses:
-        context, trace = resolve_context(
+    for c in analyzed:
+        context, trace = resolve_risk_context(
             c.clause_id, art.clause_graph, masked_by_id, labels_by_id,
-            max_related=cfg.CLAUSE_GRAPH_MAX_RELATED, max_chars=cfg.CLAUSE_GRAPH_MAX_CONTEXT_CHARS)
+            max_related=cfg.CLAUSE_GRAPH_MAX_RELATED, max_context_chars=cfg.CLAUSE_GRAPH_MAX_CONTEXT_CHARS)
         art.traces.append(trace.to_dict())
         items.append(RiskItemIn(
             c.clause_id, masked_by_id[c.clause_id], labels_by_id[c.clause_id], art.candidates[c.clause_id],
@@ -241,9 +248,10 @@ async def analyze(
         if provision_clause.get(cid):
             entry["clause"] = str(provision_clause[cid])
         citations.append(entry)
+    result_labels = {c.clause_id: labels_by_id.get(c.clause_id, [INELIGIBLE_LABEL]) for c in clauses}
     upstream = [{"clause_id": c.clause_id, "clause_number": c.structure.number, "start_char": c.start_char,
                  "end_char": c.end_char, "original_text": c.original_text,
-                 "clause_labels": labels_by_id[c.clause_id]} for c in clauses]
+                 "clause_labels": result_labels[c.clause_id]} for c in clauses]
     ai_items = []
     for it in cleaned:
         d = it.to_dict()
@@ -261,7 +269,8 @@ async def analyze(
                        "citation_stats": art.citation_stats.__dict__,
                        "graph_fallbacks": art.graph_fallbacks,
                        "sanitized": sum(i.sanitized for i in cleaned)}
-    art.final_result = _final_result(art, assembled.merged, role, session_id, analysis_date, deps, labels_by_id)
+    art.diagnostics["ineligible_clauses"] = len(clauses) - len(analyzed)
+    art.final_result = _final_result(art, assembled.merged, role, session_id, analysis_date, deps, result_labels)
     done(Stage.ASSEMBLY, art)
     return art
 

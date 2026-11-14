@@ -10,7 +10,9 @@ chọn Pipeline A/B theo tỉ lệ heading. Luôn chạy parser; không có head
   3. numbered  `1. ...` / `1) ...`
   4. roman     `I. ...`, `ii) ...` (SRS OI-11: numeral La Mã hợp lệ, không phân biệt hoa/thường)
   5. lettered  `a) ...` / `a. ...`
-  6. dash      `- ...`, `– ...`, `• ...`, `+ ...` (`+` là biến thể của dash, OI-11)
+  6. dash      `- ...`, `– ...`, `— ...`, `• ...`
+  7. plus      `+ ...` — cấp CON riêng (thường nằm dưới `- ...`), CHỈ khi bật `allow_plus`
+               (rules_v1.2+, D1/D2 Dev 09/11). Sửa OI-11 §2: `+` không gộp chung nhóm với `-`.
 
 Roman vs lettered: numeral nhiều ký tự (`II`, `iv`) luôn là roman. Một ký tự trùng chữ cái
 (`I`, `V`, `X`, `L`, `C`, `D`, `M` và dạng thường) mặc định là lettered như trước; chỉ thành roman
@@ -23,9 +25,9 @@ masked_text (cùng độ dài canonical_text, INV-01).
 
 Quy tắc độ tin cậy (TDD §11.2: "chỉ thành clause riêng khi rule list đủ tin cậy"):
   - article, decimal: luôn tin cậy (trừ dạng số có dấu phân cách hàng nghìn: `2.000.000 đồng`).
-  - numbered, lettered, roman, dash: chỉ giữ khi nhóm anh em cùng cha có >= 2 mục; riêng
+  - numbered, lettered, roman, dash, plus: chỉ giữ khi nhóm anh em cùng cha có >= 2 mục; riêng
     numbered / lettered / roman còn phải đánh số liên tiếp (1,2,3 / a,b,c / I,II,III) và bắt đầu
-    từ mục đầu (1 / a / I). Quy tắc này KHÔNG nới lỏng khi thêm roman và `+` (OI-11 §4): nhóm đứt
+    từ mục đầu (1 / a / I). Quy tắc này KHÔNG nới lỏng khi thêm roman và plus (OI-11 §4): nhóm đứt
     chuỗi hoặc thiếu marker bị bỏ — đây là giới hạn đã biết, không phải cấu trúc đã khôi phục.
     Mục lẻ loi nằm lại trong clause hiện tại, không tạo ranh giới.
   - Heading có `start` rơi vào trong placeholder PII (`boundary_guard` = False) bị BỎ (TDD §10.3,
@@ -38,21 +40,23 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Optional
 
-STRUCTURE_PARSER_VERSION = "structure_parser_v2"  # v2: roman + bullet `+` (SRS OI-11)
+# v2 = v1.1 (Data Lead: `DIEU` ASCII, gạch dài —, `+` opt-in) + roman (SRS OI-11). `+` là kind PLUS riêng.
+STRUCTURE_PARSER_VERSION = "structure_parser_v2"
 
 # ---- 5 pattern (TDD §11.2). Chạy theo từng dòng; group "body" là phần sau marker. ----
-_ARTICLE = re.compile(r"^[ \t]*Điều[ \t]+(?P<num>\d+[A-Za-z]?)[ \t]*[.:\-]?[ \t]*(?P<body>.*)$")
+_ARTICLE = re.compile(r"^[ \t]*(?:Điều|DIEU)[ \t]+(?P<num>\d+[A-Za-z]?)[ \t]*[.:\-]?[ \t]*(?P<body>.*)$", re.I)
 _DECIMAL = re.compile(r"^[ \t]*(?P<num>\d+(?:\.\d+){1,3})[ \t]*[.)\-]?[ \t]+(?P<body>\S.*)$")
 _NUMBERED = re.compile(r"^[ \t]*(?P<num>\d{1,3})[.)][ \t]+(?P<body>\S.*)$")
 _ROMAN = re.compile(r"^[ \t]*(?P<num>[IVXLCDM]{1,15}|[ivxlcdm]{1,15})[.)][ \t]+(?P<body>\S.*)$")
 _LETTERED = re.compile(r"^[ \t]*(?P<num>[a-zA-ZđĐ])[.)][ \t]+(?P<body>\S.*)$")
-_DASH = re.compile(r"^[ \t]*[-–•+][ \t]+(?P<body>\S.*)$")
+_DASH = re.compile(r"^[ \t]*[-–—•][ \t]+(?P<body>\S.*)$")
+_PLUS = re.compile(r"^[ \t]*\+[ \t]+(?P<body>\S.*)$")
 _ROMAN_VALID = re.compile(r"^M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$")
 _ROMAN_VALUES = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
 
-ARTICLE, DECIMAL, NUMBERED, LETTERED, DASH = "article", "decimal", "numbered", "lettered", "dash"
+ARTICLE, DECIMAL, NUMBERED, LETTERED, DASH, PLUS = "article", "decimal", "numbered", "lettered", "dash", "plus"
 ROMAN = "roman"
-_WEAK_KINDS = (NUMBERED, LETTERED, ROMAN, DASH)
+_WEAK_KINDS = (NUMBERED, LETTERED, ROMAN, DASH, PLUS)
 _AMBIGUOUS = "roman_or_letter"  # nội bộ: một ký tự vừa là chữ cái vừa là numeral La Mã
 
 # Chữ cái liệt kê tiếng Việt (có đ giữa d và e) và dạng ASCII — chấp nhận cả hai cách đánh.
@@ -120,8 +124,8 @@ def _resolve_ambiguous(out: list[tuple[int, str, Optional[str], int]]) -> None:
         out[idx] = (start, ROMAN if is_roman else LETTERED, num, depth)
 
 
-def _candidates(text: str) -> list[tuple[int, str, Optional[str], int]]:
-    """Mọi dòng khớp 1 trong 6 pattern: (start, kind, number, decimal_depth)."""
+def _candidates(text: str, allow_plus: bool = False) -> list[tuple[int, str, Optional[str], int]]:
+    """Mọi dòng khớp 1 trong 7 pattern: (start, kind, number, decimal_depth); `+` chỉ khi allow_plus."""
     out: list[tuple[int, str, Optional[str], int]] = []
     for line_start, line in _line_start_iter(text):
         stripped = line.lstrip(" \t")
@@ -153,6 +157,9 @@ def _candidates(text: str) -> list[tuple[int, str, Optional[str], int]]:
             continue
         if _DASH.match(line):
             out.append((start, DASH, None, 0))
+            continue
+        if allow_plus and _PLUS.match(line):
+            out.append((start, PLUS, None, 0))
     _resolve_ambiguous(out)
     return out
 
@@ -199,8 +206,8 @@ def _letter_follows(prev: str, cur: str) -> bool:
 
 
 def _sequence_ok(kind: str, numbers: list[Optional[str]]) -> bool:
-    """numbered: 1,2,3...; roman: I,II,III...; lettered: a,b,c...; dash: không có thứ tự."""
-    if kind == DASH:
+    """numbered: 1,2,3...; roman: I,II,III...; lettered: a,b,c...; dash/plus: không có thứ tự."""
+    if kind in (DASH, PLUS):
         return True
     if kind == ROMAN:
         values = [roman_value(n) for n in numbers if n is not None]
@@ -229,14 +236,19 @@ def _drop_unreliable(cands, assigned) -> set[int]:
 
 
 def parse_structure(
-    masked_text: str, boundary_guard: Callable[[int], bool] = lambda pos: True
+    masked_text: str, boundary_guard: Callable[[int], bool] = lambda pos: True, *,
+    allow_plus: bool = False, allowed_plus_positions: set[int] | None = None,
 ) -> list[HeadingMark]:
     """Trả danh sách `HeadingMark` đã chấp nhận, sắp theo `start` tăng dần.
 
     `boundary_guard(pos)` (xem `app.privacy.masker.boundary_guard`) phải trả False nếu `pos` nằm
     chặt bên trong một placeholder PII; marker đó bị bỏ.
+    `allow_plus` bật pattern `+` (segmenter bật qua `enable_plus_lists`, rules_v1.2+);
+    `allowed_plus_positions` giới hạn các vị trí `+` được nhận (cổng khối cha ≥ 160 ký tự).
     """
-    cands = [c for c in _candidates(masked_text) if boundary_guard(c[0])]
+    cands = [c for c in _candidates(masked_text, allow_plus=allow_plus)
+             if boundary_guard(c[0]) and (c[1] != PLUS or allowed_plus_positions is None
+                                           or c[0] in allowed_plus_positions)]
 
     # Lặp tới khi ổn định: bỏ nhóm yếu có thể làm đổi cha của các marker còn lại.
     for _ in range(len(cands) + 1):

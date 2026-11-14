@@ -157,3 +157,12 @@ def test_request_payload_contains_no_offsets():
     _run(p)
     req = json.loads(p.calls[0][1]["content"])
     assert "start_char" not in json.dumps(req) and req["role"] == "EMPLOYEE"
+
+
+def test_unsupported_reference_only_explanation_downgrades_to_insufficient():
+    """Merge 14/11: citation ngoài candidate + explanation chỉ có dẫn chiếu đó ⇒ INSUFFICIENT, không FAILED."""
+    only_ref = _resp(citation_ids=["X:art99"], explanation="Trái Điều 99 Bộ luật Lao động 2019.")
+    out = _run(Seq(only_ref, only_ref))
+    it = out.items[0]
+    assert it.evidence_status == "INSUFFICIENT_EVIDENCE" and it.citation_ids == [] and it.sanitized
+    assert "Điều 99" not in it.explanation

@@ -19,6 +19,7 @@ def test_report_has_all_stages_calls_and_no_content():
     assert {"total", "EXTRACTION", "CLAUSE_CLASSIFICATION", "RISK_ANALYSIS", "ASSEMBLY"} <= stages
     assert report["stages"]["CLAUSE_CLASSIFICATION"]["p50_ms"] >= 10  # latency injected
     case = report["cases"][0]
-    assert case["calls"] == 1 + 2 and {c["role"] for c in report["cases"]} == {"EMPLOYEE", "EMPLOYER"}
+    # 1 lô LLM #1 + 1 lô LLM #2: phần mở đầu trước Điều 1 không đủ điều kiện phân loại (eligibility)
+    assert case["calls"] == 2 and {c["role"] for c in report["cases"]} == {"EMPLOYEE", "EMPLOYER"}
     assert report["reserve_suggestion"] == 40
     assert "Nguyễn" not in str(report) and "lương" not in str(report)

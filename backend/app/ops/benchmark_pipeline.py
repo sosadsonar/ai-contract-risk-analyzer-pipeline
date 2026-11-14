@@ -124,6 +124,7 @@ def main() -> None:
     from app.ai.factory import make_provider
     from app.core.config import load_settings
     from app.main import load_legal
+    from app.session.final_result import resolve_app_commit
 
     parser = argparse.ArgumentParser(description="End-to-end pipeline benchmark; prints metadata-only JSON")
     parser.add_argument("--data-root", type=Path, default=Path("ai_pipeline/data"))
@@ -141,7 +142,7 @@ def main() -> None:
     corpus, retriever, graph = load_legal(cfg)
 
     def deps():
-        return PipelineDeps(cfg, provider, InMemoryLedger(), corpus, retriever, graph, cfg.APP_COMMIT)
+        return PipelineDeps(cfg, provider, InMemoryLedger(), corpus, retriever, graph, resolve_app_commit(cfg))
 
     report = benchmark_pipeline(d1_inputs(args.data_root), deps, repeats=args.repeats)
     report.update(provider=args.provider, latency_ms=args.latency_ms)

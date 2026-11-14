@@ -101,7 +101,7 @@ Danh sách đầy đủ ở `.env.example` và `backend/app/core/config.py` (`Se
 | `DAILY_LLM_CALL_QUOTA`, `SESSION_CALL_RESERVE` | Giá trị tạm OI-05: 300 / 40 (`.env.example`); reserve là ngưỡng admission, quota không phải trần USD | trống ở `Settings` |
 | `LLM_PRICE_INPUT_USD_PER_MTOK`, `LLM_PRICE_OUTPUT_USD_PER_MTOK`, `LLM_PRICE_SOURCE` | Giá có nguồn để tính cost; trống ⇒ cost = 0.0 nghĩa là "chưa biết" | trống |
 | `OLLAMA_BASE_URL` | Địa chỉ Ollama khi `DEV_LLM_PROVIDER=local` | `http://localhost:11434` |
-| `LEGAL_CORPUS_DIR`, `APP_COMMIT` | Thư mục kho luật; commit ghi vào `version_pins.app_commit` (EV-07) | `data/legal_corpus`, `unknown` |
+| `LEGAL_CORPUS_DIR`, `APP_COMMIT` | Thư mục kho luật; SHA 40 ký tự ghi vào `version_pins.app_commit` (EV-07), trống ⇒ đọc `git rev-parse HEAD` | `data/legal_corpus`, trống |
 
 **Chế độ chạy API:** dev không có provider (gemini thiếu key/model) ⇒ trả fixture mẫu; dev có provider ⇒ pipeline thật (corpus DRAFT được phép); demo/eval ⇒ luôn pipeline thật.
 
