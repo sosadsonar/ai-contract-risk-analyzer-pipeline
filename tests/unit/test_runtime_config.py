@@ -32,13 +32,23 @@ def test_demo_rejects_missing_or_unsafe_configuration(override):
         validate_for_env(Settings(**complete))
 
 
-def test_demo_cannot_expose_mock_even_with_valid_config():
+def test_demo_never_uses_mock_runner_with_valid_config():
+    """X-19: demo/eval luôn chạy pipeline thật; fixture mẫu chỉ còn ở dev không có provider."""
     env = os.environ.copy()
     env.update(APP_ENV="demo", GEMINI_API_KEY="test", GEMINI_MODEL_ID="test",
                DAILY_LLM_CALL_QUOTA="30", SESSION_CALL_RESERVE="4",
-               RATE_LIMIT_HMAC_SALT="test-salt")
-    result = subprocess.run([sys.executable, "-c",
-                             "import sys; sys.path.insert(0, 'backend'); from app.main import app"],
+               RATE_LIMIT_HMAC_SALT="test-salt", DEV_LLM_PROVIDER="gemini")
+    code = ("import sys; sys.path.insert(0, 'backend'); from app.main import app, pipeline_enabled, settings; "
+            "assert pipeline_enabled(settings)")
+    result = subprocess.run([sys.executable, "-c", code], env=env, text=True, capture_output=True)
+    assert result.returncode == 0, result.stderr
+
+
+def test_demo_rejects_fake_provider():
+    env = os.environ.copy()
+    env.update(APP_ENV="demo", GEMINI_API_KEY="test", GEMINI_MODEL_ID="test",
+               DAILY_LLM_CALL_QUOTA="30", SESSION_CALL_RESERVE="4",
+               RATE_LIMIT_HMAC_SALT="test-salt", DEV_LLM_PROVIDER="fake")
+    result = subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, 'backend'); from app.main import app"],
                             env=env, text=True, capture_output=True)
-    assert result.returncode != 0
-    assert "sample trong demo/eval" in result.stderr
+    assert result.returncode != 0 and "only available in dev" in result.stderr

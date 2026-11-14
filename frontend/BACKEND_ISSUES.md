@@ -8,7 +8,7 @@
 - **Retry:** `POST /sessions/{id}/retry` đã trả cùng cấu trúc với `GET /status` (B1).
 - **Thời gian:** `created_at` và `updated_at` đều là UTC kết thúc bằng `Z` (B5).
 - **Mã lỗi:** `api_error()` có giá trị mặc định cho code lạ; `FEATURE_NOT_ENABLED` luôn có sẵn trong `errors.py` (B6).
-- **Fixture:** `tests/fixtures/mock_final_result_v1.json` đã được backend kiểm: offset theo code point, có ký tự 📄 ngoài BMP, nhãn hợp taxonomy (B2).
+- **Fixture:** `backend/app/session/fixtures/mock_final_result_v1.json` (chuyển từ `tests/fixtures/` ở X-20) đã được backend kiểm: offset theo code point, có ký tự 📄 ngoài BMP, nhãn hợp taxonomy (B2).
 - **Phiên bản taxonomy:** thống nhất `risk_taxonomy_v01` (B3). Comment sai "v02" trong `frontend/src/lib/labels.ts` đã sửa tuần 4.
 
 ## Đang mở

@@ -12,7 +12,8 @@ class Settings(BaseSettings):
     APP_ENV: Literal["dev", "demo", "eval"] = "dev"
     GEMINI_API_KEY: str | None = None
     GEMINI_MODEL_ID: str | None = None
-    DEV_LLM_PROVIDER: Literal["gemini", "local"] = "gemini"
+    # fake: provider tất định offline (smoke/CI/ghép frontend), chỉ dev; không dùng để đo chất lượng.
+    DEV_LLM_PROVIDER: Literal["gemini", "local", "fake"] = "gemini"
     LLM_TIMEOUT_SECONDS: int = Field(default=30, gt=0)
     LLM_AUTO_RETRY: int = Field(default=1, ge=0, le=1)
     CLAUSE_BATCH_SIZE: int = Field(default=20, gt=0)
@@ -40,7 +41,14 @@ class Settings(BaseSettings):
     CLAUSE_GRAPH_MAX_CONTEXT_CHARS: int = Field(default=6000, gt=0)
     SCOPE_TITLE_SCAN_CHARS: int = Field(default=1000, gt=0)
     TEMPERATURE: float = Field(default=0.0, ge=0)
+    # OI-05 §2.4: giá model có nguồn (URL + ngày hiệu lực trong LLM_PRICE_SOURCE). Không có default:
+    # giá chưa kiểm chứng thì để trống, cost ghi 0.0 = chưa biết.
+    LLM_PRICE_INPUT_USD_PER_MTOK: float | None = Field(default=None, ge=0)
+    LLM_PRICE_OUTPUT_USD_PER_MTOK: float | None = Field(default=None, ge=0)
+    LLM_PRICE_SOURCE: str | None = None
     WEB_CONCURRENCY: int = Field(default=1, ge=1)
+    LEGAL_CORPUS_DIR: str = "data/legal_corpus"
+    APP_COMMIT: str = "unknown"  # demo: đặt bằng `git rev-parse HEAD` (EV-07)
 
 
 def load_settings() -> Settings:
@@ -51,8 +59,8 @@ def load_settings() -> Settings:
 def validate_for_env(s: Settings) -> None:
     """Reject invalid deployment configuration before serving requests."""
     if s.APP_ENV != "dev":
-        if s.DEV_LLM_PROVIDER == "local":
-            raise ValueError("Local provider is only available in dev")
+        if s.DEV_LLM_PROVIDER in ("local", "fake"):
+            raise ValueError("Local/fake provider is only available in dev")
         if s.WEB_CONCURRENCY != 1:
             raise ValueError("Demo/eval require exactly one worker")
         if not all((s.GEMINI_API_KEY, s.GEMINI_MODEL_ID,

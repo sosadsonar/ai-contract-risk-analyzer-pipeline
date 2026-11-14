@@ -2,68 +2,145 @@
   {
     "id": "labor-contract",
     "accept": true,
-    "signals": ["strong_title", "employee_party", "employer_party", "structure", "employment:pay"],
+    "signals": [
+      "strong_title",
+      "employee_party",
+      "employer_party",
+      "structure",
+      "employment:pay"
+    ],
     "text": "HỢP ĐỒNG LAO ĐỘNG\nBên sử dụng lao động: Công ty A. Người lao động: Nguyễn Văn B.\nĐiều 1. Công việc: kế toán. Thời hạn: 12 tháng.\nĐiều 2. Tiền lương: 12 triệu đồng; thời giờ làm việc: 8 giờ/ngày."
   },
   {
     "id": "probation-contract",
     "accept": true,
-    "signals": ["strong_title", "employment:job"],
+    "signals": [
+      "strong_title",
+      "employment:job"
+    ],
     "text": "Hợp đồng thử việc\nĐiều 1. Chức danh: kỹ thuật viên."
   },
   {
-    "id": "appendix-with-contract",
-    "accept": true,
-    "signals": ["strong_title", "employment:pay"],
+    "id": "standalone-appendix",
+    "accept": false,
+    "signals": [
+      "negative_title"
+    ],
     "text": "PHỤ LỤC HỢP ĐỒNG LAO ĐỘNG\nThỏa thuận điều chỉnh lương của người lao động."
   },
   {
     "id": "labor-contract-without-strong-title",
     "accept": true,
-    "signals": ["employee_party", "employer_party", "structure", "employment:job", "employment:pay"],
+    "signals": [
+      "employee_party",
+      "employer_party",
+      "structure",
+      "employment:job",
+      "employment:pay"
+    ],
     "text": "THỎA THUẬN TUYỂN DỤNG\nNgười lao động và người sử dụng lao động thỏa thuận:\nĐiều 1. Công việc: kỹ sư.\nĐiều 2. Lương hàng tháng."
   },
   {
     "id": "invoice",
     "accept": false,
-    "signals": ["strong_negative"],
+    "signals": [
+      "strong_negative"
+    ],
     "text": "HÓA ĐƠN\nDịch vụ cung cấp: bảo trì máy. Tổng tiền thanh toán."
   },
   {
     "id": "sale",
     "accept": false,
-    "signals": ["strong_negative"],
+    "signals": [
+      "strong_negative"
+    ],
     "text": "HỢP ĐỒNG MUA BÁN\nBên bán chuyển giao căn hộ cho bên mua."
   },
   {
     "id": "rental",
     "accept": false,
-    "signals": ["strong_negative"],
+    "signals": [
+      "strong_negative"
+    ],
     "text": "HỢP ĐỒNG THUÊ NHÀ\nGiá thuê theo tháng, bên thuê thanh toán đúng hạn."
   },
   {
     "id": "service",
     "accept": false,
-    "signals": ["strong_negative"],
+    "signals": [
+      "strong_negative"
+    ],
     "text": "HỢP ĐỒNG DỊCH VỤ\nCông việc tư vấn và thù lao theo thời hạn hợp đồng."
   },
   {
     "id": "title-alone",
     "accept": false,
-    "signals": ["strong_title"],
+    "signals": [
+      "strong_title"
+    ],
     "text": "HỢP ĐỒNG LAO ĐỘNG\nThông báo chung không có điều khoản nào khác."
   },
   {
     "id": "deceptive-invoice",
     "accept": false,
-    "signals": ["strong_negative"],
+    "signals": [
+      "strong_negative"
+    ],
     "text": "HÓA ĐƠN HỢP ĐỒNG LAO ĐỘNG\nĐiều 1. Công việc\nĐiều 2. Lương, thời giờ làm việc và thời hạn."
   },
   {
     "id": "deep-body-title-mention",
     "accept": false,
-    "signals": ["employment:pay"],
+    "signals": [
+      "employment:pay"
+    ],
     "title_scan_chars": 30,
     "text": "BÁO CÁO THỐNG KÊ\nSố liệu năm trước. Số liệu năm trước. Số liệu năm trước. Một ví dụ về hợp đồng lao động được nhắc tới trong thân tài liệu. Lương tối thiểu."
+  },
+  {
+    "id": "contract-with-trailing-appendix",
+    "accept": true,
+    "signals": [
+      "strong_title",
+      "employee_party",
+      "employer_party",
+      "structure"
+    ],
+    "text": "HỢP ĐỒNG LAO ĐỘNG\nNgười sử dụng lao động: Công ty A. Người lao động: Nguyễn Văn B.\nĐiều 1. Công việc: kế toán.\nĐiều 2. Tiền lương: 12 triệu đồng.\nPHỤ LỤC 01\nDanh mục thiết bị cấp cho người lao động."
+  },
+  {
+    "id": "labor-rules",
+    "accept": false,
+    "signals": [
+      "negative_title"
+    ],
+    "text": "NỘI QUY LAO ĐỘNG\nNgười lao động và người sử dụng lao động tuân thủ thời giờ làm việc, tiền lương trả đúng hạn."
+  },
+  {
+    "id": "confidentiality-undertaking",
+    "accept": false,
+    "signals": [
+      "negative_title"
+    ],
+    "text": "CAM KẾT BẢO MẬT THÔNG TIN\nNgười lao động cam kết giữ bí mật; công việc và lương theo hợp đồng."
+  },
+  {
+    "id": "service-with-worker-term",
+    "accept": false,
+    "signals": [
+      "negative_title"
+    ],
+    "text": "HỢP ĐỒNG DỊCH VỤ\nNgười lao động của bên B thực hiện công việc, thù lao và tiền lương do bên B trả."
+  },
+  {
+    "id": "one-party-without-title",
+    "accept": false,
+    "signals": [
+      "employee_party",
+      "employment:pay",
+      "employment:job",
+      "employment:hours"
+    ],
+    "text": "THÔNG BÁO\nNgười lao động nhận tiền lương theo công việc và thời giờ làm việc đã đăng ký."
   }
 ]

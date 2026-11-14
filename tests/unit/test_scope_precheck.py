@@ -61,3 +61,24 @@ def test_one_party_term_alone_does_not_gain_pair_points():
     decision = precheck("Người lao động nhận lương.", cfg)
     assert decision.score == 1
     assert decision.accept is False
+
+
+def test_scope_rule_version_is_v2():
+    from app.document.scope_precheck import SCOPE_RULE_VERSION
+    assert SCOPE_RULE_VERSION == "scope_rules_v2"
+
+
+@pytest.mark.parametrize("title", ["PHỤ LỤC HỢP ĐỒNG LAO ĐỘNG", "Nội quy lao động", "QUY CHẾ LƯƠNG",
+                                   "Thỏa ước lao động tập thể", "Biên bản thanh lý", "Quyết định tuyển dụng",
+                                   "Hợp đồng khoán việc", "Hợp đồng thuê khoán"])
+def test_negative_title_prefix_rejects_even_with_both_parties(title):
+    cfg = SimpleNamespace(SCOPE_TITLE_SCAN_CHARS=1000)
+    text = f"{title}\nNgười lao động và người sử dụng lao động thỏa thuận tiền lương, công việc.\nĐiều 1. a\nĐiều 2. b"
+    decision = precheck(text, cfg)
+    assert decision.accept is False and decision.signals == ["negative_title"]
+
+
+def test_negative_title_checks_first_non_empty_line_only():
+    cfg = SimpleNamespace(SCOPE_TITLE_SCAN_CHARS=1000)
+    text = "\n\nCỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\nHỢP ĐỒNG LAO ĐỘNG\nPhụ lục kèm theo.\nNgười lao động nhận lương."
+    assert precheck(text, cfg).accept is True

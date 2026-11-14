@@ -100,3 +100,11 @@ nhưng **corpus luật thật chưa có cạnh nào được reviewer duyệt**.
 Luồng nguồn luật tách biệt với `ai_pipeline/data`, vốn là submodule lưu dữ
 liệu hợp đồng do N2 quản lý. Đường dẫn đặt theo TDD §14.1 tại repo nhóm:
 `data/legal_corpus/`.
+
+## Line ending (LF) và checksum
+
+`provisions.jsonl`, `edges.jsonl`, `label_map.yaml` được băm SHA-256 trên **byte LF** đã commit
+(`.gitattributes` đặt `eol=lf`, `.editorconfig` cho editor). Nếu loader báo lệch checksum trên máy
+Windows/VS Code sau khi editor đổi sang CRLF: chạy `git checkout -- data/legal_corpus` (hoặc
+`git add --renormalize data/legal_corpus`) để khôi phục LF. **Không** chuyển sang CRLF rồi băm lại:
+Git vẫn lưu LF nên checksum CRLF sẽ lệch trên CI và mọi máy khác, loader sẽ từ chối corpus.

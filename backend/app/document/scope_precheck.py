@@ -4,7 +4,11 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
-SCOPE_RULE_VERSION = "scope_rules_v1"  # Provisional until OI-03 is measured on D1.
+# scope_rules_v2 (SRS OI-03, OPEN_ISSUES_HANDLE_v4 §4.3): R1 negative title prefix, R2 both parties
+# on the no-strong-title branch. OI-03 stays OPEN: keywords/thresholds are not locked until the
+# independent review set (10 negative / 6 positive, §4.4) is run. Every new prefix needs at least
+# one negative case and a positive regression run, and a new SCOPE_RULE_VERSION.
+SCOPE_RULE_VERSION = "scope_rules_v2"
 
 
 @dataclass(frozen=True)
@@ -25,6 +29,13 @@ _CONTENT = {
 }
 _HEADING = re.compile(r"(?m)^\s*(?:điều|khoản)\s+\d+(?:[a-zđ])?(?=[\s.:)\-]|$)")
 _RIGHTS = re.compile(r"(?m)^\s*(?:quyền\s+(?:và\s+)?nghĩa\s+vụ|quyền|nghĩa\s+vụ)\b")
+# R1: first non-empty line of the title window (NFC/casefold copy) starting with one of these
+# prefixes is out of scope. A standalone appendix is out of scope; an appendix in the same file
+# after the contract is still accepted because only the first line is checked.
+_NEGATIVE_TITLE_PREFIXES = (
+    "phụ lục", "nội quy", "quy chế", "thỏa ước", "thoả ước", "cam kết", "biên bản", "quyết định",
+    "hợp đồng dịch vụ", "hợp đồng mua bán", "hợp đồng thuê", "hợp đồng khoán",
+)
 _NEGATIVE = re.compile(r"\b(?:hóa\s+đơn|mua\s+bán|thuê\s+nhà|hợp\s+đồng\s+dịch\s+vụ|cung\s+cấp\s+dịch\s+vụ)\b")
 
 
@@ -38,6 +49,10 @@ def precheck(canonical_text: str, cfg) -> ScopeDecision:
     text = unicodedata.normalize("NFC", canonical_text).casefold()
     signals: list[str] = []
     score = 0
+
+    first_line = next((line.strip() for line in title.split("\n") if line.strip()), "")
+    if first_line.startswith(_NEGATIVE_TITLE_PREFIXES):
+        return ScopeDecision(accept=False, score=0, signals=["negative_title"])
 
     strong_title = bool(_TITLE.search(title))
     if strong_title:
@@ -73,6 +88,6 @@ def precheck(canonical_text: str, cfg) -> ScopeDecision:
     employment_signal = employee or employer or content_count > 0
     accept = not negative and (
         (strong_title and employment_signal)
-        or (score >= 4 and (employee or employer))
+        or (score >= 4 and employee and employer)  # R2: both parties without a strong title
     )
     return ScopeDecision(accept=accept, score=score, signals=signals)

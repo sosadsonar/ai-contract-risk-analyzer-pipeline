@@ -390,3 +390,38 @@ button:disabled {
   margin: 6px 0 0;
   padding-left: 18px;
 }
+/* X-23: bản ghi "cần xem xét" — nét đứt, không severity */
+.risk-card-review {
+  border-style: dashed;
+  border-color: #9ca3af;
+  background: #fafafa;
+}
+
+.badge-review {
+  background: #fff;
+  color: #374151;
+  border: 1px dashed #6b7280;
+}
+
+.hl-review {
+  background: transparent;
+  border-bottom: 2px dashed #9ca3af;
+}
+
+.status-note,
+.related-line {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.citation-card {
+  margin-bottom: 8px;
+}
+
+.citation-text {
+  margin: 4px 0 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--line);
+  font-style: italic;
+}

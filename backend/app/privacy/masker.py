@@ -14,7 +14,9 @@ from app.clause.segmenter import adjust_boundary, boundary_guard  # noqa: F401  
 from app.privacy.detector import detect
 from app.privacy.pii_types import TYPE_SHORT_CODE, TYPE_TAG, MaskResult, PiiType
 
-PII_MASKING_VERSION = "pii_draft_0.4"
+# 0.5: anchor "TK ngân hàng"/"TK:" cho BANK_ACCOUNT (PR #30 note: P1 realistic sót 50/65 TK). Số đo của 0.4
+# không tự nghiệm thu bản này; đo lại P1 bằng seed KHÁC 17 và chạy eval_pii_gold trên T1 (OI-12 §5.3).
+PII_MASKING_VERSION = "pii_draft_0.5"
 
 
 # ==============================================================================

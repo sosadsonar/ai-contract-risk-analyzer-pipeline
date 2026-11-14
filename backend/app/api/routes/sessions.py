@@ -1,14 +1,14 @@
-"""Session lifecycle HTTP contract; results are explicitly dev samples."""
-import io
+"""Session lifecycle HTTP contract (6 operation). Kết quả từ pipeline thật hoặc fixture dev (xem app.main)."""
 from uuid import UUID
 
-from docx import Document
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 
 from app.api.errors import api_error
 from app.api.upload import parse_upload
 from app.core.enums import Role, SessionStatus
+from app.result.export_docx import DOCX_MEDIA_TYPE, export_docx
+from app.result.report_model import build_report_model
 from app.session.store import Session, utcnow
 
 router = APIRouter(prefix="/api/v1/sessions", tags=["sessions"])
@@ -86,12 +86,17 @@ async def create(request: Request):
         return rejection
     if session is None:
         return api_error(400, "ROLE_REQUIRED")
-    # Dev sample selection stores only a fixed variant key, never the raw filename.
-    filename = (upload.filename or "").lower()
-    session.mock_variant = (
-        "norisk" if "norisk" in filename else
-        "insufficient" if "insufficient" in filename else None
-    )
+    if getattr(state, "pipeline_enabled", False):
+        # X-19: giữ bytes + tên hiển thị trong RAM của phiên (không ghi đĩa); xóa khi xong/End/hết hạn.
+        session.upload = bytes(upload.content) if upload.error is None else None
+        session.display_name = upload.filename
+    else:
+        # Dev sample selection stores only a fixed variant key, never the raw filename.
+        filename = (upload.filename or "").lower()
+        session.mock_variant = (
+            "norisk" if "norisk" in filename else
+            "insufficient" if "insufficient" in filename else None
+        )
     state.orchestrator.start(session, upload.error)
     return JSONResponse(status_code=201, content={
         "session_id": str(session.session_id), "status": "UPLOADED",
@@ -147,25 +152,12 @@ def export(request: Request, session_id: str, format: str = "docx"):
         return error
     if format != "docx":
         return api_error(501, "FEATURE_NOT_ENABLED")
-    result = session.result
-    report = Document()
-    report.add_heading("Phân tích rủi ro hợp đồng lao động", 0)
-    for clause in result["clauses"]:
-        report.add_heading(clause["clause_id"], level=1)
-        report.add_paragraph(clause["original_text"])
-        for risk in result["risks"]:
-            if risk["clause_id"] == clause["clause_id"]:
-                report.add_paragraph(f"Rủi ro: {', '.join(risk['risk_labels'])} ({risk['severity']})")
-                report.add_paragraph(risk["explanation"])
-                report.add_paragraph(f"Căn cứ: {', '.join(risk['citation_ids'])}")
-    for citation in result["citations"]:
-        report.add_paragraph(f"{citation['citation_id']}: {citation['content']}")
-    report.add_paragraph(result["disclaimer"])
-    report.add_paragraph(result["data_notice"])
-    buffer = io.BytesIO()
-    report.save(buffer)
-    return Response(buffer.getvalue(), media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # noqa: E501
-                    headers={"Content-Disposition": 'attachment; filename="report.docx"'})
+    try:
+        data = export_docx(build_report_model(session.result))
+    except ValueError:
+        return api_error(500, "INTERNAL_ERROR")
+    return Response(data, media_type=DOCX_MEDIA_TYPE,
+                    headers={"Content-Disposition": 'attachment; filename="bao-cao-rui-ro.docx"'})
 
 
 @router.delete("/{session_id}")

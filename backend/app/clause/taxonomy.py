@@ -13,7 +13,9 @@ Hai khái niệm version KHÔNG được lẫn lộn (TDD §6.4):
 
 Prompt của LLM (ai/prompts/clause_v1.py, C-01) phải sinh từ LABEL_DEFINITIONS ở đây.
 
-Quy tắc nhãn cho 1 clause (OI-10 — chờ freeze ở MS-1): 1..3 nhãn, thuộc taxonomy, không trùng.
+Quy tắc nhãn cho 1 clause (SRS OI-10, OPEN_ISSUES_HANDLE_v4 §3.1 — chính sách đã chốt, chưa CLOSED
+đến khi xong C1–C6): 1..3 nhãn, thuộc taxonomy, không trùng, nhãn đầu = nhãn chính; `OTHER` chỉ
+đứng một mình.
 Không còn `type_scores`, `max_content_risk_tier`, `review_zone` (DEC-17, SRS C-03).
 
 ⚠️ ĐÓNG BĂNG ở MS-1 (25/10): đổi 12 nhãn hoặc nội dung định nghĩa thì phải tăng version
@@ -27,7 +29,8 @@ DATA_TAXONOMY_VERSION = "clause_taxonomy_v03"
 
 # v04 is a prompt-definition revision; the unchanged data vocabulary/semantics
 # remain clause_taxonomy_v03.md. See docs/DATA_LEAD_REVIEW_V03.md.
-TAXONOMY_VERSION = "v04"
+# v05 (OI-10 C2): same 12 labels; validator/prompt now reject OTHER combined with another label.
+TAXONOMY_VERSION = "v05"
 
 MIN_LABELS_PER_CLAUSE = 1
 MAX_LABELS_PER_CLAUSE = 3
@@ -82,10 +85,11 @@ LABEL_DEFINITIONS = MappingProxyType(_DEFS)
 # Có thứ tự (thứ tự hiển thị trong prompt; tie-break ổn định nếu cần).
 CLAUSE_LABELS: tuple[str, ...] = tuple(_DEFS)
 CLAUSE_LABEL_SET: frozenset[str] = frozenset(CLAUSE_LABELS)
+OTHER_LABEL = "OTHER"
 
 
 def validate_labels(labels: list[str]) -> list[str]:
-    """Kiểm tra `clause_labels` của một clause: 1..3 nhãn, thuộc taxonomy, không trùng.
+    """Kiểm tra `clause_labels` của một clause: 1..3 nhãn, thuộc taxonomy, không trùng, OTHER đứng riêng.
 
     Trả về chính danh sách đã kiểm (giữ nguyên thứ tự; nhãn đầu = nhãn chính).
     Raise ValueError nếu vi phạm — adapter chuyển thành AiOutputInvalid (INV-05).
@@ -102,4 +106,6 @@ def validate_labels(labels: list[str]) -> list[str]:
         raise ValueError(f"Nhãn ngoài taxonomy: {unknown}")
     if len(set(labels)) != len(labels):
         raise ValueError(f"clause_labels có nhãn trùng: {list(labels)}")
+    if OTHER_LABEL in labels and len(labels) > 1:
+        raise ValueError(f"OTHER chỉ được đứng một mình (OI-10): {list(labels)}")
     return list(labels)

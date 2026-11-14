@@ -12,7 +12,9 @@ from app.document.quality import run_quality_gates
 from app.domain.errors import ValidationReject
 
 PDF_EXTRACTION_VERSION = "extract_pdf_v1"
-DOCX_EXTRACTION_VERSION = "extract_docx_v1"
+# v2 (OI-11): effective lvlOverride, lvlRestart, no duplicated typed marker. Canonical text may
+# differ from v1, so spans/offsets computed on v1 must not be reused.
+DOCX_EXTRACTION_VERSION = "extract_docx_v2"
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
@@ -60,6 +62,35 @@ def extract(path: Path, kind: Literal["pdf", "docx"], *, max_pdf_pages: int = 30
         run_quality_gates(text)
         return ExtractionResult(text, PDF_EXTRACTION_VERSION, len(pages), len(text))
     text = canonicalize(extract_docx(path))
+    if len(text) > max_docx_chars:
+        raise ValidationReject("DOCX_TEXT_LIMIT_EXCEEDED")
+    run_quality_gates(text)
+    return ExtractionResult(text, DOCX_EXTRACTION_VERSION, None, len(text))
+
+
+def detect_kind_bytes(data: bytes, display_name: str) -> Literal["pdf", "docx"]:
+    """Same rule as `detect_kind` on in-memory upload bytes (extension + magic signature)."""
+    name = (display_name or "").lower()
+    if name.endswith(".pdf") and data[:5] == b"%PDF-":
+        return "pdf"
+    if name.endswith(".docx") and data[:4] == b"PK\x03\x04":
+        return "docx"
+    raise ValidationReject("UNSUPPORTED_FILE_TYPE")
+
+
+def extract_bytes(data: bytes, kind: Literal["pdf", "docx"], *, max_pdf_pages: int = 30,
+                  max_docx_chars: int = 100000, max_upload_bytes: int = MAX_UPLOAD_BYTES) -> ExtractionResult:
+    """`extract` for upload bytes kept in RAM (X-19); identical canonicalization and gates."""
+    if kind not in ("pdf", "docx"):
+        raise ValidationReject("UNSUPPORTED_FILE_TYPE")
+    if len(data) > max_upload_bytes:
+        raise ValidationReject("FILE_TOO_LARGE")
+    if kind == "pdf":
+        pages = extract_pdf(data, max_pages=max_pdf_pages)
+        text = canonicalize(pages)
+        run_quality_gates(text)
+        return ExtractionResult(text, PDF_EXTRACTION_VERSION, len(pages), len(text))
+    text = canonicalize(extract_docx(data))
     if len(text) > max_docx_chars:
         raise ValidationReject("DOCX_TEXT_LIMIT_EXCEEDED")
     run_quality_gates(text)
