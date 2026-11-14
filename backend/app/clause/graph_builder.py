@@ -1,7 +1,9 @@
-"""Clause Graph builder — cạnh NEXT + PARENT_OF (TDD §12.1, C-14 (a), FR-31).
+"""Clause Graph builder — cạnh NEXT + PARENT_OF + REFERS_TO (TDD §12.1, C-14 (a)(b), FR-31).
 
-Phạm vi W4: chỉ NEXT và PARENT_OF. REFERS_TO (regex, loại trừ dẫn chiếu pháp luật) làm ở W5
-(C-14 (b)); tham số `masked_text` đã có sẵn trong chữ ký để khỏi đổi API khi đó.
+REFERS_TO (C-14 b, W5): chỉ dựng khi truyền `masked_text`; regex "Điều N" / "Khoản K Điều N" trên
+masked text của từng clause, loại trừ dẫn chiếu văn bản pháp luật (Bộ luật, Luật, Nghị định, Thông tư,
+văn bản pháp luật...), chỉ tạo cạnh khi resolve đúng DUY NHẤT tới clause trong cùng hợp đồng; mơ hồ
+hoặc không tìm thấy ⇒ bỏ cạnh + diagnostic.
 
 Bất biến:
   INV-08  graph CHỈ chứa `clause_id` + `edge_type` — không text, không offset, không số điều.
@@ -16,6 +18,7 @@ Hàm thuần: không I/O, không import `api/` hay `session/`. Diagnostic cũng 
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
@@ -23,7 +26,7 @@ from app.clause.segmenter import SegmentedClause
 from app.core.enums import ClauseEdgeType
 from app.domain.errors import PipelineInternalError
 
-CLAUSE_GRAPH_VERSION = "clause_graph_v1"
+CLAUSE_GRAPH_VERSION = "clause_graph_v2"  # v2: thêm REFERS_TO (C-14 b)
 
 
 @dataclass(frozen=True)
@@ -85,7 +88,7 @@ class ClauseGraph:
 
 def build_clause_graph(
     clauses: Sequence[SegmentedClause],
-    masked_text: Optional[str] = None,  # dành cho REFERS_TO (W5); W4 chưa dùng, không đọc
+    masked_text: Optional[str] = None,  # có ⇒ dựng REFERS_TO; None ⇒ chỉ cạnh cấu trúc
 ) -> tuple[ClauseGraph, list[Diagnostic]]:
     """Dựng Clause Graph từ kết quả segmentation (thứ tự văn bản).
 
@@ -94,6 +97,7 @@ def build_clause_graph(
 
     Diagnostic (không chặn): `ORPHAN_NESTED` — clause level > 1 mà không có cha (heading cha bị bỏ
     vì nằm trong placeholder PII và không còn mark cha nào); mất cạnh PARENT_OF nhưng vẫn có NEXT.
+    `REFERS_TO_AMBIGUOUS` / `REFERS_TO_UNRESOLVED` / `REFERS_TO_LEGAL_EXCLUDED` — dẫn chiếu bị bỏ.
 
     Raises:
         PipelineInternalError: clause_id trùng/rỗng, parent không tồn tại hoặc đứng sau con,
@@ -126,6 +130,11 @@ def build_clause_graph(
         if level[parent] >= level[c.clause_id]:
             raise PipelineInternalError("CLAUSE_GRAPH: level cha phải nhỏ hơn level con")
         edges.append(ClauseEdge(parent, c.clause_id, ClauseEdgeType.PARENT_OF))
+
+    if masked_text is not None:
+        ref_edges, ref_diags = _refers_to_edges(clauses, masked_text)
+        edges.extend(ref_edges)
+        diagnostics.extend(ref_diags)
 
     graph = ClauseGraph(node_ids=tuple(ids), edges=tuple(edges))
     _validate(graph)
@@ -162,3 +171,77 @@ def _assert_parent_of_acyclic(graph: ClauseGraph) -> None:
             hops += 1
             if hops > len(graph.node_ids):
                 raise PipelineInternalError("CLAUSE_GRAPH: PARENT_OF có chu trình")
+
+
+# ---------------------------------------------------------------------------------------------
+# REFERS_TO (C-14 b)
+# ---------------------------------------------------------------------------------------------
+
+_ARTICLE_HEAD = re.compile(r"^\s*Điều\s+(\d+[a-zđ]?)\b", re.IGNORECASE)
+_ITEM_HEAD = re.compile(r"^\s*(?:Khoản\s+)?(\d{1,3})[.)]?\s", re.IGNORECASE)
+_REFERENCE = re.compile(
+    r"(?:\b[Kk]hoản\s+(?P<item>\d{1,3})\s+(?:của\s+)?)?\b[Đđ]iều\s+(?P<article>\d+[a-zđ]?)\b"
+)
+# Ngữ cảnh ngay sau dẫn chiếu chỉ ra văn bản pháp luật bên ngoài ⇒ không phải dẫn chiếu nội bộ.
+_LEGAL_AFTER = re.compile(
+    r"^[\s,]*(?:của\s+|tại\s+|theo\s+)?(?:bộ\s+luật|luật|nghị\s+định|thông\s+tư|văn\s+bản\s+pháp\s+luật|"
+    r"pháp\s+luật|blld|bllđ|nđ|tt|quyết\s+định|nghị\s+quyết|hiến\s+pháp)",
+    re.IGNORECASE,
+)
+_LOOKAHEAD = 60
+
+
+def _structure_index(clauses: Sequence[SegmentedClause], masked_text: str):
+    """article number → [clause_id]; (article, item) → [clause_id]. Chỉ dựa vào heading đầu clause."""
+    articles: dict[str, list[str]] = {}
+    items: dict[tuple[str, str], list[str]] = {}
+    article_of: dict[str, str] = {}
+    for c in clauses:
+        head = masked_text[c.start_char:c.end_char]
+        m = _ARTICLE_HEAD.match(head)
+        if m:
+            num = m.group(1).lower()
+            articles.setdefault(num, []).append(c.clause_id)
+            article_of[c.clause_id] = num
+    for c in clauses:
+        parent = c.structure.parent_clause_id
+        if parent in article_of and c.structure.number is not None:
+            m = _ITEM_HEAD.match(masked_text[c.start_char:c.end_char])
+            if m and m.group(1) == c.structure.number:
+                items.setdefault((article_of[parent], c.structure.number), []).append(c.clause_id)
+    return articles, items, article_of
+
+
+def _refers_to_edges(clauses: Sequence[SegmentedClause], masked_text: str):
+    articles, items, article_of = _structure_index(clauses, masked_text)
+    own_article: dict[str, Optional[str]] = {}
+    for c in clauses:
+        own_article[c.clause_id] = article_of.get(c.clause_id) or article_of.get(c.structure.parent_clause_id or "")
+    edges: list[ClauseEdge] = []
+    diags: list[Diagnostic] = []
+    seen: set[tuple[str, str]] = set()
+    for c in clauses:
+        body = masked_text[c.start_char:c.end_char]
+        head = _ARTICLE_HEAD.match(body)
+        scan_from = head.end() if head else 0  # bỏ chính heading "Điều N." của clause
+        for m in _REFERENCE.finditer(body, scan_from):
+            after = body[m.end():m.end() + _LOOKAHEAD]
+            if _LEGAL_AFTER.match(after):
+                diags.append(Diagnostic("REFERS_TO_LEGAL_EXCLUDED", c.clause_id))
+                continue
+            article = m.group("article").lower()
+            item = m.group("item")
+            targets = items.get((article, item), []) if item else articles.get(article, [])
+            if len(targets) != 1:
+                code = "REFERS_TO_AMBIGUOUS" if len(targets) > 1 else "REFERS_TO_UNRESOLVED"
+                diags.append(Diagnostic(code, c.clause_id))
+                continue
+            dst = targets[0]
+            # "Điều này"/tự dẫn chiếu tới chính clause hoặc Điều chứa nó không phải quan hệ mới.
+            if dst == c.clause_id or (item is None and own_article.get(c.clause_id) == article
+                                      and dst == c.structure.parent_clause_id):
+                continue
+            if (c.clause_id, dst) not in seen:
+                seen.add((c.clause_id, dst))
+                edges.append(ClauseEdge(c.clause_id, dst, ClauseEdgeType.REFERS_TO))
+    return edges, diags
