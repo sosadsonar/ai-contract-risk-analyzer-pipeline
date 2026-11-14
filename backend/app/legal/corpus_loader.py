@@ -12,6 +12,13 @@ import yaml
 from app.domain.errors import LegalCorpusConflict
 
 _FILES = ("provisions.jsonl", "edges.jsonl", "label_map.yaml")
+_REVIEW_FILE = "review_receipts.json"
+_LEGACY_VERSIONS = {"legal_corpus_2026-11-14_v02", "fixture_v1"}
+_LEGACY_V1_CHECKSUMS = {
+    "provisions.jsonl": "f8a3b6b5bd34d0352da1dad05e156b246cd78e470386c5634732073151dfb44b",
+    "edges.jsonl": "bce0f9dcf457f130493816ff3e3281268abaf2c1b760696cb49452fe91f9e098",
+    "label_map.yaml": "e9b652af68e25ea55f2d7bf32599256aea9a2d1cf4afda416ef880f2a4dc89ad",
+}
 _PROVISION_KEYS = {
     "citation_id", "document_id", "document_name", "version", "article", "clause",
     "point", "parent_path", "content", "effective_from", "effective_to",
@@ -129,15 +136,21 @@ def load_corpus(root: Path, *, allow_draft: bool = False) -> LegalCorpus:
     try:
         manifest = _read_yaml((root / "manifest.yaml").read_bytes(), "manifest.yaml")
         checksums = manifest["checksums"]
-        if not isinstance(checksums, dict) or set(checksums) != set(_FILES):
-            raise LegalCorpusConflict("manifest.yaml: incomplete checksums")
-        raw = {name: (root / name).read_bytes() for name in _FILES}
-        for name in _FILES:
-            if checksums[name] != hashlib.sha256(raw[name]).hexdigest():
-                raise LegalCorpusConflict(f"{name}: SHA-256 mismatch")
         status = manifest["release_status"]
         if status not in {"DRAFT", "APPROVED"}:
             raise LegalCorpusConflict("manifest.yaml: invalid release_status")
+        needs_review = status == "APPROVED" and manifest["corpus_version"] not in _LEGACY_VERSIONS
+        if needs_review and _REVIEW_FILE not in checksums:
+            raise LegalCorpusConflict("manifest.yaml: missing review_receipts.json checksum")
+        expected_files = set(_FILES) | ({_REVIEW_FILE} if _REVIEW_FILE in checksums else set())
+        if not isinstance(checksums, dict) or set(checksums) != expected_files:
+            raise LegalCorpusConflict("manifest.yaml: incomplete checksums")
+        if manifest["corpus_version"] == "legal_corpus_2026-11-14_v02" and checksums != _LEGACY_V1_CHECKSUMS:
+            raise LegalCorpusConflict("manifest.yaml: immutable v1 checksum changed")
+        raw = {name: (root / name).read_bytes() for name in expected_files}
+        for name in expected_files:
+            if checksums[name] != hashlib.sha256(raw[name]).hexdigest():
+                raise LegalCorpusConflict(f"{name}: SHA-256 mismatch")
         if status != "APPROVED" and not allow_draft:
             raise LegalCorpusConflict("manifest.yaml: corpus awaits Data/Legal reviewer sign-off")
         provisions = []
@@ -162,6 +175,12 @@ def load_corpus(root: Path, *, allow_draft: bool = False) -> LegalCorpus:
         from app.legal.corpus_validator import validate_corpus
 
         validate_corpus(corpus)
+        if corpus.corpus_version == "fixture_v1" and any(p.document_id != "TESTLAW" for p in corpus.provisions):
+            raise LegalCorpusConflict("fixture_v1 only permits TESTLAW fixtures")
+        if needs_review:
+            from app.legal.corpus_review import validate_review_bundle
+
+            validate_review_bundle(corpus, raw[_REVIEW_FILE])
         return corpus
     except (OSError, KeyError, TypeError, ValueError) as exc:
         raise LegalCorpusConflict(f"corpus read/metadata error: {exc}") from exc
