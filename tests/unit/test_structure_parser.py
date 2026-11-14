@@ -26,6 +26,12 @@ def test_article_and_decimal_children():
     assert [m.parent_index for m in marks] == [None, 0, 0, None]
 
 
+def test_ascii_dieu_heading_is_structural_article():
+    assert kinds("DIEU 7. Cham dut hop dong\n1. Noi dung\n2. Noi dung khac")[:1] == [
+        (ARTICLE, "7")
+    ]
+
+
 def test_decimal_depth_three_levels():
     text = "Điều 1. A\n1.1 B\n1.1.1 C\n1.1.2 D\n1.2 E\n"
     marks = parse_structure(text)
@@ -54,6 +60,12 @@ def test_lone_numbered_lettered_and_dash_are_not_boundaries():
 def test_dash_list_needs_two_siblings():
     text = "Điều 1. X\n- một\n- hai\n"
     assert kinds(text) == [(ARTICLE, "1"), (DASH, None), (DASH, None)]
+
+
+def test_en_and_em_dash_list_are_dash_siblings():
+    assert kinds("Điều 1. Nội dung\n– Mục thứ nhất.\n— Mục thứ hai.") == [
+        (ARTICLE, "1"), (DASH, None), (DASH, None)
+    ]
 
 
 def test_numbered_must_start_at_one_and_be_consecutive():

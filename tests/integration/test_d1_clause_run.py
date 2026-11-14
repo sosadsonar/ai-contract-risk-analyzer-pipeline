@@ -49,7 +49,8 @@ def test_smoke_run_covers_all_d1_contracts_and_graph_inv():
     assert len(pc) == 4
     for c in pc:
         assert c["graph_next"] == c["clauses"] - 1 and c["segmentation_warnings"] == 0
-    assert rep["cost"]["calls"] == sum(-(-c["clauses"] // 20) for c in pc)  # ceil(clauses/20) mỗi hợp đồng
+    assert all(0 <= c["classified_clauses"] <= c["clauses"] for c in pc) # bỏ header và preamble
+    assert rep["cost"]["calls"] == sum(-(-c["classified_clauses"] // 20) for c in pc)  # ceil(clauses/20) mỗi hợp đồng
     assert rep["version_pins"]["taxonomy_version"] == "clause_taxonomy_v03"
 
 

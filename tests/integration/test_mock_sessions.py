@@ -18,8 +18,9 @@ PDF = b"%PDF-1.4\n%%EOF\n"
 
 
 @pytest.fixture
-def client():
+def client(sample_mode):
     with TestClient(app) as api:
+        assert not api.app.state.pipeline_enabled
         yield api
 
 

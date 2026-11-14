@@ -28,7 +28,7 @@ from app.result.report_model import (
 # Fixture
 # ---------------------------------------------------------------------------
 
-FIXTURE_PATH = Path(__file__).parent.parent / "fixtures" / "mock_final_result_v1.json"
+FIXTURE_PATH = Path(__file__).resolve().parents[2] / "backend/app/session/fixtures/mock_final_result_v1.json"
 
 
 @pytest.fixture(scope="module")

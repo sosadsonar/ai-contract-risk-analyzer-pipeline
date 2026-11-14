@@ -74,11 +74,13 @@
         "explanation": {"type": "string", "minLength": 10},
         "evidence_status": {"enum": ["SUPPORTED", "INSUFFICIENT_EVIDENCE"]},
         "citation_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
-        "related_clause_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^cl_[0-9]{4}$"}}
+        "related_clause_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^cl_[0-9]{4}$"}},
+        "needs_review": {"const": true, "description": "Tùy chọn (X-22, TDD §15.5): bản ghi 'nghi ngờ, cần xem xét' khi tổ hợp (nhãn, basis_type, vai trò) vẫn sai sau retry; luôn INSUFFICIENT_EVIDENCE, severity null, không citation; UI không hiện nhãn/severity. Vắng = bản ghi thường."}
       },
       "allOf": [
         {"if": {"properties": {"evidence_status": {"const": "SUPPORTED"}}}, "then": {"properties": {"citation_ids": {"minItems": 1}, "severity": {"enum": ["HIGH", "MEDIUM", "LOW"]}}}},
-        {"if": {"properties": {"evidence_status": {"const": "INSUFFICIENT_EVIDENCE"}}}, "then": {"properties": {"citation_ids": {"maxItems": 0}, "severity": {"type": "null"}}}}
+        {"if": {"properties": {"evidence_status": {"const": "INSUFFICIENT_EVIDENCE"}}}, "then": {"properties": {"citation_ids": {"maxItems": 0}, "severity": {"type": "null"}}}},
+        {"if": {"required": ["needs_review"]}, "then": {"properties": {"evidence_status": {"const": "INSUFFICIENT_EVIDENCE"}}}}
       ]
     },
     "citation": {

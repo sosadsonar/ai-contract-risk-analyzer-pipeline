@@ -1,0 +1,10 @@
+{
+  "status": "D2_DEV_REVIEW_AGREEMENT_NOT_M6_ACCEPTANCE",
+  "n": 40,
+  "acceptance_scope_verified": false,
+  "judge_human_agreement": 1.0,
+  "judge_human_kappa": 1.0,
+  "m6_threshold_met": true,
+  "human_a_b_agreement": 0.975,
+  "human_a_b_kappa": 0.894736842105263
+}

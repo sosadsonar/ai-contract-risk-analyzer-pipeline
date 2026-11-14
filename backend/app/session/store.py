@@ -29,6 +29,10 @@ class Session:
     result: dict | None = field(default=None, repr=False)
     mock_variant: str | None = None
     cancelled: bool = False
+    # X-19: đầu vào giữ trong RAM của phiên tới khi COMPLETED/REJECTED/End (cần cho Retry); không ghi đĩa.
+    upload: bytes | None = field(default=None, repr=False)
+    display_name: str | None = field(default=None, repr=False)
+    resume: object | None = field(default=None, repr=False)  # pipeline.ResumeState khi lỗi ở giai đoạn AI
 
 
 class InMemorySessionStore:
@@ -56,7 +60,13 @@ class InMemorySessionStore:
 
     def delete(self, sid: UUID) -> Session | None:
         with self.lock:
-            return self.sessions.pop(sid, None)
+            session = self.sessions.pop(sid, None)
+            if session is not None:  # INV-09/BR-13: xóa nội dung ngay, không chờ GC
+                session.upload = None
+                session.display_name = None
+                session.resume = None
+                session.result = None
+            return session
 
     def expired(self, cutoff: datetime) -> list[UUID]:
         with self.lock:

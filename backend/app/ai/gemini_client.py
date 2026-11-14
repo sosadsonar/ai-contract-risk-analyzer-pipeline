@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
 from app.ai.provider import LLMResponse, ProviderFailure
@@ -81,28 +82,60 @@ def to_gemini_request(
     return body
 
 
-def parse_gemini_response(payload: dict, model_id: str) -> LLMResponse:
-    """Lấy text JSON ở candidate đầu; finishReason khác STOP (SAFETY, MAX_TOKENS...) = invalid_json."""
+@dataclass(frozen=True)
+class Price:
+    """Giá USD / 1M token cho một model, kèm nguồn và ngày hiệu lực (OI-05 §2.4). Không hard-code:
+    lấy từ cấu hình sau khi đối chiếu trang giá chính thức của Google."""
+
+    input_per_mtok: float
+    output_per_mtok: float
+    source: str = ""
+
+    def cost(self, in_tokens: int, out_tokens: int) -> float:
+        return (in_tokens * self.input_per_mtok + out_tokens * self.output_per_mtok) / 1_000_000
+
+
+def _usage(payload: dict) -> tuple[Optional[int], Optional[int]]:
+    """(input, output) token; thinking token tính là output. None nếu provider không trả usage."""
+    usage = payload.get("usageMetadata") if isinstance(payload, dict) else None
+    if not isinstance(usage, dict) or "promptTokenCount" not in usage:
+        return None, None
+    out = int(usage.get("candidatesTokenCount", 0) or 0) + int(usage.get("thoughtsTokenCount", 0) or 0)
+    return int(usage.get("promptTokenCount", 0) or 0), out
+
+
+def parse_gemini_response(payload: dict, model_id: str, price: Optional[Price] = None) -> LLMResponse:
+    """Lấy text JSON ở candidate đầu; finishReason khác STOP (SAFETY, MAX_TOKENS...) = invalid_json.
+
+    Usage/cost được gắn cả vào ProviderFailure để ledger không mất token của response lỗi."""
+    in_tokens, out_tokens = _usage(payload)
+    cost = price.cost(in_tokens, out_tokens) if price and in_tokens is not None else 0.0
+
+    def fail(detail: str) -> ProviderFailure:
+        return ProviderFailure("invalid_json", detail=detail, in_tokens=in_tokens,
+                               out_tokens=out_tokens, cost=cost)
+
     try:
         cand = payload["candidates"][0]
         parts = cand["content"]["parts"]
         text = "".join(p.get("text", "") for p in parts)
     except (KeyError, IndexError, TypeError):
-        raise ProviderFailure("invalid_json", detail="thiếu candidates/parts") from None
+        raise fail("thiếu candidates/parts") from None
     if cand.get("finishReason", "STOP") not in ("STOP", "FINISH_REASON_UNSPECIFIED"):
-        raise ProviderFailure("invalid_json", detail=f"finishReason={cand.get('finishReason')}")
+        raise fail(f"finishReason={cand.get('finishReason')}")
     try:
         data = json.loads(text)
     except json.JSONDecodeError:
-        raise ProviderFailure("invalid_json", detail="text không phải JSON") from None
+        raise fail("text không phải JSON") from None
     if not isinstance(data, dict):
-        raise ProviderFailure("invalid_json", detail="JSON gốc không phải object")
-    usage = payload.get("usageMetadata") or {}
+        raise fail("JSON gốc không phải object")
     return LLMResponse(
         data=data,
         model_id=payload.get("modelVersion") or model_id,
-        in_tokens=int(usage.get("promptTokenCount", 0) or 0),
-        out_tokens=int(usage.get("candidatesTokenCount", 0) or 0),
+        in_tokens=in_tokens or 0,
+        out_tokens=out_tokens or 0,
+        cost=cost,
+        usage_known=in_tokens is not None,
     )
 
 
@@ -133,6 +166,7 @@ class GeminiProductClient:
         temperature: float = 0.0,
         base_url: str = DEFAULT_BASE_URL,
         transport: Optional[Transport] = None,
+        price: Optional[Price] = None,
     ) -> None:
         if not api_key:
             raise ValueError("Thiếu GEMINI_API_KEY")
@@ -140,6 +174,7 @@ class GeminiProductClient:
         self.temperature = temperature
         self.base_url = base_url.rstrip("/")
         self._transport = transport or _requests_transport
+        self.price = price
 
     def __repr__(self) -> str:  # không để key lọt vào log/traceback
         return f"GeminiProductClient(temperature={self.temperature})"
@@ -164,4 +199,4 @@ class GeminiProductClient:
             raise ProviderFailure("http", status=status)  # không đính kèm body
         if not isinstance(payload, dict):
             raise ProviderFailure("invalid_json", detail="body không phải JSON")
-        return parse_gemini_response(payload, model_id)
+        return parse_gemini_response(payload, model_id, self.price)

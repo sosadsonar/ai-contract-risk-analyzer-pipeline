@@ -108,8 +108,7 @@ function buildSample(id: string, role: Role, fileName: string): FinalResult {
         },
         {
           clause_id: "cl_0003",
-          // TODO X-15: Nhãn POST_EMPLOYMENT_RESTRICTION sẽ đổi thành IP_CONFIDENTIALITY_NONCOMPETE
-          // sau khi N3 merge PR taxonomy (PROGRESS.md §3.2 X-15). Không tự đổi trước khi X-15 merge.
+          // X-15 đã hủy: giữ tên POST_EMPLOYMENT_RESTRICTION (OPEN_ISSUES_HANDLE_v4 §1)
           risk_labels: ["TRAINING_COMMITMENT", "POST_EMPLOYMENT_RESTRICTION"],
           risk_basis: [
             { label: "TRAINING_COMMITMENT", basis_type: "UNFAVORABLE" },

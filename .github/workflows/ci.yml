@@ -1,14 +1,15 @@
 # CI kiểm thử tự động (PROGRESS.md tuần 1 — N4 C-17 "CI chạy pytest"; N1 dựng ở tuần 2).
 #
-# 3 job:
+# 4 job (+ llm-live thủ công):
 #   test  — pytest trên Python 3.10 (cận dưới pyproject) và 3.12 (bản chạy thật, AI_CONTEXT §8) +
 #           smoke script không cần API key. KHÔNG kéo submodule, KHÔNG cần secret, KHÔNG gọi LLM.
 #   data  — kéo submodule `ai_pipeline/data` rồi chạy test cần dữ liệu thật (tests/test_data_lead_review.py,
 #           tests/integration). Không kéo được submodule ⇒ ĐỎ trên push/PR cùng repo (chỉ PR từ fork được bỏ qua);
 #           đặt secret SUBMODULE_TOKEN (PAT chỉ đọc repo data) để chạy.
-#   lint  — ruff toàn repo, chặn cứng (trừ 2 file dữ liệu của N2).
+#   lint  — ruff toàn repo, chặn cứng.
+#   frontend — vitest + vite build (N5).
 #
-# Job `test`/`data` KHÔNG gọi LLM hay Postgres (backend/tests/test_postgres_quota.py).
+# Job `test`/`data` KHÔNG gọi LLM. pytest gom cả `tests/` và `backend/tests/` (pyproject testpaths).
 # Test gọi LLM thật nằm ở job `llm-live` riêng: chỉ chạy tay (Actions → CI → Run workflow) và chỉ khi
 # repo có secret GEMINI_API_KEY; dùng văn bản tổng hợp, không gửi hợp đồng thật (AI_CONTEXT §3).
 
@@ -62,9 +63,8 @@ jobs:
       - name: pytest (không cần submodule)
         run: pytest --ignore=tests/test_data_lead_review.py --junitxml=pytest-report.xml
 
-      - name: Smoke script pipeline (không cần API key)
-        working-directory: ai_pipeline
-        run: python test_pipeline.py > /dev/null
+      - name: Smoke toàn pipeline với provider giả (không cần API key)
+        run: python scripts/smoke_pipeline.py
 
       - name: Tải báo cáo test
         if: always()
@@ -137,35 +137,29 @@ jobs:
       - name: Cài ruff
         run: pip install "ruff>=0.1.0"
 
-      # Toàn repo CHẶN CỨNG. Ngoại lệ có chủ: 2 file kiểm dữ liệu của N2 (còn lỗi E501/E702) — dọn xong thì xóa
-      # dòng --exclude.
+      # Toàn repo CHẶN CỨNG (13/11/2026: `ruff check .` sạch; bỏ danh sách đường dẫn và bước "chỉ cảnh báo").
       - name: ruff check (toàn repo — bắt buộc)
-        run: |
-          ruff check . \
-            --exclude scripts/audit_data_lead.py \
-            --exclude tests/test_data_lead_review.py \
-            backend/app/clause \
-            backend/app/legal \
-            backend/app/domain \
-            backend/app/risk \
-            backend/app/integrations \
-            backend/app/core/enums.py \
-            tests/contract \
-            tests/integration \
-            tests/unit/test_clause_taxonomy.py \
-            tests/unit/test_clause_taxonomy_freeze.py \
-            tests/unit/test_segmenter.py \
-            tests/unit/test_structure_parser.py \
-            tests/unit/test_legal_corpus.py \
-            tests/unit/test_baseline_retriever.py \
-            tests/unit/test_data_graph.py \
-            scripts/update_legal_corpus_checksums.py \
-            ai_pipeline/test_pipeline.py
+        run: ruff check .
 
-      # Toàn repo: chỉ cảnh báo (còn lỗi cũ ở file của người khác) — chủ file tự dọn dần.
-      - name: ruff check (toàn repo — chỉ cảnh báo)
-        continue-on-error: true
-        run: ruff check . --output-format=github
+  frontend:
+    name: frontend (vitest + build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
 
   llm-live:
     name: gọi LLM thật (thủ công)

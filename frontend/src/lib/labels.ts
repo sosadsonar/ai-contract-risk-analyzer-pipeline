@@ -17,8 +17,7 @@ export const RISK_LABEL_NAMES: Record<string, string> = {
   UNILATERAL_CHANGE: "Đơn phương thay đổi nội dung",
   PENALTY_DEDUCTION_DAMAGES: "Phạt, khấu trừ, bồi thường",
   DISCIPLINE_OBLIGATION: "Kỷ luật và nghĩa vụ",
-  // TODO X-15: N3 sẽ đổi nhãn này → IP_CONFIDENTIALITY_NONCOMPETE trong PR taxonomy.
-  // Không tự đổi ở đây trước khi X-15 merge để tránh lệch với backend/app/risk/taxonomy.py.
+  // X-15 đã hủy (OPEN_ISSUES_HANDLE_v4 §1, 13/11/2026): giữ tên POST_EMPLOYMENT_RESTRICTION.
   POST_EMPLOYMENT_RESTRICTION: "Ràng buộc sau khi nghỉ việc",
   DEPOSIT_DOCUMENT_HELD: "Đặt cọc, giữ giấy tờ",
   DISCRIMINATION_PROTECTED_GROUPS: "Phân biệt đối xử",

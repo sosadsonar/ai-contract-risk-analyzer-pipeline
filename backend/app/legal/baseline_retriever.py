@@ -103,8 +103,13 @@ class BaselineRetriever:
         # not penalize the configured label signal after normalization.
         positive = [max(0.0, float(score)) for score in lexical]
         denominator = max(positive, default=0.0)
+        # X-24: nút Điều có Khoản con chỉ chứa tiêu đề ⇒ không làm seed BM25 (điểm từ vựng = 0); Điều không
+        # chia khoản vẫn là nút có nội dung. Nhận diện bằng parent_path, không thêm trường corpus.
+        with_children = {":".join(p.parent_path[:-1]) for p in active if len(p.parent_path) > 2}
         ranked = []
         for provision, bm25_score in zip(active, positive):
+            if provision.citation_id in with_children:
+                bm25_score = 0.0
             lexical_normalized = bm25_score / denominator if denominator > 0 else 0.0
             label_weight = max(
                 (self._corpus.label_map.get(label, {}).get(provision.citation_id, 0.0)

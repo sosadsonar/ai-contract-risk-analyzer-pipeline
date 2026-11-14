@@ -1,0 +1,524 @@
+{
+  "scope": "D1_D2_DEV_ARTICLE17_PLUS_FOURTEEN_D1_RISK_ITEMS",
+  "classifier": "FROZEN_M5_ARTICLE17_PLUS_SOURCE_ONLY_UNILATERAL_DEV_RULE_NOT_PRODUCT_M2",
+  "gold_policy": "D1_M2_V03_PLUS_RATIFIED_D2_TWO_ROLE_INJECTION_V01_ON_D2_SEG_V02",
+  "as_of": "2026-11-13",
+  "source_sha256_by_document": {
+    "D1:HDLD001": "b22f92b5e92ee3663922e6a1465b02fee89b243431bce8fdc6f682747777f925",
+    "D1:HDLD002": "b43a8e46839ee35125e709301c2558044f863304c6f9714d43386e33bac2758d",
+    "D1:HDLD003": "f76195cc5da1c65aad45debe3ca44c7dd4df5c077f29b1660555b604197e60f7",
+    "D1:HDLD004": "32f363a4e50ff056c6bc062a123fe8d16699055ca7be596175173381cb07afea",
+    "D2:HDLD001": "f5290a831ff30f17b0ebe47ac1a4290c3c8c41a112998599c4eb96524ce38227",
+    "D2:HDLD002": "4af0c70bdecd33e7d8a03375f4ba71d9f4dffb4070aa786205ae34ad2d9c5c12",
+    "D2:HDLD003": "a4e838db64dc004e663929c5bbed7a77cd84f117a1ba514d9bdb25c0124f4953",
+    "D2:HDLD004": "bc257ecc646c8a7f2a09d5316d468856add183523f250416f1eb33bbea9e4c64"
+  },
+  "segment_counts": {
+    "D1": 223,
+    "D2": 253
+  },
+  "d2_dev": {
+    "per_label": {
+      "CONTRACT_TERM_TYPE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "PROBATION": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "WAGE_AMOUNT_COMPONENTS": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "BONUS_BENEFITS": {
+        "tp": 0,
+        "fp": 6,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 6
+      },
+      "PAYMENT_TIMING_METHOD": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "WORKING_HOURS_OVERTIME": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 1
+      },
+      "REST_AND_LEAVE": {
+        "tp": 0,
+        "fp": 3,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 3
+      },
+      "SOCIAL_INSURANCE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "OSH_OBLIGATION": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "UNILATERAL_CHANGE": {
+        "tp": 0,
+        "fp": 8,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 8
+      },
+      "PENALTY_DEDUCTION_DAMAGES": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "DISCIPLINE_OBLIGATION": {
+        "tp": 20,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "gold_support": 20,
+        "pred_support": 20
+      },
+      "POST_EMPLOYMENT_RESTRICTION": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "DEPOSIT_DOCUMENT_HELD": {
+        "tp": 38,
+        "fp": 0,
+        "fn": 2,
+        "precision": 1.0,
+        "recall": 0.95,
+        "f1": 0.9743589743589743,
+        "gold_support": 40,
+        "pred_support": 38
+      },
+      "DISCRIMINATION_PROTECTED_GROUPS": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "TRAINING_COMMITMENT": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "TERMINATION_GROUNDS_NOTICE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "TERMINATION_SETTLEMENT": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "WAIVER_RIGHTS_DISPUTE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "PERSONAL_DATA_PRIVACY": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "CONTRACT_FORM_RULES": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      }
+    },
+    "macro_f1_present_labels": 0.9871794871794872,
+    "macro_f1_all_21_labels": 0.09401709401709402,
+    "micro_counts": {
+      "tp": 58,
+      "fp": 18,
+      "fn": 2
+    },
+    "micro_precision": 0.7631578947368421,
+    "micro_recall": 0.9666666666666667,
+    "micro_f1": 0.8529411764705882,
+    "gold_label_coverage": {
+      "present": 2,
+      "total": 21
+    },
+    "full_taxonomy_coverage": false,
+    "alignment_pairs": 29,
+    "excluded_gold_unalignable": 0,
+    "basis_type_accuracy": 1.0,
+    "basis_type_ci95": [
+      0.9378821442127971,
+      1.0
+    ],
+    "basis_type_support": 58
+  },
+  "combined_dev": {
+    "per_label": {
+      "CONTRACT_TERM_TYPE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "PROBATION": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "WAGE_AMOUNT_COMPONENTS": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "BONUS_BENEFITS": {
+        "tp": 3,
+        "fp": 9,
+        "fn": 0,
+        "precision": 0.25,
+        "recall": 1.0,
+        "f1": 0.4,
+        "gold_support": 3,
+        "pred_support": 12
+      },
+      "PAYMENT_TIMING_METHOD": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "WORKING_HOURS_OVERTIME": {
+        "tp": 1,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666,
+        "gold_support": 1,
+        "pred_support": 2
+      },
+      "REST_AND_LEAVE": {
+        "tp": 1,
+        "fp": 5,
+        "fn": 0,
+        "precision": 0.16666666666666666,
+        "recall": 1.0,
+        "f1": 0.2857142857142857,
+        "gold_support": 1,
+        "pred_support": 6
+      },
+      "SOCIAL_INSURANCE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "OSH_OBLIGATION": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "UNILATERAL_CHANGE": {
+        "tp": 8,
+        "fp": 8,
+        "fn": 1,
+        "precision": 0.5,
+        "recall": 0.8888888888888888,
+        "f1": 0.64,
+        "gold_support": 9,
+        "pred_support": 16
+      },
+      "PENALTY_DEDUCTION_DAMAGES": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "DISCIPLINE_OBLIGATION": {
+        "tp": 20,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "gold_support": 20,
+        "pred_support": 20
+      },
+      "POST_EMPLOYMENT_RESTRICTION": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "DEPOSIT_DOCUMENT_HELD": {
+        "tp": 38,
+        "fp": 0,
+        "fn": 2,
+        "precision": 1.0,
+        "recall": 0.95,
+        "f1": 0.9743589743589743,
+        "gold_support": 40,
+        "pred_support": 38
+      },
+      "DISCRIMINATION_PROTECTED_GROUPS": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "TRAINING_COMMITMENT": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "TERMINATION_GROUNDS_NOTICE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "TERMINATION_SETTLEMENT": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "WAIVER_RIGHTS_DISPUTE": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "PERSONAL_DATA_PRIVACY": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      },
+      "CONTRACT_FORM_RULES": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_support": 0,
+        "pred_support": 0
+      }
+    },
+    "macro_f1_present_labels": 0.6611233211233212,
+    "macro_f1_all_21_labels": 0.18889237746380605,
+    "micro_counts": {
+      "tp": 71,
+      "fp": 23,
+      "fn": 3
+    },
+    "micro_precision": 0.7553191489361702,
+    "micro_recall": 0.9594594594594594,
+    "micro_f1": 0.8452380952380952,
+    "gold_label_coverage": {
+      "present": 6,
+      "total": 21
+    },
+    "full_taxonomy_coverage": false,
+    "alignment_pairs": 42,
+    "excluded_gold_unalignable": 0,
+    "basis_type_accuracy": 1.0,
+    "basis_type_ci95": [
+      0.9486720478031097,
+      1.0
+    ],
+    "basis_type_support": 71
+  },
+  "gold_tuple_counts": {
+    "d2": 60,
+    "combined": 74
+  },
+  "predicted_tuple_counts": {
+    "d2": 76,
+    "combined": 94
+  },
+  "predictions_on_d2_labels_without_gold": {
+    "UNILATERAL_CHANGE": 8
+  },
+  "m3a_local_rule_citation_proxy": {
+    "status": "STATIC_ARTICLE17_MAPPING_CORPUS_EFFECTIVITY_ONLY_NOT_MODEL_CITATIONS",
+    "valid": 96,
+    "total": 96,
+    "rate": 1.0
+  },
+  "m4_exact_quote_span_local_proxy": {
+    "valid": 94,
+    "total": 94,
+    "rate": 1.0
+  },
+  "limitations": [
+    "D2 two-role labels are an explicitly ratified Dev evaluation policy derived from verified injected cases.",
+    "UNILATERAL_CHANGE is a separate source-only Dev heuristic; neither detector is an independent M2 model.",
+    "D2 Gold covers Article 17 labels only; predicted UNILATERAL_CHANGE on D2 is counted as FP by the unfiltered metric although D2 has no annotation for it.",
+    "M3a counts static law citations assigned by rule label, not citations selected by an LLM.",
+    "M4 checks the local segmentation quote invariant, not a product response envelope.",
+    "D1 and D2 share underlying base documents; the combined score is not independent-sample evidence."
+  ]
+}
