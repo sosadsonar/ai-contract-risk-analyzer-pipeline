@@ -4,20 +4,29 @@ Thay `document_router` + `CLAUSE_PATTERN` cũ (`utils/text_processing.py`): khô
 chọn Pipeline A/B theo tỉ lệ heading. Luôn chạy parser; không có heading đáng tin cậy thì
 `segmenter` rơi về fallback paragraph (§11.3).
 
-5 pattern (mỗi pattern neo ở đầu dòng):
+6 pattern (mỗi pattern neo ở đầu dòng):
   1. article   `Điều 5. Tiêu đề`
   2. decimal   `5.1 ...`, `5.1.2 ...` (sâu tối đa 4 cấp)
   3. numbered  `1. ...` / `1) ...`
-  4. lettered  `a) ...` / `a. ...`
-  5. dash      `- ...`, `– ...`, `• ...`
+  4. roman     `I. ...`, `ii) ...` (SRS OI-11: numeral La Mã hợp lệ, không phân biệt hoa/thường)
+  5. lettered  `a) ...` / `a. ...`
+  6. dash      `- ...`, `– ...`, `• ...`, `+ ...` (`+` là biến thể của dash, OI-11)
+
+Roman vs lettered: numeral nhiều ký tự (`II`, `iv`) luôn là roman. Một ký tự trùng chữ cái
+(`I`, `V`, `X`, `L`, `C`, `D`, `M` và dạng thường) mặc định là lettered như trước; chỉ thành roman
+khi nối chuỗi La Mã (mục roman ngay trước có giá trị liền kề, hoặc là `I`/`i` mà phía sau có
+`II`/`ii` cùng kiểu chữ) và không phải chữ cái kế tiếp của danh sách lettered ngay trước
+(`h) i)`). Vì vậy `a) b) c)` vẫn là lettered, `I. II. III.` là roman.
 
 Hàm thuần: không đụng I/O, không import api/session. Offset = Unicode code point trên
 masked_text (cùng độ dài canonical_text, INV-01).
 
 Quy tắc độ tin cậy (TDD §11.2: "chỉ thành clause riêng khi rule list đủ tin cậy"):
   - article, decimal: luôn tin cậy (trừ dạng số có dấu phân cách hàng nghìn: `2.000.000 đồng`).
-  - numbered, lettered, dash: chỉ giữ khi nhóm anh em cùng cha có >= 2 mục; riêng numbered /
-    lettered còn phải đánh số liên tiếp (1,2,3 / a,b,c) và bắt đầu từ mục đầu (1 / a).
+  - numbered, lettered, roman, dash: chỉ giữ khi nhóm anh em cùng cha có >= 2 mục; riêng
+    numbered / lettered / roman còn phải đánh số liên tiếp (1,2,3 / a,b,c / I,II,III) và bắt đầu
+    từ mục đầu (1 / a / I). Quy tắc này KHÔNG nới lỏng khi thêm roman và `+` (OI-11 §4): nhóm đứt
+    chuỗi hoặc thiếu marker bị bỏ — đây là giới hạn đã biết, không phải cấu trúc đã khôi phục.
     Mục lẻ loi nằm lại trong clause hiện tại, không tạo ranh giới.
   - Heading có `start` rơi vào trong placeholder PII (`boundary_guard` = False) bị BỎ (TDD §10.3,
     chọn "bỏ match" thay vì dời để không tạo clause rỗng).
@@ -29,17 +38,22 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Optional
 
-STRUCTURE_PARSER_VERSION = "structure_parser_v1"
+STRUCTURE_PARSER_VERSION = "structure_parser_v2"  # v2: roman + bullet `+` (SRS OI-11)
 
 # ---- 5 pattern (TDD §11.2). Chạy theo từng dòng; group "body" là phần sau marker. ----
 _ARTICLE = re.compile(r"^[ \t]*Điều[ \t]+(?P<num>\d+[A-Za-z]?)[ \t]*[.:\-]?[ \t]*(?P<body>.*)$")
 _DECIMAL = re.compile(r"^[ \t]*(?P<num>\d+(?:\.\d+){1,3})[ \t]*[.)\-]?[ \t]+(?P<body>\S.*)$")
 _NUMBERED = re.compile(r"^[ \t]*(?P<num>\d{1,3})[.)][ \t]+(?P<body>\S.*)$")
+_ROMAN = re.compile(r"^[ \t]*(?P<num>[IVXLCDM]{1,15}|[ivxlcdm]{1,15})[.)][ \t]+(?P<body>\S.*)$")
 _LETTERED = re.compile(r"^[ \t]*(?P<num>[a-zA-ZđĐ])[.)][ \t]+(?P<body>\S.*)$")
-_DASH = re.compile(r"^[ \t]*[-–•][ \t]+(?P<body>\S.*)$")
+_DASH = re.compile(r"^[ \t]*[-–•+][ \t]+(?P<body>\S.*)$")
+_ROMAN_VALID = re.compile(r"^M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$")
+_ROMAN_VALUES = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
 
 ARTICLE, DECIMAL, NUMBERED, LETTERED, DASH = "article", "decimal", "numbered", "lettered", "dash"
-_WEAK_KINDS = (NUMBERED, LETTERED, DASH)
+ROMAN = "roman"
+_WEAK_KINDS = (NUMBERED, LETTERED, ROMAN, DASH)
+_AMBIGUOUS = "roman_or_letter"  # nội bộ: một ký tự vừa là chữ cái vừa là numeral La Mã
 
 # Chữ cái liệt kê tiếng Việt (có đ giữa d và e) và dạng ASCII — chấp nhận cả hai cách đánh.
 _ALPHA_VN = "abcdđeghiklmnopqrstuvxy"
@@ -52,8 +66,8 @@ class HeadingMark:
     trắng) của dòng chứa marker, tính trên masked_text."""
 
     start: int
-    kind: str  # ARTICLE | DECIMAL | NUMBERED | LETTERED | DASH
-    number: Optional[str]  # "5", "5.1", "1", "a"; None với dash
+    kind: str  # ARTICLE | DECIMAL | NUMBERED | ROMAN | LETTERED | DASH
+    number: Optional[str]  # "5", "5.1", "1", "IV", "a"; None với dash
     level: int  # 1 = cấp cao nhất
     parent_index: Optional[int]  # chỉ số của mark cha trong danh sách kết quả; None nếu gốc
 
@@ -73,8 +87,41 @@ def _is_thousands_number(num: str) -> bool:
     return all(len(g) == 3 and g.isdigit() for g in groups[1:])
 
 
+def roman_value(num: str) -> Optional[int]:
+    """Giá trị của numeral La Mã hợp lệ (hoa hoặc thường, không trộn); None nếu không hợp lệ."""
+    if not num or not (num.isupper() or num.islower()):
+        return None
+    upper = num.upper()
+    if not _ROMAN_VALID.match(upper):
+        return None
+    total = 0
+    for i, ch in enumerate(upper):
+        value = _ROMAN_VALUES[ch]
+        nxt = _ROMAN_VALUES[upper[i + 1]] if i + 1 < len(upper) else 0
+        total += -value if value < nxt else value
+    return total
+
+
+def _resolve_ambiguous(out: list[tuple[int, str, Optional[str], int]]) -> None:
+    """Quyết định roman/lettered cho marker một ký tự (xem docstring module)."""
+    for idx, (start, kind, num, depth) in enumerate(out):
+        if kind != _AMBIGUOUS:
+            continue
+        value = roman_value(num)
+        prev = next((c for c in reversed(out[:idx]) if c[1] in (ROMAN, LETTERED)), None)
+        is_roman = False
+        if prev is not None and prev[1] == LETTERED and _letter_follows(prev[2], num):
+            is_roman = False  # `h) i)`: chữ cái tiếp theo của danh sách lettered
+        elif prev is not None and prev[1] == ROMAN and prev[2].isupper() == num.isupper():
+            is_roman = value == roman_value(prev[2]) + 1
+        elif value == 1:
+            is_roman = any(c[1] == ROMAN and roman_value(c[2]) == 2 and c[2].isupper() == num.isupper()
+                           for c in out[idx + 1:])
+        out[idx] = (start, ROMAN if is_roman else LETTERED, num, depth)
+
+
 def _candidates(text: str) -> list[tuple[int, str, Optional[str], int]]:
-    """Mọi dòng khớp 1 trong 5 pattern: (start, kind, number, decimal_depth)."""
+    """Mọi dòng khớp 1 trong 6 pattern: (start, kind, number, decimal_depth)."""
     out: list[tuple[int, str, Optional[str], int]] = []
     for line_start, line in _line_start_iter(text):
         stripped = line.lstrip(" \t")
@@ -95,12 +142,18 @@ def _candidates(text: str) -> list[tuple[int, str, Optional[str], int]]:
         if m:
             out.append((start, NUMBERED, m.group("num"), 0))
             continue
+        m = _ROMAN.match(line)
+        if m and roman_value(m.group("num")) is not None:
+            num = m.group("num")
+            out.append((start, ROMAN if len(num) > 1 else _AMBIGUOUS, num, 0))
+            continue
         m = _LETTERED.match(line)
         if m:
             out.append((start, LETTERED, m.group("num"), 0))
             continue
         if _DASH.match(line):
             out.append((start, DASH, None, 0))
+    _resolve_ambiguous(out)
     return out
 
 
@@ -146,9 +199,12 @@ def _letter_follows(prev: str, cur: str) -> bool:
 
 
 def _sequence_ok(kind: str, numbers: list[Optional[str]]) -> bool:
-    """numbered: 1,2,3...; lettered: a,b,c...; dash: không có thứ tự."""
+    """numbered: 1,2,3...; roman: I,II,III...; lettered: a,b,c...; dash: không có thứ tự."""
     if kind == DASH:
         return True
+    if kind == ROMAN:
+        values = [roman_value(n) for n in numbers if n is not None]
+        return values[0] == 1 and all(b == a + 1 for a, b in zip(values, values[1:]))
     if kind == NUMBERED:
         nums = [int(n) for n in numbers if n is not None]
         return nums[0] == 1 and all(b == a + 1 for a, b in zip(nums, nums[1:]))

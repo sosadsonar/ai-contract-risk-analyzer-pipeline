@@ -12,7 +12,9 @@ from app.document.quality import run_quality_gates
 from app.domain.errors import ValidationReject
 
 PDF_EXTRACTION_VERSION = "extract_pdf_v1"
-DOCX_EXTRACTION_VERSION = "extract_docx_v1"
+# v2 (OI-11): effective lvlOverride, lvlRestart, no duplicated typed marker. Canonical text may
+# differ from v1, so spans/offsets computed on v1 must not be reused.
+DOCX_EXTRACTION_VERSION = "extract_docx_v2"
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
