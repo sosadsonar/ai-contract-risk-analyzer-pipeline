@@ -13,11 +13,9 @@
 
 ## Đang mở
 
-### 1. Route export DOCX hiện tại sẽ được thay ở tuần 5 [Ghi chú]
-**File:** `backend/app/api/routes/sessions.py` (route `/export`).
-**Hiện trạng:** dùng `python-docx` trực tiếp trong route, không qua `ReportModel`.
-**Kế hoạch:** tuần 5 (C-21b), N5 viết `backend/app/result/export_docx.py` dùng `build_report_model()`.
-**Cần thống nhất với N4:** khi `export_docx` xong thì route `/export` gọi `build_report_model` -> `export_docx`. Không sửa route trước khi có `export_docx`.
+### 1. Route export DOCX [Đã xử lý 13/11]
+`/export` gọi `build_report_model()` → `backend/app/result/export_docx.py` (C-21 b). Báo cáo có tóm tắt, số Điều,
+"Liên quan", bản ghi cần xem xét, citation kèm nguyên văn Khoản, disclaimer + data notice.
 
 ### 2. CORS khi triển khai khác origin [Tùy chọn]
 **File:** `backend/app/main.py` — chưa có `CORSMiddleware`.
@@ -28,20 +26,13 @@
 **Xử lý frontend:** `Progress.tsx` dùng `getStageName()` với fallback tên stage lạ → không làm trống UI.
 **Cần backend ghi rõ:** TDD §5.3 chưa khóa quy ước stage/progress ở trạng thái cuối. Đề xuất N4 ghi errata.
 
-### 4. T1 (ghép frontend–backend thật) — chưa thực hiện trong sandbox [Mở]
-**Lý do chưa chạy trong sandbox:**
-- Môi trường thực thi sandbox hiện tại có MSYS2 Python 3.12 nhưng không có sẵn module `pip` (bị lỗi PEP 668 `externally-managed-environment`).
-- Sandbox không có kết nối internet ra ngoài nên không thể chạy `python -m pip install -e '.[dev]'` để cài các dependency của backend (`fastapi`, `uvicorn`, `pymupdf`...).
-- Do đó backend FastAPI chưa thể khởi động lắng nghe tại `http://127.0.0.1:8000` trong phiên này.
-
-**Công cụ đã chuẩn bị để kiểm thử độc lập (không qua UI):**
-- Đã viết script `frontend/scripts/smoke_api.mjs` (Node fetch thuần túy, không thêm package ngoài) để chạy smoke test API trực tiếp với backend dev theo đúng yêu cầu:
-  1. POST /api/v1/sessions với role + file PDF (`norisk.pdf`, `insufficient.pdf`, `emoji.pdf`).
-  2. Polling status cho đến trạng thái cuối (`COMPLETED`).
-  3. GET /api/v1/sessions/{id}/result: kiểm tra đủ các khóa theo `src/api/types.ts` (`FinalResult`), offset là partition không chồng lấn, `canonical_text` khớp với `clauses`, `insufficient.pdf` thì `severity = null` và `citation_ids = []`.
-  4. DELETE /api/v1/sessions/{id}: kiểm tra phiên chuyển thành `EXPIRED` (tombstone) hoặc `404 SESSION_NOT_FOUND`.
-- Lệnh chạy: `cd frontend && npm run smoke:api` (hoặc `node frontend/scripts/smoke_api.mjs`).
-- Khi chạy trên máy dev có backend: nếu phát hiện sai lệch hợp đồng nào giữa backend và `src/api/types.ts`, bổ sung vào mục này thay vì tự ý sửa backend.
+### 4. T1 (ghép frontend–backend thật) [Một phần — 13/11]
+- `smoke_api.mjs` chạy PASS với backend dev (chế độ fixture mẫu).
+- Backend có chế độ pipeline thật không cần mạng: `DEV_LLM_PROVIDER=fake` (provider tất định). Đã thử HTTP
+  upload DOCX → COMPLETED → result → export → End. **Còn lại:** chạy giao diện trong trình duyệt với
+  `VITE_USE_MOCK=false` (kiểm highlight non-BMP INV-12, thẻ "cần xem xét", dòng "Liên quan").
+- Lưu ý: ở chế độ pipeline, `norisk.pdf`/`insufficient.pdf` của smoke là PDF tối giản nên có thể bị
+  REJECTED (`NO_EXTRACTABLE_TEXT`) — smoke đó chỉ dành cho chế độ fixture.
 
 ## Chờ nhóm duyệt (không tự sửa baseline BRD/SRS/SDD/TDD)
 

@@ -172,10 +172,10 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [x] C-10 (31/10 — commit 2 `feat: add local labor-contract scope precheck (C-10)`): `scope_rules_v1` chấm điểm theo TDD §9 trên bản sao canonical, fixture dương/âm và biên tiêu đề; smoke PDF tiếng Việt thật sau C-08(a). **Ngưỡng OI-03 chỉ tạm thời, chờ đo D1**; đã ghép vào luồng kiểm chứng cục bộ ở commit 4, chưa nối HTTP/Orchestrator.
   - [x] C-11 (31/10 — commit 3 `refactor: remove standalone explanation AI adapter (C-11)`): xóa adapter rỗng `integrations/explanation_ai.py`; cập nhật `backend_architecture.md` về đúng 2 lần gọi LLM và hiện trạng dev mock; không đụng `PROCESSING` hoặc adapter N1/N3.
   - [x] Commit 4 `f698928` (`feat: compose local PDF validation pipeline (N4 W3)`): `session/local_validation.py` ghép PDF → canonical → scope → mask toàn văn → segment chạy cục bộ qua threadpool; kiểm chứng PDF tiếng Việt thật, từ chối ngoài phạm vi và vượt giới hạn clause; INV-01/02/03 trên fixture PDF. Không tạo kết quả mẫu/ghi nội dung ra đĩa từ runner. **Chưa chạy D1** và chưa nối HTTP `VALIDATING` vào runner.
-  - [ ] Nối HTTP `VALIDATING` vào pipeline thật khi có stage tiếp theo: upload giữ đầu vào trong RAM, quản lý lease/cancel/retry/REJECTED; dev sample tách biệt, không trả fixture cho PDF thật. Chưa thể đánh dấu hoàn tất khi Clause Graph/PROCESSING chưa có.
+  - [x] Nối HTTP `VALIDATING` vào pipeline thật khi có stage tiếp theo: upload giữ đầu vào trong RAM, quản lý lease/cancel/retry/REJECTED; dev sample tách biệt, không trả fixture cho PDF thật. Chưa thể đánh dấu hoàn tất khi Clause Graph/PROCESSING chưa có. — **13/11 (patch x19-pipeline: upload giữ bytes trong RAM, orchestrator chạy `pipeline.analyze`, REJECTED/FAILED/retry/cancel)**
 - **N5**
   - [ ] Result page highlight thật trên mock; nút Retry/End; đủ nhánh REJECTED/FAILED/EXPIRED (highlight đã có test trong `segments.test.ts`, logic poller đã test; flow tương tác giao diện React component và Retry/End chờ test DOM hoặc chạy thử tay dev)
-  - [ ] C-21 (a): `build_report_model` trên mock (thuộc backend/app/result/, chưa chạy pytest trong sandbox)
+  - [x] C-21 (a): `build_report_model` trên mock (thuộc backend/app/result/, chưa chạy pytest trong sandbox) — **13/11 (patch c21b-export: có test, dùng cho export)**
 
 **Cổng T3:** PDF → canonical → mask → segment chạy end-to-end cục bộ trên D1 (chưa gọi LLM); INV-01/02/03 xanh.
 
@@ -189,7 +189,7 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [x] C-12 (b): `BaselineRetriever` (label_map + BM25 `0.70/0.30`, hiệu lực, dedupe, seed/pool) — N2 28/10: module độc lập có unit test, từ chối DRAFT mặc định; **chưa có tích hợp startup/runtime, chưa đo M8 trên gold D1/D2**
   - [x] C-13 (a): Data Graph cấu trúc (PARENT_OF tự sinh) + REFERS_TO/GUIDES verified đợt 1 — N2 02/11: `DataGraph` in-memory + PARENT_OF tự sinh; thêm cạnh thật `BLLD2019:art14:cl1` → `BLLD2019:art14:cl2` (`REFERS_TO`) sau khi đối chiếu trực quan trang 7 PDF chính thức 18/VBHN-VPQH (SHA-256 ghi trong `data/legal_corpus/README.md`); unit tests corpus/graph 50 pass. **Chỉ đóng batch kỹ thuật đầu tiên**: cạnh và corpus vẫn DRAFT/chờ reviewer pháp lý độc lập; chưa xác nhận hiệu lực hiện tại hoặc đủ điều kiện cite/đánh giá hợp đồng.
     - [x] N2 28/10: `DataGraph` in-memory + PARENT_OF từ `parent_path`, MANUAL edge index, duyệt hai chiều có lọc ngày hiệu lực; fixture và unit test. Tại checkpoint này chưa có cạnh thật; được bổ sung và source-check ở ghi chú N2 02/11 phía trên.
-  - [ ] Kho luật tầng 1 bản đầu theo đơn vị Khoản (X-24, bắt đầu từ phạm vi tối thiểu); gold clause labels D1
+  - [ ] Kho luật tầng 1 bản đầu theo đơn vị Khoản (X-24, bắt đầu từ phạm vi tối thiểu); gold clause labels D1 — **13/11 (patch x24-tools: script parse + expand label_map; NỘI DUNG luật vẫn chờ N2/reviewer)**
   - [ ] X-25: xác minh pháp lý (ca 4, ca 6 BRD 3.3; Điều 25; vùng IV; hiệu lực nghị định); bàn giao intake X-10 cho N5 (22 ứng viên, 0 xin quyền xong)
 - **N3**
   - [x] **Báo cáo số đo PII đầu tiên** (01/11): `docs/PII_MEASUREMENT_2026-11-01.md`, sinh bởi `ai_pipeline/eval/eval_pii.py`. D1 là biểu mẫu trống nên chỉ đo được trên fixture tổng hợp; OI-12 **chưa chốt**, chờ gold privacy D1 (N2) hoặc hợp đồng thật
@@ -201,9 +201,9 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [x] C-08 (b) (commit 1 `bd52e29` — `feat: add DOCX extraction and canonical validation (C-08b)`): DOCX parser theo thứ tự paragraph/table, numbering decimal/chữ cái/Roman/bullet và override nhiều cấp, accepted-state của tracked changes, textbox sát anchor; bỏ header/footer/comment/footnote. Sniff `.docx` + ZIP signature, cap 10 MB / 100.000 code point canonical, `extraction_v1` không có `page_count` cho DOCX; nối `validate_local` và test fixture DOCX tổng hợp. W4 đã thử HDLD004 DOCX trong benchmark local; **chưa nối HTTP hoặc thử hợp đồng thật độc lập**; OI-11 vẫn chờ nhóm chốt phạm vi numbering.
   - [x] C-16 (a) (commit 2 `a61d7d1` — `feat: complete runtime and evaluation call accounting (C-16a)`): `RunLogWriter.record_stage` ghi metadata hợp lệ vào SQLite, không lưu text/tên file; `DailyQuota.before_call/after_call` tăng nguyên tử trước mọi request và ghi usage đúng ngày UTC, chỉ admission chặn phiên mới khi hết reserve (retry phiên hiện tại không bị dừng); `EvalCostLedger` ghi riêng `eval_cost_ledger.csv` trước/sau mỗi request, không đụng product quota. Provider ghi lỗi schema/cancel và chi phí đúng một lần/request. Smoke provider lỗi mạng → retry/cost, test concurrency/độc lập eval xanh. **Chưa có pipeline thật ghi RunLog từ orchestrator**; không chốt số quota trước X-05/D1.
   - [ ] X-05 (a) (commit 3 `c45bca8` — `feat: benchmark D1 local preprocessing and planned calls (X-05a)`; **đã hoàn thành phần đo local, còn chờ các stage khác**): bộ đo `backend/app/ops/benchmark_d1.py` cho 4 D1 (HDLD001–004), 5 lần/đầu vào, đo p50/p90 các bước **local** và planned calls (20/6); báo cáo `docs/D1_LOCAL_BENCHMARK_W4.md`. 001–003 là text snapshot từ `.doc` (chưa hỗ trợ upload `.doc`), 004 chạy extractor DOCX thật; chỉ xác minh hash input dùng. **Chưa đo LLM #1, retrieval/graphs, LLM #2, assembly, provider latency/cost hoặc p50/p90 end-to-end** vì pipeline thật chưa tích hợp; chưa kết luận NFR 120 s, chưa chốt batch/parallelism/quota.
-  - [ ] **Họp chốt cấu hình mở:** SRS OI-03, 05, 09–12 — hồ sơ đề xuất và điều kiện chốt đã commit ở phần 4/4 (`13a767b`, `docs/MS2_CONFIG_REVIEW_N4.md`); **chưa có biên bản họp/sign-off**. SRS OI-09 vốn CLOSED; OI-03/05/10/11 OPEN, OI-12 NARROWED. Không tự đổi default/config hoặc đánh dấu hoàn tất khi thiếu review; phân biệt ID SRS với BRD cùng số.
+  - [ ] **Họp chốt cấu hình mở:** SRS OI-03, 05, 09–12 — hồ sơ đề xuất và điều kiện chốt đã commit ở phần 4/4 (`13a767b`, `docs/MS2_CONFIG_REVIEW_N4.md`); **chưa có biên bản họp/sign-off**. SRS OI-09 vốn CLOSED; OI-03/05/10/11 OPEN, OI-12 NARROWED. Không tự đổi default/config hoặc đánh dấu hoàn tất khi thiếu review; phân biệt ID SRS với BRD cùng số. — **13/11 (patch oi-*: N3 đã quyết định trong `docs/decisions/OPEN_ISSUES_HANDLE_v4.md` + `decision_SRS_OI-11_v3.md`; code áp OI-03 v2, OI-05 40/300 tạm, OI-10 C1–C4b, OI-11 phương án A. Còn chờ N1/N2/N4/N5 xác nhận §8; không OI nào CLOSED)**
   - [ ] X-13: khóa chữ ký hàm + schema (05/11); X-16 (`final_result_v1`: `clause`, `related_clause_ids`)
-  - [ ] X-20 (phần N4): fixture mock cạnh `session/mock.py`; `_ALLOWED` thêm VALIDATING→EXPIRED và PROCESSING→EXPIRED
+  - [x] X-20 (phần N4): fixture mock cạnh `session/mock.py`; `_ALLOWED` thêm VALIDATING→EXPIRED và PROCESSING→EXPIRED — **13/11 (patch x20-n4)**
 - **N5**
   - [ ] Ghép frontend với backend thật tới trạng thái PROCESSING; polling ≤2 s hiển thị VALIDATING/PROCESSING (chưa chạy thử tay với backend thật; logic poller/highlight/state đã chuẩn bị và có test tự động)
     - [x] Tách logic polling sang `lib/poller.ts` (9 test) và highlight sang `lib/segments.ts` (5 test fixture); types.ts thêm `related_clause_ids?` và `clause?`
@@ -216,7 +216,7 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
 
 ### Tuần 5 (9–15/11) — Retrieval + Risk + Clause Graph (TDD M4, M5)
 - **N1**
-  - [ ] C-14 (b): `REFERS_TO` (regex) **loại trừ dẫn chiếu pháp luật**; `resolve_context` (≤3 clause, ≤6000 code point); `ContextResolutionTrace`; fixture `refers_contract`, `excludes_legal_reference`; X-21: clause JOB_INFO và CONTRACT_TERM_TYPE làm context chung
+  - [x] C-14 (b): `REFERS_TO` (regex) **loại trừ dẫn chiếu pháp luật**; `resolve_context` (≤3 clause, ≤6000 code point); `ContextResolutionTrace`; fixture `refers_contract`, `excludes_legal_reference`; X-21: clause JOB_INFO và CONTRACT_TERM_TYPE làm context chung — **13/11 (patch c14b-x21: REFERS_TO loại trừ dẫn chiếu luật, resolve_context, trace, context chung FR-33)**
   - [ ] Tuning classification trên D1/D2 (version config)
 - **N2**
   - [x] C-13 (b) (01/11, fixture/offline): `DataGraph.expand` + `get_candidates` (seed-first, merge, **cùng `final_k`**; lỗi runtime → fallback + `graph_fallback`); 25 graph test cases cover ranking/direction, caps, dedupe, date gates, graph-off/fallback, invalid caps and budget alignment. Full suite green (9 private-data skips); Ruff clean. **Not production-wired; corpus remains DRAFT; no Recall@5 claim.**
@@ -224,46 +224,46 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
   - [ ] X-26: alignment + leave-one-group-out cho D1; X-27 (dữ liệu D3: cặp mâu thuẫn cài + đối chứng); X-29 (provision NĐ 293/2025)
   - [ ] X-04: D2 lỗi chèn (dev, tách quy định khỏi T2); gold seg T1 cho hợp đồng đã thu
 - **N3**
-  - [ ] C-15 (a): `risk_adapter` đầy đủ (candidate catalog dedupe, related context, structured output, batch 6); `detect_advice` (theo cụm, không match "nên" đơn), `detect_unsupported_reference`, `sanitize_explanation`; X-22: prompt cập nhật (UF/AM theo vai trò, cận chắc chắn, LV nghi ngờ → INSUFFICIENT, cách nhắc luật, `related_clause_ids`)
-  - [ ] `citation_validator` (INV-06); `risk_assembler` (dựng `risk_basis`, tra severity) (INV-07); hạ `evidence_status` về INSUFFICIENT khi hết citation hợp lệ; kiểm (nhãn, loại căn cứ, vai trò), retry một lần, rồi bản ghi "cần xem xét"
+  - [x] C-15 (a): `risk_adapter` đầy đủ (candidate catalog dedupe, related context, structured output, batch 6); `detect_advice` (theo cụm, không match "nên" đơn), `detect_unsupported_reference`, `sanitize_explanation`; X-22: prompt cập nhật (UF/AM theo vai trò, cận chắc chắn, LV nghi ngờ → INSUFFICIENT, cách nhắc luật, `related_clause_ids`) — **13/11 (patch c15a-x22: lint + sanitizer + retry ngữ nghĩa có phản hồi + prompt v2)**
+  - [x] `citation_validator` (INV-06); `risk_assembler` (dựng `risk_basis`, tra severity) (INV-07); hạ `evidence_status` về INSUFFICIENT khi hết citation hợp lệ; kiểm (nhãn, loại căn cứ, vai trò), retry một lần, rồi bản ghi "cần xem xét" — **13/11 (patch c15a-x22: validator + hạ INSUFFICIENT + bản ghi needs_review)**
 - **N4**
-  - [ ] Nối thật `PROCESSING` trong orchestrator; **retry/resume** (`failed_stage` → VALIDATING/PROCESSING; resume chỉ ở giai đoạn AI, so khớp version pin thay cho fingerprint; VALIDATING chạy lại từ EXTRACTION; trễ thì cắt item 2); cancel; test End vs callback muộn
-  - [ ] X-19: `backend/app/pipeline.py` `analyze()` (orchestrator và harness cùng gọi)
-  - [ ] `cleanup` + tombstone 24h; route `export`; **INV-09/10**
-  - [ ] C-16 (b): `SlidingWindowLimiter` (HMAC IP)
+  - [x] Nối thật `PROCESSING` trong orchestrator; **retry/resume** (`failed_stage` → VALIDATING/PROCESSING; resume chỉ ở giai đoạn AI, so khớp version pin thay cho fingerprint; VALIDATING chạy lại từ EXTRACTION; trễ thì cắt item 2); cancel; test End vs callback muộn — **13/11 (patch x19-pipeline: resume giai đoạn AI giữ artifact cục bộ trong RAM khi version pin khớp)**
+  - [x] X-19: `backend/app/pipeline.py` `analyze()` (orchestrator và harness cùng gọi) — **13/11 (patch x19-pipeline)**
+  - [x] `cleanup` + tombstone 24h; route `export`; **INV-09/10** — **13/11 (patch x19-pipeline + x20: export qua ReportModel; INV-09/10 có test HTTP)**
+  - [x] C-16 (b): `SlidingWindowLimiter` (HMAC IP) — **13/11 (patch đã có từ W2 (`ops/rate_limit.py`), xác nhận lại)**
 - **N5**
-  - [ ] C-21 (b): `export_docx` đủ quote, risk + basis, severity/"chưa đủ căn cứ", explanation, citation, disclaimer, **data notice**
-  - [ ] UI: `INSUFFICIENT_EVIDENCE` (không badge severity), không risk ("Không phát hiện rủi ro trong phạm vi phân tích")
-  - [ ] X-23: dòng "Liên quan: Điều X", thẻ "cần xem xét", số Điều thay `cl_xxxx`, thẻ citation hiện nguyên văn Khoản
+  - [x] C-21 (b): `export_docx` đủ quote, risk + basis, severity/"chưa đủ căn cứ", explanation, citation, disclaimer, **data notice** — **13/11 (patch c21b-export)**
+  - [x] UI: `INSUFFICIENT_EVIDENCE` (không badge severity), không risk ("Không phát hiện rủi ro trong phạm vi phân tích") — **13/11 (patch x23-ui: câu BR-15)**
+  - [x] X-23: dòng "Liên quan: Điều X", thẻ "cần xem xét", số Điều thay `cl_xxxx`, thẻ citation hiện nguyên văn Khoản — **13/11 (patch x23-ui)**
 
 **Cổng T5:** test tích hợp toàn pipeline với LLM mock xanh; INV-01…11 có test; DOCX xuất được; `related_clause_ids` hiển thị; thẻ "cần xem xét" hiện đúng.
 
 ### Tuần 6 (16–22/11) — Chạy thật cả hai vai trò, đo chi phí/hiệu năng
 - **N1**
   - [ ] Pipeline thật (Gemini paid) trên D1 cho cả 2 vai trò; sửa lỗi segmentation/classification
-  - [ ] `metrics/segmentation.py` (M1), `metrics/clause_classification.py` (M7); `metrics/contradiction.py` (M10, X-27)
+  - [x] `metrics/segmentation.py` (M1), `metrics/clause_classification.py` (M7); `metrics/contradiction.py` (M10, X-27) — **13/11 (patch đã có trong `ai_pipeline/evaluation/metrics/`; M10 ở patch x27-m10)**
 - **N2**
   - [x] `runner.py` + `load_dataset`; `metrics/citation_validity.py` (M3a), `quote_span.py` (M4), `injected_recall.py` (M5), `retrieval.py` (M8 on/off, predicted labels primary) — N2 02/11: offline/fixture scope complete; 32 focused tests pass. No claim that C-18 as a whole is complete: production adapter, M1/M2/M6/M7, approved gold and D1/T2 runs remain open.
     - [x] N2 01/11: strict JSON dataset loader (duplicate-key/path-escape checks); pure M3a/M4/M5 metrics; paired M8 metric + callback runner dùng cùng masked text/predicted labels/date/final_k cho graph off/on. Fixture/offline only; no approved corpus/gold or D1/T2 evaluation.
   - [ ] X-04: bắt đầu **T2** — chèn lỗi (mục tiêu ≥30, mỗi role ≥10; lỗi lương tối thiểu dùng mức dưới vùng IV), 2 người xác minh mỗi lỗi
 - **N3**
   - [ ] Chạy M5/M8 trên D2 (dev) để tune lint + prompt (version prompt)
-  - [ ] `metrics/risk_classification.py` (M2); X-08 khung judge (M6); X-28 (M2b, M9)
-  - [ ] Với N4: chốt `DAILY_LLM_CALL_QUOTA`, `SESSION_CALL_RESERVE` = p95 planned calls (OI-05)
+  - [x] `metrics/risk_classification.py` (M2); X-08 khung judge (M6); X-28 (M2b, M9) — **13/11 (patch m2-x28 + x08-m6 (khung, chưa có dữ liệu chấm))**
+  - [ ] Với N4: chốt `DAILY_LLM_CALL_QUOTA`, `SESSION_CALL_RESERVE` = p95 planned calls (OI-05) — **13/11 (patch oi05: giá trị TẠM 300/40 trong `.env.example`; chốt khi có số đo end-to-end Gemini)**
 - **N4**
-  - [ ] X-05: benchmark D1 hoàn chỉnh (kể cả provider latency injection); chốt batch size/parallelism
-  - [ ] X-09: **INV-04** outbound capture; quét log tìm PII; audit DB/temp/restart
+  - [ ] X-05: benchmark D1 hoàn chỉnh (kể cả provider latency injection); chốt batch size/parallelism — **13/11 (patch x05b-benchmark: công cụ end-to-end + latency injection xong; CHƯA chạy trên D1 với Gemini)**
+  - [x] X-09: **INV-04** outbound capture; quét log tìm PII; audit DB/temp/restart — **13/11 (patch x09-audit + test_pipeline_e2e (outbound capture))**
   - [ ] Test API/state đầy đủ (TDD §19.3)
 - **N5**
   - [ ] E2E UI với backend thật; kiểm tra non-BMP trong trình duyệt (**INV-12**)
-  - [ ] Soát disclaimer + data notice ở upload/kết quả/export (FR-25)
+  - [x] Soát disclaimer + data notice ở upload/kết quả/export (FR-25) — **13/11 (patch x23-ui: test khóa chữ backend = frontend, export có cả hai)**
 
 **Cổng T6:** chạy thật full luồng cả 2 vai trò trên D1; đã có p50/p90 và cost model; quota/reserve có số.
 
 ### Tuần 7 (23–29/11) — Ổn định, harness hoàn chỉnh, triển khai
 - **N1**
-  - [ ] C-19 (phần 2): `text_extraction_contract.md` khớp SRS; README/CONTRIBUTING trỏ về BRD
-  - [ ] Xóa mã legacy (`ai_pipeline/services/`, `ai_pipeline/test_pipeline.py`) và các sys.path hack còn lại (`tests/llm/test_llm_live.py`, `scripts/smoke_llm_pipeline.py`)
+  - [x] C-19 (phần 2): `text_extraction_contract.md` khớp SRS; README/CONTRIBUTING trỏ về BRD — **13/11 (patch docs: CONTRIBUTING viết lại theo code hiện tại)**
+  - [ ] Xóa mã legacy (`ai_pipeline/services/`, `ai_pipeline/test_pipeline.py`) và các sys.path hack còn lại (`tests/llm/test_llm_live.py`, `scripts/smoke_llm_pipeline.py`) — **13/11 (patch x19-pipeline: xóa `ai_pipeline/test_pipeline.py`; `mock_clause_service.py` giữ vì test contract dùng)**
   - [ ] Bug bash segmentation/classification trên D1/D2
 - **N2**
   - [ ] Dry-run `runner` trên D1/D2 (không đụng T1/T2 để tuning)
@@ -361,8 +361,8 @@ Lý do chuyển so với BRD §9.6: C-07 (LLM client) từ N4 → N1 vì N1 là 
 | 2026-11-03 | N3 (audit tài liệu) | Đồng bộ PROGRESS với BRD 0.6, SRS 1.5, SDD 0.2, TDD 0.3 (bộ 5 patch); thêm X-12 đến X-29, cập nhật các mục chưa tick của T3 đến T7 | **Không đánh dấu ngược mục đã tick.** Freeze risk taxonomy 25/10 (đã tick) được mở lại: bản freeze vẫn là cơ sở của test hiện tại; X-15 sẽ đổi tên nhãn, rà severity rồi freeze lại. D1: dòng đề xuất 03/11 từng tính thêm HDLD005; quyết định nhóm 06/11 đã chốt HDLD001–004 (183) và HDLD005 thuộc T1 (xem BRD 0.6 §8.2). `risk_output_v2` và `final_result_v1` chỉ thêm trường tùy chọn, không đổi version. Hosting: hiện localhost. |
 | 2026-11-07 | N1 | W4: classify_clauses hoàn thiện, C-14 (a), X-20 (N1), bộ chạy D1 + kết quả đo sơ bộ M7 trên Gemini | Đã chạy thật d1_clause_run.py với gemini-3.5-flash-lite: 4 HĐ ra 198 clause, 12 calls LLM thành công 100% (0 errors), tiêu tốn 22.411 in-tokens / 7.518 out-tokens. M7 sơ bộ đạt macro-F1 = 0.4974 (COMPENSATION_BENEFITS đạt 0.8378, INSURANCE_SAFETY đạt 0.70; các nhãn OBLIGATIONS và OTHER bị FP cao). M1 proxy đạt F1 = 0.5323. Toàn bộ 174/174 spans EXACT D1 khớp nội dung sau chuẩn hóa NFC. Hoàn tất toàn bộ deliverable Tuần 4 của N1. |
 | 2026-11-08 | N5 | W4: catalog lỗi đầy đủ (Phụ lục E + SRS §6.2 + errors.py, 18 test); tách logic polling `lib/poller.ts` (9 test) và highlight `lib/segments.ts` (5 test fixture); sửa Progress (SESSION_NOT_FOUND nhánh riêng, onCompleted chặn lặp, fallback stage lạ sang 'Đang xử lý…' không in mã thô, 3 test `lib/stages.test.ts`); types.ts thêm `related_clause_ids?`+`clause?` (X-16 tùy chọn); sửa comment v02→v01 + TODO X-15; Result sắp xếp rủi ro theo start_char; Upload tách MAX_UPLOAD_MB; lưu file nguồn Mermaid `pipeline.mmd` + `state_machine.mmd` (bổ sung O-11) kèm `scripts/render_diagrams.sh` và `npm run render:diagrams`; npm test 41/41 xanh, npm run build xanh | **Sai khác / hiện trạng:** (1) Mâu thuẫn Phụ lục E vs TDD §5.9 về cụm "an toàn" trong NO_RISK — giữ nguyên phủ định "không ... an toàn" theo Phụ lục E, ghi vào BACKEND_ISSUES.md chờ nhóm duyệt. (2) T1 ghép backend thật (`VITE_USE_MOCK=false`) chưa chạy được trong sandbox (không có uvicorn/mạng); cần thử tay trên máy dev. (3) X-14 một phần: đã lưu .mmd + script render, chưa render PNG. (4) X-10: cổng T1 tương đương đã nhận 10/10 theo T1_EQUIVALENT_GATE_V1, N5 chưa nhận dữ liệu, chờ N2 hướng dẫn cách cung cấp (fixture Git hay thư mục ngoài Git). |
-
 | 2026-11-06 | N2 | Owner-approved equivalent T1 gate and independent technical T1/T2 evaluation | `T1_EQUIVALENT_GATE_V1` admits 10/10 as 4 restricted + 5 template + 1 synthetic control; historical source-only intake remains 0/10; BRD 0.6 §8.2 adopts the equivalent gate. `reports/evaluation/t1_t2_equivalent_gate_eval_2026-11-06/result.json` records M1 F1 (unique 8: 0.3683; real 9: 0.3713; composite 10: 0.3805; T2 nine: 0.3431), privacy §7.3 (21/21 PII, 62/63 fields preserved on nine T1 documents), T1 M7 Macro-F1 (747 full: 0.3377; 340 genuine: 0.5442), T2 M5 (12/30), T2 M8 Recall@5 (graph off 15/30; graph on 14/30), and M3a citation validity (T1 747/747; T2 387/387). BRD M4 is quote/offset correctness: T2 19/19 emitted risk outputs; T1 has zero emitted risk outputs, so M4 is undefined. Scores have 1,000 seed-0 document bootstrap intervals where defined. M7 is a newly fixed D1-only baseline; T2 privacy uses a derived reference not independently adjudicated. MS-4/MS-5 remain open; this row does not change the 19/19 early N2 checkbox count. |
+| 2026-11-13 | (Claude, cho cả nhóm) | Bộ patch theo hạng mục (xem `patches/README.md` khi nhận) — chưa có PR | **Quyết định áp dụng:** OI-03 `scope_rules_v2`; OI-05 40/300 tạm; OI-10 C1–C4b (`TAXONOMY_VERSION=v05`, M7 không so trực tiếp với v04); OI-11 phương án A (`extract_docx_v2`, `structure_parser_v2`); X-15 HỦY (giữ `POST_EMPLOYMENT_RESTRICTION`). **Thay đổi hành vi:** API dev có provider (`DEV_LLM_PROVIDER=fake|local` hoặc Gemini key+model) chạy pipeline thật; demo/eval không còn bị chặn bởi guard "sample". Thêm trường tùy chọn `needs_review` vào `final_result_v1` (TDD §15.5, cùng cách X-16) — **cần chủ SRS/TDD duyệt**. `risk_prompt_v2`, `pii_draft_0.5` (anchor "TK ngân hàng"; đo lại P1 bằng seed khác 17). **Không làm (ngoài khả năng/ngoài phạm vi):** nội dung kho luật + xác minh pháp lý (X-24/X-25/X-29), gold (X-04, X-26 dữ liệu, D3), chạy Gemini thật trên D1 (số M1/M7/M2/M5/M8, X-05 actual), ký duyệt OI, hosting X-06, render PNG X-14. Các số đo chất lượng trước đây không còn so trực tiếp vì taxonomy/prompt/parser đổi version. |
 
 ## 2026-11-06 T1/T2 acceptance-threshold readout
 
