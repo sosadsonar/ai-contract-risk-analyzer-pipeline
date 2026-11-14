@@ -1,5 +1,5 @@
 """Disclaimer + data notice (BRD Phụ lục A, FR-25). Chữ PHẢI trùng `frontend/src/lib/notices.ts`
-(test `tests/unit/test_pipeline.py::test_notices_match_frontend` khóa). Câu missing-clause theo TDD §16.1."""
+(test `tests/unit/test_notices_sync.py` khóa). Câu missing-clause theo TDD §16.1."""
 
 DISCLAIMER = (
     "Kết quả do AI tạo ra chỉ mang tính tham khảo, không phải tư vấn pháp lý và không thay thế ý kiến của luật sư. "

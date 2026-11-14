@@ -15,7 +15,8 @@ const MESSAGES: Record<string, string> = {
   AI_PROVIDER_ERROR: "Dịch vụ phân tích tạm thời gặp lỗi. Bạn có thể thử lại nếu phiên cho phép.",
   AI_OUTPUT_INVALID: "Kết quả AI không đúng định dạng kỹ thuật. Bạn có thể thử lại nếu phiên cho phép.",
   REJECTED: "Tệp đã bị từ chối; muốn thử tệp khác cần mở phiên mới.",
-  INSUFFICIENT_EVIDENCE: "Chưa đủ căn cứ pháp lý trong kho luật.",
+  INSUFFICIENT_EVIDENCE: "Có thể có rủi ro, chưa đủ căn cứ trong kho luật, cần đọc kỹ.",
+  NEEDS_REVIEW: "Nghi ngờ, cần xem xét: hệ thống chưa xác định được loại rủi ro phù hợp cho điều khoản này.",
   NO_RISK: "Không phát hiện rủi ro trong phạm vi phân tích. Kết quả không đồng nghĩa hợp đồng an toàn.",
   EXPIRED: "Phiên đã kết thúc và dữ liệu phiên đã được xóa.",
   // Các mã bổ sung từ SRS 6.2 & TDD §5.8:
