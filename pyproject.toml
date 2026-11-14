@@ -51,7 +51,7 @@ dev = [
     "pytest>=9.1.1",          # Viết unit test cho code
     "jsonschema>=4.20",     # Test hợp đồng JSON Schema (tests/contract)
     "pytest-asyncio>=0.24",
-    "httpx2>=2.16",         # httpx is deprecated
+    "httpx2>=2.13",         # httpx is deprecated
     "ruff>=0.1.0",          # Linter & Formatter code siêu nhanh (Thay thế Flake8/Black)
 ]
 test = [

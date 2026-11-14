@@ -1,7 +1,7 @@
 """X-24: parser Điều/Khoản, mở rộng label_map nháp, nút Điều-tiêu-đề không làm seed BM25."""
 
-import os
 import json
+import os
 import sys
 from datetime import date
 from pathlib import Path
