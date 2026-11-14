@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import os
 
+from app.ai.dev_fake_client import DevFakeClient
 from app.ai.dev_local_client import DevLocalClient
 from app.ai.gemini_client import GeminiProductClient, Price
 from app.ai.provider import LLMProvider
 
 
 def make_provider(cfg) -> LLMProvider:
+    if cfg.APP_ENV == "dev" and cfg.DEV_LLM_PROVIDER == "fake":
+        return DevFakeClient(app_env=cfg.APP_ENV)
     if cfg.APP_ENV == "dev" and cfg.DEV_LLM_PROVIDER == "local":
         return DevLocalClient(
             app_env=cfg.APP_ENV,

@@ -7,6 +7,7 @@ or duplicated. Formats outside that list are left unmaterialized (known limitati
 extractor never guesses a marker. It does not export level/parent/numbering kind.
 """
 
+import io
 import re
 from pathlib import Path
 from zipfile import BadZipFile
@@ -198,10 +199,10 @@ def _blocks(container, numbering):
     return chunks
 
 
-def extract_docx(path: Path) -> list[str]:
+def extract_docx(path: Path | bytes) -> list[str]:
     """Return canonicalizer-ready chunks; exclude header/footer, comments and footnotes."""
     try:
-        document = Document(path)
+        document = Document(io.BytesIO(bytes(path)) if isinstance(path, (bytes, bytearray)) else path)
     except (PackageNotFoundError, BadZipFile, KeyError, ValueError) as exc:
         raise ValidationReject("UNSUPPORTED_FILE_TYPE") from exc
     numbering = _Numbering(document)

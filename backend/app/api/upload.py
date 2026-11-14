@@ -1,5 +1,5 @@
 """Streaming multipart parser with strict aggregate and file byte budgets."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from email.message import Message
 
 from python_multipart import MultipartParser
@@ -15,6 +15,8 @@ class Upload:
     file_bytes: int = 0
     file_seen: bool = False
     error: str | None = None
+    # X-19: nội dung file giữ trong RAM của phiên (không ghi đĩa); chỉ giữ khi chưa vượt giới hạn.
+    content: bytearray = field(default_factory=bytearray, repr=False)
 
 
 async def parse_upload(request: Request, file_limit: int, on_role) -> Upload:
@@ -60,6 +62,9 @@ async def parse_upload(request: Request, file_limit: int, on_role) -> Upload:
             upload.file_bytes += len(payload)
             if upload.file_bytes > file_limit:
                 upload.error = "FILE_TOO_LARGE"
+                upload.content.clear()
+            elif upload.error is None:
+                upload.content.extend(payload)
             if len(upload.signature) < 5:
                 upload.signature += bytes(payload[:5 - len(upload.signature)])
 

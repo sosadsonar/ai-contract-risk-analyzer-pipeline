@@ -1,4 +1,4 @@
-"""Session lifecycle HTTP contract; results are explicitly dev samples."""
+"""Session lifecycle HTTP contract (6 operation). Kết quả từ pipeline thật hoặc fixture dev (xem app.main)."""
 import io
 from uuid import UUID
 
@@ -86,12 +86,17 @@ async def create(request: Request):
         return rejection
     if session is None:
         return api_error(400, "ROLE_REQUIRED")
-    # Dev sample selection stores only a fixed variant key, never the raw filename.
-    filename = (upload.filename or "").lower()
-    session.mock_variant = (
-        "norisk" if "norisk" in filename else
-        "insufficient" if "insufficient" in filename else None
-    )
+    if getattr(state, "pipeline_enabled", False):
+        # X-19: giữ bytes + tên hiển thị trong RAM của phiên (không ghi đĩa); xóa khi xong/End/hết hạn.
+        session.upload = bytes(upload.content) if upload.error is None else None
+        session.display_name = upload.filename
+    else:
+        # Dev sample selection stores only a fixed variant key, never the raw filename.
+        filename = (upload.filename or "").lower()
+        session.mock_variant = (
+            "norisk" if "norisk" in filename else
+            "insufficient" if "insufficient" in filename else None
+        )
     state.orchestrator.start(session, upload.error)
     return JSONResponse(status_code=201, content={
         "session_id": str(session.session_id), "status": "UPLOADED",

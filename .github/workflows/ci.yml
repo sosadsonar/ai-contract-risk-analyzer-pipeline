@@ -63,9 +63,8 @@ jobs:
       - name: pytest (không cần submodule)
         run: pytest --ignore=tests/test_data_lead_review.py --junitxml=pytest-report.xml
 
-      - name: Smoke script pipeline (không cần API key)
-        working-directory: ai_pipeline
-        run: python test_pipeline.py > /dev/null
+      - name: Smoke toàn pipeline với provider giả (không cần API key)
+        run: python scripts/smoke_pipeline.py
 
       - name: Tải báo cáo test
         if: always()

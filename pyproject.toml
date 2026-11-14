@@ -79,8 +79,6 @@ select = ["E", "F", "I"]  # Bật kiểm tra lỗi cơ bản và tự động so
 ignore = []
 
 [tool.ruff.lint.per-file-ignores]
-# Chuỗi hợp đồng mẫu dài trong smoke script legacy (sẽ chuyển pytest ở C-17).
-"ai_pipeline/test_pipeline.py" = ["E501"]
 # Văn bản prompt/định nghĩa nhãn tiếng Việt và dữ liệu tổng hợp: ngắt dòng làm đổi nội dung/pin.
 "backend/app/ai/prompts/*.py" = ["E501"]
 "ai_pipeline/eval/fixtures/build_synthetic.py" = ["E501"]
