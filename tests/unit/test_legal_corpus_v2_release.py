@@ -3,7 +3,9 @@
 import hashlib
 import json
 import shutil
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pytest
 import yaml
@@ -13,12 +15,13 @@ from app.legal.corpus_loader import load_corpus
 FIX = Path(__file__).resolve().parents[1] / "fixtures" / "legal_corpus" / "valid"
 REAL = Path(__file__).resolve().parents[2] / "data" / "legal_corpus"
 FILES = ("provisions.jsonl", "edges.jsonl", "label_map.yaml", "review_receipts.json")
+TODAY_VN = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date().isoformat()
 
 
 def _reviewed(**extra):
     return {
         "reviewer_n2": "Nguyen A", "reviewer_independent": "Tran B",
-        "reviewed_on": "2026-11-15", "decision": "APPROVED", **extra,
+        "reviewed_on": TODAY_VN, "decision": "APPROVED", **extra,
     }
 
 
@@ -30,7 +33,7 @@ def _bundle(root):
         "sources": [{
             "source_id": "TESTLAW", "document_id": "TESTLAW",
             "source_url": "https://example.gov.vn/law.pdf",
-            "source_sha256": "a" * 64, "accessed_on": "2026-11-15",
+            "source_sha256": "a" * 64, "accessed_on": TODAY_VN,
             "rights_status": "APPROVED",
         }],
         "provisions": [_reviewed(

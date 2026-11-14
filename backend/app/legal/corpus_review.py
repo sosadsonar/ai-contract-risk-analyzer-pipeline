@@ -2,15 +2,20 @@
 
 import hashlib
 import json
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 from app.domain.errors import LegalCorpusConflict
 
 
 def _fail(message: str) -> None:
     raise LegalCorpusConflict(f"review_receipts.json: {message}")
+
+
+def _today() -> date:
+    return datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
 
 
 def _date(value: Any) -> date:
@@ -31,7 +36,7 @@ def _reviewed(row: dict) -> None:
     first, second = row.get("reviewer_n2"), row.get("reviewer_independent")
     if not all(isinstance(x, str) and x.strip() for x in (first, second)) or first == second:
         _fail("two distinct named reviewers required")
-    if _date(row.get("reviewed_on")) > date.today():
+    if _date(row.get("reviewed_on")) > _today():
         _fail("future review date")
 
 
@@ -86,7 +91,7 @@ def validate_review_bundle(corpus: Any, raw: bytes) -> None:
             _fail("invalid source SHA-256")
         if not isinstance(url, str) or urlparse(url).scheme != "https" or not urlparse(url).netloc:
             _fail("official source URL must use HTTPS")
-        if _date(source.get("accessed_on")) > date.today() or source.get("rights_status") != "APPROVED":
+        if _date(source.get("accessed_on")) > _today() or source.get("rights_status") != "APPROVED":
             _fail("source access date or rights decision unverified")
 
     provisions = _unique_index(_items(bundle, "provisions"), ("citation_id", "version"), "provisions")
