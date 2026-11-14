@@ -63,6 +63,9 @@ where = ["."]
 include = ["backend*", "ai_pipeline*"]  # Chỉ đóng gói các module code thực thi
 exclude = ["frontend*", "notebooks*", "tests*", "docs*"]
 
+[tool.setuptools.package-data]
+"backend.app.session" = ["fixtures/*.json"]
+
 # --- CẤU HÌNH TOOL CHO TEAM ---
 [tool.ruff]
 line-length = 150

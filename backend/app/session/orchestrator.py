@@ -12,8 +12,10 @@ _LOCAL = {Stage.UPLOAD, Stage.EXTRACTION, Stage.SCOPE_PRECHECK, Stage.PII_MASKIN
           Stage.SEGMENTATION, Stage.CLAUSE_GRAPH}
 _ALLOWED = {
     SessionStatus.UPLOADED: {SessionStatus.VALIDATING},
-    SessionStatus.VALIDATING: {SessionStatus.REJECTED, SessionStatus.FAILED, SessionStatus.PROCESSING},
-    SessionStatus.PROCESSING: {SessionStatus.COMPLETED, SessionStatus.FAILED},
+    # X-20: End/cleanup có thể kết thúc phiên đang chạy → VALIDATING/PROCESSING → EXPIRED hợp lệ.
+    SessionStatus.VALIDATING: {SessionStatus.REJECTED, SessionStatus.FAILED, SessionStatus.PROCESSING,
+                               SessionStatus.EXPIRED},
+    SessionStatus.PROCESSING: {SessionStatus.COMPLETED, SessionStatus.FAILED, SessionStatus.EXPIRED},
     SessionStatus.FAILED: {SessionStatus.VALIDATING, SessionStatus.PROCESSING, SessionStatus.EXPIRED},
     SessionStatus.COMPLETED: {SessionStatus.EXPIRED},
     SessionStatus.REJECTED: {SessionStatus.EXPIRED},
