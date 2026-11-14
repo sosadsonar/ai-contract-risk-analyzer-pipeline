@@ -3,6 +3,8 @@
 Owner: Người 1 (Clause AI). Đồng review: Người 2 (dữ liệu/guideline), Người 3 (risk taxonomy). Ngày: 25/10/2026.
 Nguồn: `PROGRESS.md` tuần 2, SRS DEC-10 / OI-10, BRD §8.2 quy tắc 5–6. Tài liệu này **bổ sung** `CLAUSE_TAXONOMY.md` (con trỏ); không thay nó.
 
+> **Cập nhật 13/11/2026:** chính sách §2 (quy tắc 1–5) và topic bảo mật/không cạnh tranh ở §3 đã được N3 chốt trong `OPEN_ISSUES_HANDLE_v4` §3; C1–C4b đã có trong code (`v05`). Hai topic còn lại của §3 vẫn chờ N2; OI-10 **chưa CLOSED** đến khi xong C5–C6 và đủ chữ ký §4. M7 bản `v05` không so trực tiếp với số đo `v04`.
+>
 > **Trạng thái:** §1 (đóng băng kỹ thuật) **đã có hiệu lực** — test khóa chạy trong CI. §2–§3 là **[Đề xuất N1]**, cần N2 và N3 xác nhận (§4) trước khi đưa vào annotation guideline. Chưa xác nhận thì **không** đổi `LABEL_DEFINITIONS`; xác nhận mà phải đổi định nghĩa thì tăng version (§1.3).
 
 ## 1. Phần đã đóng băng
@@ -12,10 +14,10 @@ Nguồn: `PROGRESS.md` tuần 2, SRS DEC-10 / OI-10, BRD §8.2 quy tắc 5–6. 
 | Hạng mục | Giá trị khóa |
 |---|---|
 | Taxonomy nguồn của data (`taxonomy_version` trong `clause_output_v3`) | `clause_taxonomy_v03` |
-| Revision định nghĩa dùng trong prompt (`clause_prompt_version`) | `v04` |
-| Số nhãn mỗi clause | 1 đến 3, nhãn đầu là nhãn chính, không trùng (`validate_labels`) |
+| Revision định nghĩa dùng trong prompt (`clause_prompt_version`) | `v05` (13/11/2026, OI-10 C2: thêm ràng buộc `OTHER` đứng riêng; v04 trước đó) |
+| Số nhãn mỗi clause | 1 đến 3, nhãn đầu là nhãn chính, không trùng, `OTHER` chỉ đứng một mình (`validate_labels`) |
 | 12 nhãn | `JOB_INFO`, `CONTRACT_TERM`, `COMPENSATION_BENEFITS`, `WORKING_TIME`, `LEAVE`, `INSURANCE_SAFETY`, `WORKING_CONDITIONS`, `TRAINING`, `EMPLOYEE_OBLIGATIONS_DISCIPLINE`, `EMPLOYER_RIGHTS_OBLIGATIONS`, `TERMINATION`, `OTHER` |
-| Fingerprint (sha256: dòng version + min/max, rồi từng `nhãn\|định nghĩa` theo thứ tự) | `2449733fe397438f4aa9ebee9bf2568c8f7708c2a10f837fbb46283b889390c2` |
+| Fingerprint (sha256: dòng version + min/max, rồi từng `nhãn\|định nghĩa` theo thứ tự) | `a1e8a4de0af1d056307a3e84e81289d68b371185e5e8fa5fe3dc2aef314b8051` |
 
 Khóa bằng `tests/unit/test_clause_taxonomy_freeze.py` (cùng kiểu với `test_risk_taxonomy_freeze.py` của N3). Hai test cũ `tests/unit/test_clause_taxonomy.py`, `tests/test_data_lead_review.py` vẫn giữ.
 
@@ -38,7 +40,7 @@ Khóa bằng `tests/unit/test_clause_taxonomy_freeze.py` (cùng kiểu với `te
 
 1. **Mặc định 1 nhãn.** Chỉ thêm nhãn phụ khi clause có ít nhất một ý trọn vẹn (một câu hoặc một mệnh đề có chủ đề riêng) thuộc nhãn khác. Nhắc thoáng qua một từ khóa không đủ.
 2. Tối đa 3 nhãn. Nhãn đầu = nhãn chính = chủ đề chiếm nhiều nội dung nhất; khi hòa, lấy chủ đề xuất hiện đầu clause. Không trùng nhãn.
-3. `OTHER` chỉ dùng một mình (nếu có nhãn cụ thể thì không thêm `OTHER`). **Chưa được code ép** (`validate_labels` hiện cho phép); nếu nhóm đồng ý, thêm vào `validate_labels` kèm test và tăng `TAXONOMY_VERSION`.
+3. `OTHER` chỉ dùng một mình (nếu có nhãn cụ thể thì không thêm `OTHER`). **Code đã ép từ `v05`** (OI-10 C1, `validate_labels` raise → adapter chuyển `AI_OUTPUT_INVALID` → retry). C5: đo tỷ lệ output bị từ chối vì quy tắc này trên D1; nếu > 2% số clause thì nhóm quyết định riêng có chuẩn hóa tất định ở adapter hay không.
 4. Clause chỉ gồm tiêu đề (ví dụ `Điều 5. Tiền lương` khi các khoản con là clause riêng — TDD §11.2) gán theo chủ đề của tiêu đề, không bỏ trống. Hệ thống không có "nhãn rỗng".
 5. Phân loại **không nhận role** (INV-05); nhãn không phụ thuộc NLĐ/NSDLĐ.
 

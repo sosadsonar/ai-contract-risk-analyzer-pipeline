@@ -22,7 +22,11 @@ def greedy_align_spans(
     *,
     threshold: float = 0.5,
 ) -> list[tuple[int, int]]:
-    """Match highest IoU first; ties use Gold index then prediction index."""
+    """Greedy one-to-one match, IoU >= threshold (BRD M7; SRS OI-10 §3.1 rule 6).
+
+    Order: IoU descending; ties by gold start ascending, then predicted start ascending, then the
+    original gold index and prediction index. Each span is matched at most once.
+    """
     if isinstance(threshold, bool) or not isinstance(threshold, (int, float)) or not 0 < threshold <= 1:
         raise ValueError("threshold must be in (0, 1]")
     candidates = []
@@ -30,12 +34,12 @@ def greedy_align_spans(
         for predicted_index, predicted_span in enumerate(predicted):
             score = span_iou(gold_span, predicted_span)
             if score >= threshold:
-                candidates.append((-score, gold_index, predicted_index))
+                candidates.append((-score, gold_span[0], predicted_span[0], gold_index, predicted_index))
     candidates.sort()
     used_gold: set[int] = set()
     used_predicted: set[int] = set()
     matches = []
-    for _, gold_index, predicted_index in candidates:
+    for *_, gold_index, predicted_index in candidates:
         if gold_index not in used_gold and predicted_index not in used_predicted:
             matches.append((gold_index, predicted_index))
             used_gold.add(gold_index)
