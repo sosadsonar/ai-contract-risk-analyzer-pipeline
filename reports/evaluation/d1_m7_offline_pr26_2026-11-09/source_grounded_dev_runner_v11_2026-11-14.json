@@ -1,0 +1,331 @@
+{
+  "status": "DEV_SOURCE_GROUNDED_LOCAL_BASELINE_NOT_PRODUCT_M2",
+  "corpus_version": "legal_corpus_2026-11-14_v02",
+  "graph_version": "data_graph_2026-11-13_v02",
+  "source_sha256_by_document": {
+    "D1:HDLD001": "b22f92b5e92ee3663922e6a1465b02fee89b243431bce8fdc6f682747777f925",
+    "D1:HDLD002": "b43a8e46839ee35125e709301c2558044f863304c6f9714d43386e33bac2758d",
+    "D1:HDLD003": "f76195cc5da1c65aad45debe3ca44c7dd4df5c077f29b1660555b604197e60f7",
+    "D1:HDLD004": "32f363a4e50ff056c6bc062a123fe8d16699055ca7be596175173381cb07afea",
+    "D2:HDLD001": "f5290a831ff30f17b0ebe47ac1a4290c3c8c41a112998599c4eb96524ce38227",
+    "D2:HDLD002": "4af0c70bdecd33e7d8a03375f4ba71d9f4dffb4070aa786205ae34ad2d9c5c12",
+    "D2:HDLD003": "a4e838db64dc004e663929c5bbed7a77cd84f117a1ba514d9bdb25c0124f4953",
+    "D2:HDLD004": "bc257ecc646c8a7f2a09d5316d468856add183523f250416f1eb33bbea9e4c64"
+  },
+  "m6_review_packet_sha256": "efee1b569bd344ff998846835a5f174869a2e03b71284830b754344157cbe19b",
+  "counts": {
+    "D1_all_source_rule_tuples": 18,
+    "D1_eligible_source_rule_tuples": 18,
+    "D1_eligible_multiple_rule_clauses": 1,
+    "D1_sessions": 4,
+    "D1_risk_rows": 17,
+    "D1_risk_label_tuples": 18,
+    "D1_risk_UNILATERAL_CHANGE": 8,
+    "D1_risk_REST_AND_LEAVE": 3,
+    "D1_risk_BONUS_BENEFITS": 6,
+    "D1_risk_WORKING_HOURS_OVERTIME": 1,
+    "D2_sessions": 8,
+    "D2_risk_rows": 75,
+    "D2_risk_label_tuples": 76,
+    "D2_risk_DEPOSIT_DOCUMENT_HELD": 38,
+    "D2_risk_UNILATERAL_CHANGE": 8,
+    "D2_risk_REST_AND_LEAVE": 3,
+    "D2_risk_BONUS_BENEFITS": 6,
+    "D2_risk_WORKING_HOURS_OVERTIME": 1,
+    "D2_risk_DISCIPLINE_OBLIGATION": 20
+  },
+  "m3a_candidate_effective_citations": {
+    "valid": 90,
+    "total": 90,
+    "rate": 1.0
+  },
+  "m4_exact_quote_offset": {
+    "valid": 92,
+    "total": 92,
+    "rate": 1.0
+  },
+  "evidence_status": {
+    "supported": 90,
+    "insufficient_evidence": 2
+  },
+  "m6_prior_packet_crosswalk": {
+    "review_rows": 40,
+    "uniquely_matched": 40,
+    "exact_span_matches": 40,
+    "masked_quote_matches": 40,
+    "citation_matches": 40,
+    "explanation_matches": 40,
+    "fully_matching_records": 40,
+    "mismatch_output_ids_by_field": {
+      "span": [],
+      "quote": [],
+      "citation": [],
+      "explanation": []
+    },
+    "unmatched_output_ids": [],
+    "unmatched_diagnostics": [],
+    "ambiguous_output_ids": [],
+    "match_rule": "document_id + role + normalized risk label + span IoU >= 0.80"
+  },
+  "m6_prior_packet_legacy_geometry_crosswalk": {
+    "review_rows": 40,
+    "uniquely_matched": 2,
+    "exact_span_matches": 0,
+    "masked_quote_matches": 0,
+    "citation_matches": 2,
+    "explanation_matches": 2,
+    "fully_matching_records": 0,
+    "mismatch_output_ids_by_field": {
+      "span": [
+        "HDLD003-cl_0038-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "HDLD003-cl_0038-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "quote": [
+        "HDLD003-cl_0038-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "HDLD003-cl_0038-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+      ],
+      "citation": [],
+      "explanation": []
+    },
+    "unmatched_output_ids": [
+      "HDLD001-cl_0009-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD001-cl_0009-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD001-cl_0012-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD001-cl_0012-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD001-cl_0020-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD001-cl_0020-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD001-cl_0024-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD001-cl_0024-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD001-cl_0030-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD001-cl_0030-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD002-cl_0012-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD002-cl_0012-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD002-cl_0017-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD002-cl_0017-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD002-cl_0022-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD002-cl_0027-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD002-cl_0027-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD002-cl_0033-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD002-cl_0034-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD002-cl_0037-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD003-cl_0003-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD003-cl_0003-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD003-cl_0009-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD003-cl_0011-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+      "HDLD003-cl_0019-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+      "HDLD003-cl_0029-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD003-cl_0029-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD003-cl_0040-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD004-cl_0007-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD004-cl_0007-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD004-cl_0014-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD004-cl_0014-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD004-cl_0020-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD004-cl_0020-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD004-cl_0027-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD004-cl_0040-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD004-cl_0040-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+      "HDLD004-cl_0049-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE"
+    ],
+    "unmatched_diagnostics": [
+      {
+        "output_id": "HDLD001-cl_0009-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.34375,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD001-cl_0009-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.34375,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD001-cl_0012-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.16498316498316498,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD001-cl_0012-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.16498316498316498,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD001-cl_0020-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.697986577181208,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD001-cl_0020-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.697986577181208,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD001-cl_0024-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.47282608695652173,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD001-cl_0024-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.47282608695652173,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD001-cl_0030-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.05053695514845231,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD001-cl_0030-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.05053695514845231,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD002-cl_0012-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.4052863436123348,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD002-cl_0012-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.4052863436123348,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD002-cl_0017-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.775,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD002-cl_0017-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.775,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD002-cl_0022-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.3542600896860987,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD002-cl_0027-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.4472049689440994,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD002-cl_0027-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.4472049689440994,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD002-cl_0033-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.3869565217391304,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD002-cl_0034-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.06153846153846154,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD002-cl_0037-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.3991031390134529,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD003-cl_0003-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.7868852459016393,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD003-cl_0003-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.7868852459016393,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD003-cl_0009-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.2107728337236534,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD003-cl_0011-EMPLOYEE-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.728,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD003-cl_0019-EMPLOYER-DEPOSIT_DOCUMENT_HELD",
+        "nearest_iou": 0.14183381088825214,
+        "nearest_risk_label": "DEPOSIT_DOCUMENT_HELD"
+      },
+      {
+        "output_id": "HDLD003-cl_0029-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.5257142857142857,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD003-cl_0029-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.5257142857142857,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD003-cl_0040-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.3086092715231788,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD004-cl_0007-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.6475770925110133,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD004-cl_0007-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.6475770925110133,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD004-cl_0014-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.4520547945205479,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD004-cl_0014-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.4520547945205479,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD004-cl_0020-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.3486238532110092,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD004-cl_0020-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.3486238532110092,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD004-cl_0027-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.4345991561181435,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD004-cl_0040-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.3159420289855073,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD004-cl_0040-EMPLOYER-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.3159420289855073,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      },
+      {
+        "output_id": "HDLD004-cl_0049-EMPLOYEE-EMPLOYEE_OBLIGATIONS_DISCIPLINE",
+        "nearest_iou": 0.2808022922636103,
+        "nearest_risk_label": "DISCIPLINE_OBLIGATION"
+      }
+    ],
+    "ambiguous_output_ids": [],
+    "match_rule": "document_id + role + normalized risk label + span IoU >= 0.80"
+  },
+  "limitations": [
+    "Local predicted clause labels and frozen source-only risk rules are Dev diagnostics.",
+    "One risk_output_v2 item per clause can suppress a second rule hit on that clause.",
+    "The previous M6 packet used legacy EMPLOYEE_OBLIGATIONS_DISCIPLINE; the product risk taxonomy uses DISCIPLINE_OBLIGATION.",
+    "Human agreement may be attributed to this runner only for uniquely matched reviewed rows."
+  ]
+}

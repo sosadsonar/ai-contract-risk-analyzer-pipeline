@@ -562,8 +562,8 @@ python -m ai_pipeline.eval.runner --dataset T2 --metric M8 --graph-enabled true|
 
 ## 13. Chưa có trong tài liệu / cần chốt khi code (đừng tự quyết ngầm)
 
-1. **Chữ ký hàm ở §5 là đề xuất** — dự kiến khóa chữ ký hàm và schema vào 05/11/2026, sau khi taxonomy freeze; sau mốc này đổi chữ ký cần PR có lý do và báo cả nhóm.
-2. **12 nhãn clause taxonomy**: semantics nguồn ở data repo `docs/clause_taxonomy_v03.md`, code ở `taxonomy.py` (`TAXONOMY_VERSION=v04`; BRD/SRS chỉ nói "12 nhãn"); topic bảo mật/không cạnh tranh và giải quyết tranh chấp chưa có nhãn chốt; risk taxonomy v0.1 (21 nhãn) đã có ở `docs/RISK_TAXONOMY_v0.1.md` và `app/risk/taxonomy.py`, chờ đóng băng ở MS-1 (BRD OI-01).
+1. **Chữ ký hàm ở §5 là đề xuất** — dự kiến khóa chữ ký hàm và schema vào 05/11/2026, sau khi taxonomy freeze; sau mốc này đổi chữ ký cần PR có lý do và báo cả nhóm.  
+~~2. **12 nhãn clause taxonomy**: semantics nguồn ở data repo `docs/clause_taxonomy_v03.md`, code ở `taxonomy.py` (`TAXONOMY_VERSION=v04`; BRD/SRS chỉ nói "12 nhãn"); topic bảo mật/không cạnh tranh và giải quyết tranh chấp chưa có nhãn chốt; risk taxonomy v0.1 (21 nhãn) đã có ở `docs/RISK_TAXONOMY_v0.1.md` và `app/risk/taxonomy.py`, chờ đóng băng ở MS-1 (BRD OI-01).~~
 3. Hard byte cap khi upload (§3 ghi chú) — cách hiện thực chưa chốt.
 4. `GET /status` trả `progress.completed_units/total_units` — đơn vị (batch? clause?) TDD chưa định nghĩa; đề xuất: đơn vị = clause đã xong ở stage hiện tại.
 5. Mã `retry` trả về 200 hay 202 — TDD chưa nêu rõ.

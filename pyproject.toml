@@ -24,8 +24,7 @@ classifiers = [
 dependencies = [
     # AI & Core Pipeline
     "pydantic>=2.0",        # Data validation & Structured Output (Cực quan trọng)
-    "ollama>=0.1.0",        # SDK gọi model Qwen-2.5 local
-    "requests>=2.31.0",     # Gọi REST API cho Gemini free tier
+    "requests>=2.31.0",     # Transport REST cho Gemini (gemini_client) và Ollama dev (dev_local_client)
     
     # Backend & API (Cho nhóm Backend)
     "fastapi>=0.100.0",
@@ -35,11 +34,6 @@ dependencies = [
     "watchfiles>=0.21.0",   # Auto-reload cho uvicorn
     "websockets>=12.0",     # Hỗ trợ WebSocket cho uvicorn
     
-    # Database & ORM
-    "sqlalchemy>=2.0.0",    # ORM quản lý cơ sở dữ liệu
-    "alembic>=1.12.0",      # Quản lý migration cơ sở dữ liệu
-    "psycopg>=3.1.0",       # PostgreSQL driver (v3)
-    "psycopg-binary>=3.1.0",
     
     # Document Processing & Utilities
     "pymupdf>=1.24.0",      # Xử lý và trích xuất text từ PDF hợp đồng
@@ -57,9 +51,8 @@ dev = [
     "pytest>=9.1.1",          # Viết unit test cho code
     "jsonschema>=4.20",     # Test hợp đồng JSON Schema (tests/contract)
     "pytest-asyncio>=0.24",
-    "httpx>=0.28",
+    "httpx2>=2.13",         # httpx is deprecated
     "ruff>=0.1.0",          # Linter & Formatter code siêu nhanh (Thay thế Flake8/Black)
-    "jupyter>=1.0.0",       # Để chạy các file .ipynb EDA dữ liệu
 ]
 test = [
     "pytest-asyncio>=1.4.1"
@@ -69,6 +62,9 @@ test = [
 where = ["."]
 include = ["backend*", "ai_pipeline*"]  # Chỉ đóng gói các module code thực thi
 exclude = ["frontend*", "notebooks*", "tests*", "docs*"]
+
+[tool.setuptools.package-data]
+"backend.app.session" = ["fixtures/*.json"]
 
 # --- CẤU HÌNH TOOL CHO TEAM ---
 [tool.ruff]
@@ -83,8 +79,6 @@ select = ["E", "F", "I"]  # Bật kiểm tra lỗi cơ bản và tự động so
 ignore = []
 
 [tool.ruff.lint.per-file-ignores]
-# Chuỗi hợp đồng mẫu dài trong smoke script legacy (sẽ chuyển pytest ở C-17).
-"ai_pipeline/test_pipeline.py" = ["E501"]
 # Văn bản prompt/định nghĩa nhãn tiếng Việt và dữ liệu tổng hợp: ngắt dòng làm đổi nội dung/pin.
 "backend/app/ai/prompts/*.py" = ["E501"]
 "ai_pipeline/eval/fixtures/build_synthetic.py" = ["E501"]
@@ -102,5 +96,6 @@ markers = [
 pythonpath = [".", "backend"]
 testpaths = [
     "tests",
+    "backend/tests",
 ]
 asyncio_mode = "auto"

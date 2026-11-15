@@ -1,1 +1,5 @@
 {"from_citation_id":"BLLD2019:art14:cl1","to_citation_id":"BLLD2019:art14:cl2","edge_type":"REFERS_TO","origin":"MANUAL"}
+{"from_citation_id":"BLLD2019:art17:cl1","to_citation_id":"BLLD2019:art17:cl2","edge_type":"REFERS_TO","origin":"MANUAL"}
+{"from_citation_id":"BLLD2019:art17:cl3","to_citation_id":"BLLD2019:art21:cl1:ptc","edge_type":"GUIDES","origin":"MANUAL"}
+{"from_citation_id":"BLLD2019:art21:cl1:ptg","to_citation_id":"BLLD2019:art17:cl2","edge_type":"GUIDES","origin":"MANUAL"}
+{"from_citation_id":"BLLD2019:art21:cl1:ptđ","to_citation_id":"BLLD2019:art17:cl2","edge_type":"GUIDES","origin":"MANUAL"}

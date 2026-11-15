@@ -31,16 +31,29 @@ class LLMResponse:
     in_tokens: int = 0
     out_tokens: int = 0
     cost: float = 0.0
+    # False khi provider không trả usage (ledger vẫn nhận 0, nhưng 0 này nghĩa là "không biết").
+    usage_known: bool = True
 
 
 class ProviderFailure(Exception):
     """Lỗi tầng provider (chưa phân loại theo domain). `kind` ∈ timeout|network|http|invalid_json."""
 
-    def __init__(self, kind: str, *, status: Optional[int] = None, detail: str = "") -> None:
+    def __init__(self, kind: str, *, status: Optional[int] = None, detail: str = "",
+                 in_tokens: Optional[int] = None, out_tokens: Optional[int] = None,
+                 cost: float = 0.0) -> None:
         super().__init__(f"{kind}:{status}" if status else kind)
         self.kind = kind
         self.status = status
         self.detail = detail  # đã lọc: không chứa key/nội dung hợp đồng
+        # OI-05 §2.4: usage của response lỗi (vd. JSON hỏng, finishReason=MAX_TOKENS) vẫn bị tính
+        # tiền nên phải vào ledger. None = provider không trả usage (khác với 0 token thật).
+        self.in_tokens = in_tokens
+        self.out_tokens = out_tokens
+        self.cost = cost
+
+    @property
+    def usage_known(self) -> bool:
+        return self.in_tokens is not None and self.out_tokens is not None
 
     @property
     def retryable(self) -> bool:
@@ -125,7 +138,8 @@ async def call_with_retry(
                 model_id=model_id, messages=msgs, response_schema=response_schema, timeout_s=timeout_s
             )
         except ProviderFailure as f:
-            ledger.after_call(0, 0, 0.0, error_code=f"{f.kind}:{f.status}" if f.status else f.kind)
+            ledger.after_call(f.in_tokens or 0, f.out_tokens or 0, f.cost,
+                              error_code=f"{f.kind}:{f.status}" if f.status else f.kind)
             if f.retryable and attempt < max_retries:
                 attempt += 1
                 if f.status == 429:  # backoff + jitter
@@ -149,7 +163,7 @@ async def call_with_retry(
                 attempt += 1
                 msgs = list(messages) + [{
                     "role": "user",
-                    "content": "Phản hồi trước không hợp lệ: " + str(e)[:300]
+                    "content": "Phản hồi trước không hợp lệ: " + str(e)[:1200]
                     + ". Trả lại JSON đúng schema, chỉ gồm các trường được yêu cầu.",
                 }]
                 continue

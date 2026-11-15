@@ -13,8 +13,7 @@ pip install -e .'[dev]'
 
 cp .env.example .env        # rồi điền GEMINI_API_KEY (hoặc dùng Qwen local qua Ollama)
 
-cd ai_pipeline
-python test_pipeline.py          # không cần API key
+python scripts/smoke_pipeline.py # toàn pipeline với provider giả, không cần API key
 # test gọi LLM thật / Ollama: xem CONTRIBUTING.md §3 (pytest -m llm | llm_local)
 ```
 
@@ -26,7 +25,7 @@ Hướng dẫn đầy đủ (cài đặt, `.env`, CI, quy trình Git, submodule 
 
 Từ thư mục gốc: `python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000`. API tạo UUIDv4, giữ phiên trong RAM, lease xử lý một phiên, giới hạn upload streaming 10 MiB, rate theo HMAC IP, tombstone SQLite 24 giờ. SQLite tại `OPS_DB_PATH` chỉ chứa metadata; không phục hồi nội dung phiên sau restart. `RATE_LIMIT_HMAC_SALT` vắng trong dev được tạo ngẫu nhiên mỗi process; cấu hình salt cố định nếu cần rate ổn định qua restart. Dev chỉ áp dụng quota khi có cả `DAILY_LLM_CALL_QUOTA` và `SESSION_CALL_RESERVE`; runner sample không gọi provider, không trừ counter.
 
-Kết quả `final_result_v1` hiện là **fixture dev**, không phải phân tích file tải lên. `APP_ENV=demo/eval` vẫn fail-fast đến khi extraction, LLM và legal corpus được tích hợp; không dùng API dev để đánh giá hợp đồng thật.
+Từ tuần 5 (X-19) API chạy **pipeline thật** (`backend/app/pipeline.py`: extraction → scope → che PII → segmentation → Clause Graph → LLM #1 → retrieval → LLM #2 → citation validation → assembly) khi có provider: `DEV_LLM_PROVIDER=fake` (offline, tất định, chỉ để smoke/ghép frontend), `local` (Ollama) hoặc `gemini` có `GEMINI_API_KEY` + `GEMINI_MODEL_ID`. Dev không có provider vẫn trả fixture mẫu. `APP_ENV=demo/eval` luôn chạy pipeline thật và fail-fast khi thiếu key/model/quota/reserve/salt hoặc corpus chưa `APPROVED`.
 
 ## Tài liệu
 

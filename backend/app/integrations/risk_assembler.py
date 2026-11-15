@@ -19,8 +19,10 @@ Nguồn của từng trường trong output:
   severity_rubric_version): backend qua AssemblerContext. Các version pin KHÔNG lấy từ LLM.
 
 Xử lý theo bảng taxonomy: nếu (risk_label, basis_type, vai trò) rơi vào ô '-' thì nhãn đó bị
-gỡ. Hết nhãn thì clause bị loại khỏi `clauses` (không phải rủi ro của vai trò này, gắn
-need_review trong diagnostics) thay vì xuất một rủi ro mâu thuẫn với taxonomy.
+gỡ. Hết nhãn (sau retry có phản hồi ở risk_adapter) thì phát bản ghi "nghi ngờ, cần xem xét"
+(TDD §15.5, X-22): `needs_review=true`, severity null, INSUFFICIENT_EVIDENCE, không citation; giữ
+nhãn model đề xuất chỉ để schema hợp lệ — giao diện KHÔNG hiển thị nhãn/severity của bản ghi này.
+Không bỏ clause. Ghi `need_review` trong diagnostics để đo ở dev/eval.
 
 Input clause upstream (segmentation_v1 join clause_output_v3):
   {"clause_id": "cl_0001", "clause_number": "7.2", "start_char": 1200, "end_char": 1287,
@@ -217,18 +219,20 @@ def assemble_risk_output(
         except ValueError as exc:  # nhãn ngoài taxonomy
             raise RiskAssemblerError(f"clause '{cid}': {exc}") from exc
         labels = [x for x in item["risk_labels"] if x not in bad]
-        if bad:
+        needs_review = bool(item.get("need_review")) or not labels
+        if bad and labels:
             diagnostics["labels_dropped"].append(
                 {"clause_id": cid, "labels": bad, "basis_type": basis}
             )
-        if not labels:
+        if needs_review:
             diagnostics["need_review"].append(
-                {"clause_id": cid, "labels": bad, "basis_type": basis}
+                {"clause_id": cid, "labels": bad or list(item["risk_labels"]), "basis_type": basis}
             )
-            continue
+            labels = list(item["risk_labels"])
+            item = dict(item, evidence_status=EvidenceStatus.INSUFFICIENT_EVIDENCE.value, citation_ids=[])
 
         severity = None
-        if item["evidence_status"] == EvidenceStatus.SUPPORTED.value:
+        if not needs_review and item["evidence_status"] == EvidenceStatus.SUPPORTED.value:
             table = severity_for_labels(labels, basis, ctx.role)  # còn >= 1 nhãn hợp lệ
             severity = table.value if table is not None else None
 
@@ -252,6 +256,8 @@ def assemble_risk_output(
         )
         if item.get("related_clause_ids"):
             merged_clauses[-1]["related_clause_ids"] = list(item["related_clause_ids"])
+        if needs_review:
+            merged_clauses[-1]["needs_review"] = True
 
     merged = {
         "schema_version": MERGED_SCHEMA_VERSION,

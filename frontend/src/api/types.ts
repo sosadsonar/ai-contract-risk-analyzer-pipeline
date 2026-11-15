@@ -54,6 +54,9 @@ export interface RiskResult {
   // Tùy chọn: X-16/X-21 — tập con clause_id liên quan (backend điền từ context đã cấp cho LLM #2).
   // Chưa bắt buộc UI dùng; để trống cho đến X-23 (tuần 5).
   related_clause_ids?: string[];
+  // Tùy chọn: X-22 / TDD §15.5 — bản ghi "nghi ngờ, cần xem xét" (luôn INSUFFICIENT_EVIDENCE, severity null).
+  // UI hiện thẻ nét đứt, KHÔNG hiện nhãn hay mức độ.
+  needs_review?: true;
 }
 
 export interface Citation {

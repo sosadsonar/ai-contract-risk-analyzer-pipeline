@@ -1,0 +1,297 @@
+{
+  "status": "D2_DEV_GEOMETRY_ONLY_NO_CLASSIFICATION_SCORE",
+  "segmentation_version": "rules_v1.1",
+  "structure_parser_version": "structure_parser_v1",
+  "documents": [
+    {
+      "document_id": "HDLD001",
+      "source_sha256": "f5290a831ff30f17b0ebe47ac1a4290c3c8c41a112998599c4eb96524ce38227",
+      "gold_sha256": "40edc7b0d1396e1e167ecce0b955fa0b307370dc2a84404ef60eb5c5fb923ff0",
+      "gold_count": 53,
+      "predicted_count": 41,
+      "matched_iou_0_5": 39,
+      "gold_unmatched": 14,
+      "prediction_unmatched": 2,
+      "unmatched_gold": [
+        {
+          "gold_ref": "d2seg_0010",
+          "start_char": 1315,
+          "end_char": 1403
+        },
+        {
+          "gold_ref": "d2seg_0014",
+          "start_char": 2096,
+          "end_char": 2194
+        },
+        {
+          "gold_ref": "d2seg_0022",
+          "start_char": 2695,
+          "end_char": 2738
+        },
+        {
+          "gold_ref": "d2seg_0023",
+          "start_char": 2740,
+          "end_char": 2810
+        },
+        {
+          "gold_ref": "d2seg_0024",
+          "start_char": 2812,
+          "end_char": 2844
+        },
+        {
+          "gold_ref": "d2seg_0029",
+          "start_char": 3691,
+          "end_char": 3778
+        },
+        {
+          "gold_ref": "d2seg_0035",
+          "start_char": 4394,
+          "end_char": 4464
+        },
+        {
+          "gold_ref": "d2seg_0036",
+          "start_char": 4466,
+          "end_char": 4561
+        },
+        {
+          "gold_ref": "d2seg_0038",
+          "start_char": 5523,
+          "end_char": 5603
+        },
+        {
+          "gold_ref": "d2seg_0039",
+          "start_char": 5606,
+          "end_char": 5977
+        },
+        {
+          "gold_ref": "d2seg_0044",
+          "start_char": 6505,
+          "end_char": 6601
+        },
+        {
+          "gold_ref": "d2seg_0051",
+          "start_char": 7536,
+          "end_char": 7658
+        },
+        {
+          "gold_ref": "d2seg_0052",
+          "start_char": 7660,
+          "end_char": 7742
+        },
+        {
+          "gold_ref": "d2seg_0053",
+          "start_char": 7768,
+          "end_char": 7941
+        }
+      ]
+    },
+    {
+      "document_id": "HDLD002",
+      "source_sha256": "4af0c70bdecd33e7d8a03375f4ba71d9f4dffb4070aa786205ae34ad2d9c5c12",
+      "gold_sha256": "1bc33d36323aa81d9e40230319476d45d7e78c11593c3fb1dc8a89d02de02624",
+      "gold_count": 56,
+      "predicted_count": 45,
+      "matched_iou_0_5": 44,
+      "gold_unmatched": 12,
+      "prediction_unmatched": 1,
+      "unmatched_gold": [
+        {
+          "gold_ref": "d2seg_0013",
+          "start_char": 1057,
+          "end_char": 1149
+        },
+        {
+          "gold_ref": "d2seg_0018",
+          "start_char": 1841,
+          "end_char": 1866
+        },
+        {
+          "gold_ref": "d2seg_0025",
+          "start_char": 2298,
+          "end_char": 2377
+        },
+        {
+          "gold_ref": "d2seg_0031",
+          "start_char": 3255,
+          "end_char": 3327
+        },
+        {
+          "gold_ref": "d2seg_0038",
+          "start_char": 4040,
+          "end_char": 4129
+        },
+        {
+          "gold_ref": "d2seg_0040",
+          "start_char": 5161,
+          "end_char": 5253
+        },
+        {
+          "gold_ref": "d2seg_0041",
+          "start_char": 5256,
+          "end_char": 5627
+        },
+        {
+          "gold_ref": "d2seg_0045",
+          "start_char": 6000,
+          "end_char": 6073
+        },
+        {
+          "gold_ref": "d2seg_0046",
+          "start_char": 6076,
+          "end_char": 6089
+        },
+        {
+          "gold_ref": "d2seg_0054",
+          "start_char": 7155,
+          "end_char": 7277
+        },
+        {
+          "gold_ref": "d2seg_0055",
+          "start_char": 7279,
+          "end_char": 7367
+        },
+        {
+          "gold_ref": "d2seg_0056",
+          "start_char": 7376,
+          "end_char": 7532
+        }
+      ]
+    },
+    {
+      "document_id": "HDLD003",
+      "source_sha256": "a4e838db64dc004e663929c5bbed7a77cd84f117a1ba514d9bdb25c0124f4953",
+      "gold_sha256": "5d6fa04736bf0b3a3e97e0855dc66471e9d9b65029a446e30e81ac9c123f9eab",
+      "gold_count": 50,
+      "predicted_count": 40,
+      "matched_iou_0_5": 39,
+      "gold_unmatched": 11,
+      "prediction_unmatched": 1,
+      "unmatched_gold": [
+        {
+          "gold_ref": "d2seg_0003",
+          "start_char": 539,
+          "end_char": 589
+        },
+        {
+          "gold_ref": "d2seg_0004",
+          "start_char": 591,
+          "end_char": 664
+        },
+        {
+          "gold_ref": "d2seg_0005",
+          "start_char": 667,
+          "end_char": 783
+        },
+        {
+          "gold_ref": "d2seg_0012",
+          "start_char": 1659,
+          "end_char": 1749
+        },
+        {
+          "gold_ref": "d2seg_0014",
+          "start_char": 3244,
+          "end_char": 3276
+        },
+        {
+          "gold_ref": "d2seg_0024",
+          "start_char": 4689,
+          "end_char": 4788
+        },
+        {
+          "gold_ref": "d2seg_0034",
+          "start_char": 6403,
+          "end_char": 6484
+        },
+        {
+          "gold_ref": "d2seg_0044",
+          "start_char": 7633,
+          "end_char": 7678
+        },
+        {
+          "gold_ref": "d2seg_0045",
+          "start_char": 7680,
+          "end_char": 7793
+        },
+        {
+          "gold_ref": "d2seg_0049",
+          "start_char": 9439,
+          "end_char": 9521
+        },
+        {
+          "gold_ref": "d2seg_0050",
+          "start_char": 9524,
+          "end_char": 9672
+        }
+      ]
+    },
+    {
+      "document_id": "HDLD004",
+      "source_sha256": "bc257ecc646c8a7f2a09d5316d468856add183523f250416f1eb33bbea9e4c64",
+      "gold_sha256": "9fba6dda2d89924170f83fda556ee268aeb30346e5567bda827fee174f85470e",
+      "gold_count": 77,
+      "predicted_count": 68,
+      "matched_iou_0_5": 67,
+      "gold_unmatched": 10,
+      "prediction_unmatched": 1,
+      "unmatched_gold": [
+        {
+          "gold_ref": "d2seg_0007",
+          "start_char": 2466,
+          "end_char": 2544
+        },
+        {
+          "gold_ref": "d2seg_0008",
+          "start_char": 2546,
+          "end_char": 2640
+        },
+        {
+          "gold_ref": "d2seg_0009",
+          "start_char": 2643,
+          "end_char": 2693
+        },
+        {
+          "gold_ref": "d2seg_0017",
+          "start_char": 3598,
+          "end_char": 3697
+        },
+        {
+          "gold_ref": "d2seg_0024",
+          "start_char": 4631,
+          "end_char": 4707
+        },
+        {
+          "gold_ref": "d2seg_0032",
+          "start_char": 5507,
+          "end_char": 5610
+        },
+        {
+          "gold_ref": "d2seg_0046",
+          "start_char": 7324,
+          "end_char": 7433
+        },
+        {
+          "gold_ref": "d2seg_0056",
+          "start_char": 8797,
+          "end_char": 8895
+        },
+        {
+          "gold_ref": "d2seg_0065",
+          "start_char": 10257,
+          "end_char": 10360
+        },
+        {
+          "gold_ref": "d2seg_0066",
+          "start_char": 10362,
+          "end_char": 10458
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "gold_count": 236,
+    "predicted_count": 194,
+    "matched_iou_0_5": 189,
+    "gold_unmatched": 47,
+    "prediction_unmatched": 5
+  }
+}

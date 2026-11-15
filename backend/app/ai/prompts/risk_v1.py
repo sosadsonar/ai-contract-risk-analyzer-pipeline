@@ -25,7 +25,10 @@ from app.risk.taxonomy import (
     RISK_TAXONOMY_VERSION,
 )
 
-RISK_PROMPT_VERSION = "risk_prompt_v1"
+# v2 (X-22, W5): định nghĩa căn cứ theo vai trò (BRD 3.2, N1–N3 / E1–E3), phân tích như thể có hiệu lực,
+# quy tắc cận chắc chắn, LV nghi ngờ không có căn cứ ⇒ INSUFFICIENT, cách nhắc luật, related_clause_ids (FR-32),
+# context chung (FR-33). Số đo của v1 không so trực tiếp với v2.
+RISK_PROMPT_VERSION = "risk_prompt_v2"
 REQUEST_SCHEMA_VERSION = "risk_analysis_request_v2"
 OUTPUT_SCHEMA_VERSION = "risk_output_v2"
 
@@ -55,9 +58,23 @@ RISK_LABEL_DEFINITIONS: dict[str, str] = {
 
 # Thứ tự ưu tiên khi thỏa nhiều loại: LV, rồi UF, rồi AM (docs/RISK_TAXONOMY_v0.1.md, "Giới hạn đã biết").
 BASIS_TYPE_DEFINITIONS: dict[str, str] = {
-    BasisType.LEGAL_VIOLATION.value: "Trái quy định cấm hoặc bắt buộc, hoặc vượt ngưỡng pháp luật rõ ràng trong căn cứ được cung cấp.",
-    BasisType.UNFAVORABLE.value: "Không trái luật nhưng bất lợi đáng kể cho vai trò đang phân tích.",
-    BasisType.AMBIGUOUS.value: "Câu chữ mơ hồ, thiếu điều kiện hoặc mức cụ thể, có thể dẫn đến tranh chấp.",
+    BasisType.LEGAL_VIOLATION.value: (
+        "Xung đột quy định cấm hoặc bắt buộc, hoặc vượt ngưỡng pháp luật rõ ràng trong căn cứ được cung cấp. "
+        "Điều khoản hạ quyền lợi của người lao động xuống dưới mức pháp luật bảo vệ thuộc loại này, không thuộc UNFAVORABLE."
+    ),
+    BasisType.UNFAVORABLE.value: (
+        "Hợp pháp, không thấp hơn mức sàn, nhưng bất lợi đáng kể cho vai trò đang phân tích. Với EMPLOYEE: "
+        "(N1) giá trị định lượng nằm đúng tại cận pháp luật bất lợi cho người lao động; (N2) người sử dụng lao động "
+        "được quyền đơn phương hoặc quyết định rộng mà không có điều kiện, giới hạn, báo trước hay bù đắp; (N3) chuyển "
+        "chi phí hoặc rủi ro sang người lao động trong biên pháp luật cho phép nhưng phạm vi rộng. Với EMPLOYER: (E1) "
+        "mất hoặc bị hạn chế quyền pháp luật cho, hoặc mất bảo vệ về quy trình; (E2) trách nhiệm không có mức trần hoặc "
+        "một chiều; (E3) cam kết tài chính hoặc phúc lợi cố định, dài hạn, không điều kiện, không cơ chế điều chỉnh. "
+        "Trả cao hơn mức tối thiểu trong thời hạn ngắn không phải rủi ro."
+    ),
+    BasisType.AMBIGUOUS.value: (
+        "Thiếu số liệu hoặc điều kiện đáng lẽ phải có, câu chữ có thể hiểu nhiều cách, hoặc hai điều khoản trong cùng "
+        "hợp đồng nói khác nhau."
+    ),
 }
 
 # Schema cho provider structured output = phần model-facing của risk_output_v2 (enum sinh từ code).
@@ -115,7 +132,8 @@ def build_system_prompt() -> str:
         "Đầu vào là JSON `risk_analysis_request_v2`. Nhãn rủi ro và định nghĩa nằm ở `risk_taxonomy`; loại căn "
         "cứ nằm ở `basis_types`. Chỉ được dùng đúng các nhãn và loại đó.\n"
         "Chọn MỘT basis_type cho cả điều khoản. Nếu điều khoản thỏa nhiều loại, ưu tiên LEGAL_VIOLATION, rồi "
-        "UNFAVORABLE, rồi AMBIGUOUS.\n\n"
+        "UNFAVORABLE, rồi AMBIGUOUS. Phân tích như thể điều khoản đã có hiệu lực (hợp đồng đã ký) để thấy tác hại. "
+        "Điều khoản có lợi hơn mức pháp luật yêu cầu cho vai trò đang phân tích không phải rủi ro của vai trò đó.\n\n"
         "Quy trình cho mỗi điều khoản: (1) chọn basis_type; (2) chọn risk_labels; "
         "(3) chọn citation_ids; (4) viết explanation.\n"
         "Quy tắc:\n"
@@ -129,11 +147,22 @@ def build_system_prompt() -> str:
         "5. evidence_status = SUPPORTED khi có ít nhất một căn cứ trong candidate_ids làm cơ sở (citation_ids "
         "không rỗng). Khi căn cứ không đủ, dùng INSUFFICIENT_EVIDENCE với citation_ids rỗng; không bịa citation.\n"
         "6. `related_clauses` chỉ là ngữ cảnh về điều kiện, phụ thuộc hoặc mâu thuẫn; kết quả vẫn gắn với "
-        "clause_id của điều khoản đang xét.\n"
+        "clause_id của điều khoản đang xét. Clause có relation bắt đầu bằng COMMON_ là ngữ cảnh chung (chức danh, "
+        "loại hợp đồng) để xác định ngưỡng áp dụng. Khi điều khoản đang xét MÂU THUẪN với một related clause có "
+        "relation KHÔNG bắt đầu bằng COMMON_, đặt basis_type AMBIGUOUS, điền `related_clause_ids` gồm clause_id của "
+        "clause đó và nêu mâu thuẫn trong explanation; ngoài trường hợp này không điền related_clause_ids.\n"
+        "6b. Ngưỡng chắc chắn: chỉ kết luận LEGAL_VIOLATION khi giá trị trong điều khoản vượt mức NỚI NHẤT của mọi "
+        "trường hợp nêu trong căn cứ (ví dụ lương dưới mức tối thiểu thấp nhất trong căn cứ; thời gian thử việc vượt "
+        "mức dài nhất trong căn cứ). Giá trị rơi vào khoảng mà mức áp dụng phụ thuộc chức danh, loại hợp đồng hoặc "
+        "địa bàn: dùng ngữ cảnh chung nếu đủ để xác định; không đủ thì AMBIGUOUS. Nghi ngờ LEGAL_VIOLATION nhưng "
+        "không có căn cứ phù hợp trong candidate_ids thì vẫn đặt LEGAL_VIOLATION với INSUFFICIENT_EVIDENCE và "
+        "citation_ids rỗng.\n"
         "7. explanation: tiếng Việt, trung tính, nêu điều khoản gây rủi ro gì cho vai trò đó và vì sao theo "
         "basis_type. Không lời khuyên hay hành động (không sửa, không thương lượng, không yêu cầu); không nêu mức "
-        "độ nghiêm trọng; không trích nguyên văn điều khoản; chỉ nhắc Điều hoặc văn bản luật có trong citation_ids; "
-        "khi INSUFFICIENT_EVIDENCE thì không nhắc số điều hay tên văn bản pháp luật.\n"
+        "độ nghiêm trọng; không trích nguyên văn điều khoản; chỉ nhắc Điều hoặc văn bản luật có trong citation_ids, "
+        "luôn kèm tên văn bản (dạng \"Điều N Bộ luật Lao động 2019\"); nhắc điểm của khoản bằng lời, không chép nội "
+        "dung điểm; gọi điều khoản của hợp đồng là \"điều khoản số N của hợp đồng\"; khi INSUFFICIENT_EVIDENCE thì "
+        "không nhắc số điều hay tên văn bản pháp luật.\n"
         "8. Không trả severity, role, vị trí ký tự, trích dẫn nguyên văn, model_id, phiên bản prompt hay taxonomy.\n\n"
         f"Trả JSON đúng schema `{OUTPUT_SCHEMA_VERSION}`: {{schema_version, items:[{{clause_id, basis_type, "
         "risk_labels, citation_ids, evidence_status, explanation}]}}; mỗi clause_id tối đa một lần, chỉ dùng "

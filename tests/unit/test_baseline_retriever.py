@@ -33,9 +33,13 @@ def test_pool_contains_backups_beyond_graph_seeds(valid_dir):
 
 
 def test_label_score_direct_weight_and_bm25_normalized(valid_dir):
+    # OI-10 (v05): OTHER không được đi cùng nhãn khác, nên dùng một nhãn cụ thể thứ hai cho ca đa nhãn.
+    with (valid_dir / "label_map.yaml").open("a", encoding="utf-8") as handle:
+        handle.write("LEAVE:\n  TESTLAW:art22: 0.5\n")
+    _write_manifest(valid_dir)
     corpus = load_corpus(valid_dir)
     candidates = BaselineRetriever(corpus).retrieve(
-        "", ["JOB_INFO", "OTHER"], as_of=date(2025, 1, 1)
+        "", ["JOB_INFO", "LEAVE"], as_of=date(2025, 1, 1)
     ).baseline_pool
     by_id = {item.citation_id: item for item in candidates}
     assert by_id["TESTLAW:art21:cl1:ptc"].baseline_score == pytest.approx(0.70 * 0.9)

@@ -1,0 +1,28 @@
+{
+  "status": "D2_DEV_REVIEW_AGREEMENT_NOT_M6_ACCEPTANCE",
+  "n": 40,
+  "acceptance_scope_verified": false,
+  "judge_human_agreement": 1.0,
+  "judge_human_kappa": null,
+  "m6_threshold_met": true,
+  "human_a_b_agreement": 1.0,
+  "human_a_b_kappa": null,
+  "mode": "SINGLE_REVIEWER_APPROVED_DEV_CALIBRATION",
+  "judge_type": "DETERMINISTIC_LEXICAL_ARTICLE17_CROSSCHECK",
+  "human_b_is_synthetic_copy": true,
+  "adjudication_is_human_a_copy": true,
+  "m6_acceptance_met": false,
+  "judge_rating_counts": {
+    "DUNG": 40
+  },
+  "limitations": [
+    "The automated judge is a distinct lexical cross-check, not a human or independent LLM judge.",
+    "human_b and adjudication are synthetic copies of human_a; kappa is not independent human agreement.",
+    "The threshold flag applies to Dev calibration only; M6 acceptance requires independent real ratings."
+  ],
+  "as_of": "2026-11-12",
+  "corpus_version": "legal_corpus_draft_2026-10-28",
+  "packet_sha256": "dda93b43f2493e53cdc8f9622d68c74a7cddd2a16040d452e744b6e0eca4dbc5",
+  "draft_sha256": "9ab0c142723368bbdfaa1b9c9859200e7ccc2b42c5ee49aabde70fbc821ca6e7",
+  "source_provenance_checks": 40
+}

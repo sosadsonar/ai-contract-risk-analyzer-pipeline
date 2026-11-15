@@ -20,7 +20,7 @@ SCHEMA = json.loads(
     (ROOT / "ai_pipeline" / "schemas" / "final_result_v1.json").read_text(encoding="utf-8")
 )
 FIXTURE = json.loads(
-    (ROOT / "tests" / "fixtures" / "mock_final_result_v1.json").read_text(encoding="utf-8")
+    (ROOT / "backend/app/session/fixtures/mock_final_result_v1.json").read_text(encoding="utf-8")
 )
 VALIDATOR = Draft202012Validator(SCHEMA, format_checker=FormatChecker())
 

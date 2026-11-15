@@ -71,7 +71,7 @@ def test_docx_document_order_numbering_revisions_and_textbox(tmp_path):
     )
     assert result.canonical_text == expected
     assert result == extract(path, "docx")
-    assert result.extraction_version == "extract_docx_v1"
+    assert result.extraction_version == "extract_docx_v2"
     assert result.page_count is None and result.char_count == len(expected)
     assert unicodedata.is_normalized("NFC", expected)
     artifact = result.to_artifact(path.name, Role.EMPLOYEE)

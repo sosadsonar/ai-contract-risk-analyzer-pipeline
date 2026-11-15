@@ -4,7 +4,8 @@ from pathlib import Path
 
 from app.session.store import Session
 
-_FIXTURE = Path(__file__).resolve().parents[3] / "tests/fixtures/mock_final_result_v1.json"
+# X-20: fixture nằm cạnh runner dev (không đọc từ tests/), để app chạy được khi không có thư mục tests.
+_FIXTURE = Path(__file__).resolve().parent / "fixtures/mock_final_result_v1.json"
 
 
 def sample_result(session: Session) -> dict:

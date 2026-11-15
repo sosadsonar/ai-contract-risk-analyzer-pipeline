@@ -155,9 +155,9 @@ describe("buildSegments (INV-12 & TDD §5.9)", () => {
     expect(clauseSegments[0].risk?.risk_labels).toHaveLength(2);
   });
 
-  it("(e) đọc fixture tests/fixtures/mock_final_result_v1.json và kiểm partition khớp", () => {
+  it("(e) đọc fixture backend/app/session/fixtures/mock_final_result_v1.json và kiểm partition khớp", () => {
     // Đọc fixture bằng fs với đường dẫn tương đối từ frontend/
-    const fixturePath = path.resolve(process.cwd(), "../tests/fixtures/mock_final_result_v1.json");
+    const fixturePath = path.resolve(process.cwd(), "../backend/app/session/fixtures/mock_final_result_v1.json");
     expect(fs.existsSync(fixturePath), `Không tìm thấy file: ${fixturePath}`).toBe(true);
 
     const raw = fs.readFileSync(fixturePath, "utf-8");

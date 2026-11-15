@@ -52,7 +52,7 @@ def _ctx(role="EMPLOYEE", citations=None):
         citations = [{"citation_id": "BLLD2019:art17"}, {"citation_id": "BLLD2019:art26"}]
     return AssemblerContext(
         session_id="s1", role=role, clause_stage={"prompt_version": "c1"},
-        citations=citations, model_id="m", prompt_version="risk_prompt_v1",
+        citations=citations, model_id="m", prompt_version="risk_prompt_v2",
     )
 
 
@@ -60,7 +60,7 @@ def test_happy_path_flat_span_pins_from_ctx_and_only_used_citations():
     res = assemble_risk_output(_upstream(), _ai(_item("cl_0002")), _ctx(), canonical_text=TEXT)
     m = res.merged
     assert m["schema_version"] == "risk_merged_v1"
-    assert (m["model_id"], m["prompt_version"]) == ("m", "risk_prompt_v1")
+    assert (m["model_id"], m["prompt_version"]) == ("m", "risk_prompt_v2")
     assert m["risk_taxonomy_version"] == "risk_taxonomy_v01"
     assert m["citations"] == [{"citation_id": "BLLD2019:art17"}]
     c = m["clauses"][0]
@@ -119,11 +119,16 @@ def test_role_changes_the_table_severity():
     assert (emp["severity"], er["severity"]) == ("MEDIUM", "HIGH")
 
 
-def test_dash_cell_drops_clause_and_flags_need_review():
-    # SOCIAL_INSURANCE + UNFAVORABLE là '-' cho cả hai vai trò
+def test_dash_cell_keeps_clause_as_needs_review_record():
+    # SOCIAL_INSURANCE + UNFAVORABLE là '-' cho cả hai vai trò. TDD §15.5 (X-22): không bỏ clause,
+    # phát bản ghi "cần xem xét": severity null, INSUFFICIENT_EVIDENCE, không citation.
     bad = _item("cl_0001", basis_type="UNFAVORABLE", risk_labels=["SOCIAL_INSURANCE"])
     res = assemble_risk_output(_upstream(), _ai(bad, _item("cl_0002")), _ctx())
-    assert [c["clause_id"] for c in res.merged["clauses"]] == ["cl_0002"]
+    assert [c["clause_id"] for c in res.merged["clauses"]] == ["cl_0001", "cl_0002"]
+    review = res.merged["clauses"][0]
+    assert review["needs_review"] is True and review["severity"] is None
+    assert review["evidence_status"] == "INSUFFICIENT_EVIDENCE" and review["citation_ids"] == []
+    assert "needs_review" not in res.merged["clauses"][1]
     assert res.diagnostics["need_review"][0]["clause_id"] == "cl_0001"
 
 

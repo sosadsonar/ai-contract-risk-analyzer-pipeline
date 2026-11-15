@@ -13,7 +13,7 @@ def test_twelve_unique_labels_and_definitions_cover_them():
 
 def test_version_semantics_are_separated():
     assert taxonomy.DATA_TAXONOMY_VERSION == "clause_taxonomy_v03"
-    assert taxonomy.TAXONOMY_VERSION == "v04"
+    assert taxonomy.TAXONOMY_VERSION == "v05"
 
 
 def test_legacy_concepts_are_gone():

@@ -166,6 +166,32 @@ floating textbox layout may not reconstruct exact visual reading order.
 **OI-11 remains open** pending team agreement on real D1/T1 fixture coverage.
 Tests use generated synthetic DOCX, not an approved D1 benchmark.
 
+### OI-11 decision applied (`extract_docx_v2`, Week 5)
+
+Decision: `decision_SRS_OI-11_v3.md` — option A, visual text fidelity. The
+extractor materializes supported automatic markers (decimal, decimalZero,
+lower/upper letter, lower/upper Roman, bullet `-` `–` `•` `+`) and keeps typed
+markers verbatim; it never exports level/parent/numbering kind. Changes from v1:
+
+- effective `w:lvlOverride/w:lvl` is used both for the current level and for
+  every `%N` placeholder (regression a);
+- `w:lvlRestart` is honoured: `0` never restarts, `n` restarts only after level
+  `n` or higher, absent restarts after any higher level (regression b);
+- an automatic marker that is already typed at the start of the paragraph is
+  not added a second time.
+
+Because canonical text can differ from v1, the version is `extract_docx_v2`;
+spans/offsets computed on v1 text must be recomputed, never reused.
+`structure_parser_v2` recognises Roman numerals (`roman`) without relaxing
+weak-group rules. **Amended at the 14/11 merge:** `+` is its own `plus` kind
+(a child level under `-`), recognised only when `allow_plus` is on; the product
+pipeline uses segmentation `rules_v1.3` (`+` gated by a parent block of at least
+160 characters, plus blank-line paragraph split), the configuration the Data Lead
+measured on D1/D2 Dev. N3 must amend the wording of OI-11 §2 accordingly; singleton/broken groups are a documented
+limitation. Unsupported automatic formats stay unmaterialized. OI-11 is **not
+CLOSED** until N2 supplies verified real DOCX fixtures/expected canonical text
+and N5 confirms highlight (OPEN_ISSUES_HANDLE_v4 §6.4).
+
 ---
 
 ## 10. Responsibility and Review

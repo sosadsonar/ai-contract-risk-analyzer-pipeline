@@ -32,7 +32,7 @@ class TaxonomyReviewTests(unittest.TestCase):
         self.assertIn('INSURANCE_SAFETY', definition)
 
     def test_definition_revision_is_explicit_and_label_vocabulary_is_unchanged(self):
-        self.assertEqual(taxonomy.TAXONOMY_VERSION, 'v04')
+        self.assertEqual(taxonomy.TAXONOMY_VERSION, 'v05')  # OI-10 C2 (13/11/2026)
         self.assertEqual(set(taxonomy.CLAUSE_LABELS), {
             'JOB_INFO','CONTRACT_TERM','COMPENSATION_BENEFITS','WORKING_TIME','LEAVE',
             'INSURANCE_SAFETY','WORKING_CONDITIONS','TRAINING',

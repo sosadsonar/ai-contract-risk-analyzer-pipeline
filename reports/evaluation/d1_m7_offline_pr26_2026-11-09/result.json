@@ -1,0 +1,52 @@
+{
+  "status": "OFFLINE_SCORE_ON_PINNED_NFC_GOLD",
+  "metric": "M7_Macro_F1",
+  "official_greedy_iou_threshold": 0.5,
+  "macro_f1": 0.4998680743829147,
+  "bootstrap_95_ci": [
+    0.4401515224486299,
+    0.5782585214731313
+  ],
+  "bootstrap_resamples": 1000,
+  "bootstrap_seed": 0,
+  "document_cluster_count": 4,
+  "diagnostic_containment_is_not_official_score": true,
+  "per_document": [
+    {
+      "document_id": "HDLD001",
+      "canonical_sha256": "b22f92b5e92ee3663922e6a1465b02fee89b243431bce8fdc6f682747777f925",
+      "gold_exact": 38,
+      "predicted": 43,
+      "official_greedy_matches": 23,
+      "diagnostic_containment_matches": 38
+    },
+    {
+      "document_id": "HDLD002",
+      "canonical_sha256": "b43a8e46839ee35125e709301c2558044f863304c6f9714d43386e33bac2758d",
+      "gold_exact": 40,
+      "predicted": 47,
+      "official_greedy_matches": 25,
+      "diagnostic_containment_matches": 40
+    },
+    {
+      "document_id": "HDLD003",
+      "canonical_sha256": "f76195cc5da1c65aad45debe3ca44c7dd4df5c077f29b1660555b604197e60f7",
+      "gold_exact": 59,
+      "predicted": 40,
+      "official_greedy_matches": 30,
+      "diagnostic_containment_matches": 58
+    },
+    {
+      "document_id": "HDLD004",
+      "canonical_sha256": "32f363a4e50ff056c6bc062a123fe8d16699055ca7be596175173381cb07afea",
+      "gold_exact": 37,
+      "predicted": 68,
+      "official_greedy_matches": 33,
+      "diagnostic_containment_matches": 37
+    }
+  ],
+  "input_sha256": {
+    "boundaries": "58f8e0b2567f53b80cbe6788ce6a297a43e88bc981b3e7020bae68056b78db2b",
+    "predicted_labels": "619792e4d662bc78c24c423f83808f91b91b1bc30a8c7a73225ac920e2b18328"
+  }
+}

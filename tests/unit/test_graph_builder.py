@@ -104,3 +104,65 @@ def test_graph_when_heading_dropped_by_pii_placeholder_keeps_valid_tree():
     res = segment(text, text, spans)
     g, _ = build_clause_graph(res.clauses)
     assert len(g.edges_of(N)) == len(res.clauses) - 1
+
+
+def _graph_from_source(source):
+    segmentation = segment(source, source, [])
+    graph, diagnostics = build_clause_graph(segmentation.clauses, source)
+    return segmentation, graph, diagnostics
+
+
+def test_internal_article_reference_and_legal_reference_exclusion():
+    source = ("Điều 1. Công việc\n"
+              "Điều 2. Trách nhiệm\n"
+              "1.1 Thực hiện theo Điều 1 của Hợp đồng này.\n"
+              "1.2 Thực hiện theo Điều 26 Bộ luật Lao động 2019.")
+    clauses, graph, diagnostics = _graph_from_source(source)
+    refs = graph.edges_of(ClauseEdgeType.REFERS_TO)
+    assert [(e.src, e.dst) for e in refs] == [(clauses.clauses[2].clause_id,
+                                               clauses.clauses[0].clause_id)]
+    assert not diagnostics
+
+
+def test_reference_self_loop_unresolved_and_ambiguous():
+    source = ("Điều 1. Tên điều\n"
+              "Điều 1. Tên điều trùng\n"
+              "Điều 2. Nội dung\n"
+              "1.1 Theo Điều 1 của Hợp đồng này và Điều 99 của Hợp đồng này.")
+    clauses, graph, diagnostics = _graph_from_source(source)
+    assert graph.edges_of(ClauseEdgeType.REFERS_TO) == []
+    assert [(d.code, d.clause_id) for d in diagnostics] == [
+        ("AMBIGUOUS_REFERENCE", clauses.clauses[-1].clause_id),
+        ("UNRESOLVED_REFERENCE", clauses.clauses[-1].clause_id),
+    ]
+
+
+def test_khoan_reference_resolves_unique_child():
+    source = ("Điều 1. Nội dung\n"
+              "1.1 Khoản thứ nhất.\n"
+              "1.2 Khoản thứ hai.\n"
+              "Điều 2. Dẫn chiếu\n"
+              "1.1 Theo Khoản 2 Điều 1 của Hợp đồng này.")
+    clauses, graph, _ = _graph_from_source(source)
+    assert [(e.src, e.dst) for e in graph.edges_of(ClauseEdgeType.REFERS_TO)] == [
+        (clauses.clauses[-1].clause_id, clauses.clauses[2].clause_id)]
+
+
+@pytest.mark.parametrize("law_name", [
+    "Bộ luật Lao động", "Luật Lao động", "Nghị định 145", "Thông tư 01",
+    "Pháp lệnh", "Quyết định 10", "Hiến pháp", "văn bản pháp luật",
+])
+def test_external_law_references_never_create_contract_edges(law_name):
+    source = f"Điều 1. Nội dung\nĐiều 2. Thực hiện theo Điều 1 của {law_name}."
+    _, graph, diagnostics = _graph_from_source(source)
+    assert graph.edges_of(ClauseEdgeType.REFERS_TO) == []
+    assert not diagnostics
+
+
+def test_self_reference_and_duplicate_mentions_do_not_duplicate_edges():
+    source = ("Điều 1. Nội dung theo Điều 1 của Hợp đồng này.\n"
+              "DIEU 2. Xem Điều 1 của Hợp đồng này; xem lại Điều 1 của Hợp đồng này.")
+    clauses, graph, diagnostics = _graph_from_source(source)
+    assert [(e.src, e.dst) for e in graph.edges_of(ClauseEdgeType.REFERS_TO)] == [
+        (clauses.clauses[1].clause_id, clauses.clauses[0].clause_id)]
+    assert not diagnostics

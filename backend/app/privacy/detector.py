@@ -102,7 +102,7 @@ _PATTERNS_HIGH: list[tuple[PiiType, re.Pattern[str]]] = [
     (
         PiiType.BANK_ACCOUNT,
         re.compile(
-            r"(?i:stk|số[ \t]+tài[ \t]+khoản|số[ \t]+tk|tài[ \t]+khoản(?:[ \t]+ngân[ \t]+hàng)?)"
+            r"(?i:stk|số[ \t]+tài[ \t]+khoản|số[ \t]+tk|(?:tài[ \t]+khoản|\btk)(?:[ \t]+ngân[ \t]+hàng)?)"
             r"(?:[ \t]*\([^)\n]{0,20}\))?[ \t]*[:：]?[ \t]*(?P<v>\d(?:[ .-]?\d){7,18})(?!\d)"
         ),
     ),

@@ -6,23 +6,32 @@ Dữ liệu nằm ở **repo riêng** (`data`, do Người 2 quản lý) và đ�
 ```
 ai-contract-risk-analyzer-pipeline/     <- repo này (code)
 ├── ai_pipeline/
-│   ├── services/       mock_clause_service.py (mock theo clause_output_v3); legacy `clause_extraction_service`,
-│   │                   `llm_clients` (key trong query string) và `utils/` (document_router) ĐÃ XÓA
-│   ├── eval/           eval_segmentation.py, fixtures/ (dữ liệu tổng hợp để smoke-test)
-│   ├── schemas/        clause_output_v3.json (C-04, xong); risk_output_v1.json do Người 3 thêm
-│   ├── eval/            eval_segmentation.py, eval_pii.py (số đo PII, BRD §7.3)
-│   ├── test_pipeline.py
+│   ├── services/       mock_clause_service.py (mock theo clause_output_v3, dùng ở test contract)
+│   ├── schemas/        clause_output_v3, risk_output_v2, extraction_v1, final_result_v1 (JSON Schema)
+│   ├── eval/           eval_pii*.py, eval_p1.py (đo PII, BRD §7.3), eval_segmentation.py
+│   ├── evaluation/     runner, dataset, metrics/ (M1, M2/M2b/M9, M3a, M4, M5, M6, M7, M8, M10, privacy)
 │   └── data/           <- SUBMODULE = repo `data` (chỉ đọc từ repo này)
-├── .github/workflows/ci.yml   CI: pytest (py3.10/3.12), smoke, ruff, test cần submodule (xem §3.1)
 ├── backend/app/
+│   ├── pipeline.py          analyze(): chuỗi stage end-to-end, orchestrator + harness cùng gọi (X-19)
+│   ├── api/, session/       6 operation HTTP, store RAM, lease, orchestrator (retry/resume/cancel), cleanup
+│   ├── document/            PDF/DOCX extraction (extract_docx_v2, OI-11), scope precheck (scope_rules_v2, OI-03)
+│   ├── privacy/             detector + masker (pii_draft_0.5)
+│   ├── clause/              taxonomy (v05, OI-10), structure_parser_v2, segmenter, graph_builder (v2, REFERS_TO),
+│   │                        context_resolver (TDD §12.2, FR-33)
+│   ├── ai/                  provider + retry/ledger, gemini_client (giá có nguồn), dev_local_client, dev_fake_client,
+│   │                        clause_adapter (LLM #1), risk_adapter (LLM #2 + lint/retry ngữ nghĩa), prompts/
+│   ├── legal/               corpus loader/validator, BaselineRetriever, DataGraph
+│   ├── risk/                taxonomy + severity, lint (advice/unsupported reference), citation_validator
+│   ├── integrations/        risk_assembler (risk_merged_v1, bản ghi needs_review)
+│   ├── result/              report_model, export_docx, notices (disclaimer/data notice)
+│   ├── ops/                 quota, rate_limit, runlog, session_ledger, metadata_db, benchmark_d1, benchmark_pipeline
 │   ├── domain/errors.py     ValidationReject, Ai*, PipelineInternalError, LegalCorpusConflict (MỘT file)
-│   ├── core/enums.py        Role, SessionStatus, Stage, Severity, EvidenceStatus, BasisType, *EdgeType (MỘT nguồn, DEC-20)
-│   └── clause/              taxonomy.py (12 nhãn + validate_labels, MỘT nguồn, đóng băng MS-1),
-│                            structure_parser.py (C-02, 5 pattern heading), segmenter.py (C-01 a, `segment()`)
-├── tests/{unit,contract,integration,fixtures}/   unit: taxonomy (+freeze), structure_parser, segmenter, PII, risk;
-│                            contract: enum ↔ schema; integration: segmenter trên hợp đồng thật (cần submodule);
-│                            fixtures/segmentation/*.txt
-├── docs/               CLAUSE_TAXONOMY.md (con trỏ), CLAUSE_TAXONOMY_FREEZE.md (đóng băng MS-1 + đa nhãn), DATA_PLAN.md
+│   └── core/                config (Settings, validate_for_env), enums (MỘT nguồn, DEC-20)
+├── frontend/           React + TS + Vite (N5): Upload, Progress, Result; lib/ có test vitest
+├── scripts/            smoke_pipeline.py, parse_legal_text.py, expand_label_map.py, update_legal_corpus_checksums.py…
+├── tests/{unit,contract,integration,llm,fixtures}/ ; backend/tests/
+├── data/legal_corpus/  kho luật (checksum theo byte LF — không đổi CRLF)
+├── docs/               BRD/SRS/SDD/TDD, taxonomy, quyết định OI (docs/decisions/), báo cáo đo
 ├── .env.example        mẫu cấu hình (copy thành .env)
 └── CONTRIBUTING.md
 ```
@@ -82,23 +91,23 @@ Copy-Item .env.example .env
 
 Đặt `.env` ở **thư mục gốc repo** (cùng cấp `README.md`), rồi mở ra điền giá trị.
 
+Danh sách đầy đủ ở `.env.example` và `backend/app/core/config.py` (`Settings`). Biến hay dùng:
+
 | Biến | Ý nghĩa | Mặc định |
 |---|---|---|
-| `LLM_PROVIDER` | `gemini` hoặc `qwen_ollama` | `gemini` |
-| `GEMINI_API_KEY` | Key Gemini, lấy miễn phí tại <https://aistudio.google.com/apikey> | (bắt buộc nếu dùng Gemini) |
-| `GEMINI_MODEL` | Tên model Gemini | `gemini-2.0-flash` nếu không đặt (`.env.example` đặt `gemini-2.5-flash`) |
-| `OLLAMA_HOST` | Địa chỉ Ollama | `http://localhost:11434` |
-| `OLLAMA_MODEL` | Model Qwen | `qwen2.5:7b` |
+| `APP_ENV` | `dev` / `demo` / `eval`. demo/eval fail-fast nếu thiếu key, model, quota, reserve, salt | `dev` |
+| `DEV_LLM_PROVIDER` | `gemini`, `local` (Ollama), `fake` (offline, tất định — smoke/ghép frontend, không đo chất lượng). `local`/`fake` chỉ dev | `gemini` |
+| `GEMINI_API_KEY`, `GEMINI_MODEL_ID` | Key và model id **tường minh** (không có model mặc định ngầm) | trống |
+| `DAILY_LLM_CALL_QUOTA`, `SESSION_CALL_RESERVE` | Giá trị tạm OI-05: 300 / 40 (`.env.example`); reserve là ngưỡng admission, quota không phải trần USD | trống ở `Settings` |
+| `LLM_PRICE_INPUT_USD_PER_MTOK`, `LLM_PRICE_OUTPUT_USD_PER_MTOK`, `LLM_PRICE_SOURCE` | Giá có nguồn để tính cost; trống ⇒ cost = 0.0 nghĩa là "chưa biết" | trống |
+| `OLLAMA_BASE_URL` | Địa chỉ Ollama khi `DEV_LLM_PROVIDER=local` | `http://localhost:11434` |
+| `LEGAL_CORPUS_DIR`, `APP_COMMIT` | Thư mục kho luật; SHA 40 ký tự ghi vào `version_pins.app_commit` (EV-07), trống ⇒ đọc `git rev-parse HEAD` | `data/legal_corpus`, trống |
 
-**Dùng Gemini:** điền `GEMINI_API_KEY`, giữ `LLM_PROVIDER=gemini`.
+**Chế độ chạy API:** dev không có provider (gemini thiếu key/model) ⇒ trả fixture mẫu; dev có provider ⇒ pipeline thật (corpus DRAFT được phép); demo/eval ⇒ luôn pipeline thật.
 
-> ⚠️ Gói miễn phí và model local chỉ dùng cho phát triển với dữ liệu **đã de-identify**; demo/đánh giá dùng Gemini Flash gói trả phí và model id phải đặt tường minh, không dựa mặc định ngầm (SRS DEC-19, NFR-SEC-06; SRS C-07 sẽ thay cách cấu hình này).
+> ⚠️ Gói miễn phí và model local/fake chỉ dùng cho phát triển với dữ liệu **đã de-identify**; demo/đánh giá dùng Gemini gói trả phí, model id đặt tường minh (SRS DEC-19, NFR-SEC-06).
 
-**Dùng Qwen local (không cần key):**
-
-1. Cài Ollama: <https://ollama.com/download>
-2. `ollama pull qwen2.5:7b` (máy yếu dùng `qwen2.5:3b` và đặt `OLLAMA_MODEL=qwen2.5:3b`)
-3. Đặt `LLM_PROVIDER=qwen_ollama` trong `.env`
+**Dùng Qwen local (không cần key):** cài Ollama (<https://ollama.com/download>), `ollama pull qwen2.5:7b-instruct`, đặt `DEV_LLM_PROVIDER=local`, `GEMINI_MODEL_ID=qwen2.5:7b-instruct` (tên model Ollama).
 
 **Kiểm tra `.env` không bị commit:** chạy `git status`, file `.env` **không được** xuất hiện. Nếu xuất hiện, dừng lại và báo nhóm trước khi commit.
 
@@ -115,14 +124,19 @@ pip install -e '.[dev]'
 pytest                      # unit + contract + integration (+ test của Data Lead; cần submodule ai_pipeline/data)
 pytest tests/contract       # chỉ hợp đồng schema (clause_output_v3, enum ↔ schema)
 pytest tests/unit/test_segmenter.py tests/unit/test_structure_parser.py   # segmentation (INV-02/03)
-ruff check backend/app/clause tests/unit   # lint (xem §3.1 cho danh sách đường dẫn bị chặn cứng)
+ruff check .                # lint toàn repo (CI chặn cứng)
+cd frontend && npm ci && npm test && npm run build   # frontend
 ```
 
-**Smoke script** (không cần API key; tự thêm `backend/` vào `sys.path`):
+**Smoke toàn pipeline** (không cần API key; DOCX tổng hợp → `analyze()` với provider giả → kiểm schema):
 
 ```bash
-cd ai_pipeline && python test_pipeline.py
+python scripts/smoke_pipeline.py
 ```
+
+**Chạy API với pipeline thật nhưng offline** (ghép frontend, thử tay): `DEV_LLM_PROVIDER=fake python -m uvicorn app.main:app --app-dir backend --port 8000`, rồi `cd frontend && VITE_USE_MOCK=false npm run dev`.
+
+**Benchmark end-to-end** (X-05): `python -m app.ops.benchmark_pipeline --provider fake --latency-ms 800` (chạy từ `backend/`, cần submodule D1); `--provider gemini` chỉ với dữ liệu D1 đã che và key paid.
 
 **Test gọi model thật** (mặc định `pytest` bỏ qua; chỉ văn bản tổng hợp, `tests/llm/_synthetic.py`):
 
@@ -142,7 +156,8 @@ Luồng `DevLocalClient` còn có test OFFLINE (transport giả) trong `tests/un
 
 | Lỗi thường gặp | Nguyên nhân / cách xử lý |
 |---|---|
-| `ModuleNotFoundError: app` | Chạy `test_pipeline.py` ngoài `ai_pipeline/` → `cd ai_pipeline`; với pytest chạy từ thư mục gốc |
+| `ModuleNotFoundError: app` | Chạy pytest/script từ thư mục gốc (pyproject đặt `pythonpath`), uvicorn dùng `--app-dir backend` |
+| `SHA-256 mismatch` ở corpus | Editor đổi `data/legal_corpus` sang CRLF → `git checkout -- data/legal_corpus`, **không** băm lại |
 | `Thiếu GEMINI_API_KEY` | Chưa tạo `.env` ở thư mục gốc hoặc chưa điền key |
 | `ai_pipeline/data/` rỗng | Chưa kéo submodule → `git submodule update --init --recursive` |
 | Nhãn không thuộc 12 nhãn | Đang dùng nhãn cũ (8 nhãn v1). Xem `docs/CLAUSE_TAXONOMY.md` |
@@ -150,13 +165,14 @@ Luồng `DevLocalClient` còn có test OFFLINE (transport giả) trong `tests/un
 
 ### 3.1 CI (`.github/workflows/ci.yml`)
 
-Mỗi push vào `main` và mỗi PR chạy tự động; **PR đỏ thì không merge** (§4.5). CI không dùng API key, không gọi LLM, không đụng Postgres.
+Mỗi push vào `main` và mỗi PR chạy tự động; **PR đỏ thì không merge** (§4.5). CI không dùng API key, không gọi LLM.
 
 | Job | Làm gì | Chạy lại ở máy bạn |
 |---|---|---|
-| `test` (py3.10 và 3.12) | `pip install -e '.[dev]'`, `pytest --ignore=tests/test_data_lead_review.py`, rồi `python test_pipeline.py` (smoke) | `pytest --ignore=tests/test_data_lead_review.py` và `cd ai_pipeline && python test_pipeline.py` |
+| `test` (py3.10 và 3.12) | `pip install -e '.[dev]'`, `pytest --ignore=tests/test_data_lead_review.py` (gồm `tests/` + `backend/tests/`), rồi `python scripts/smoke_pipeline.py` | cùng lệnh |
 | `data` | Kéo submodule rồi chạy `tests/test_data_lead_review.py` + `tests/integration`. **Không kéo được submodule thì chỉ cảnh báo**, không đỏ CI. Repo data private: tạo PAT chỉ đọc và đặt secret `SUBMODULE_TOKEN` | `pytest tests/test_data_lead_review.py tests/integration` |
-| `lint` | `ruff check` trên danh sách đường dẫn đã sạch (**bắt buộc**) + toàn repo (**chỉ cảnh báo**, còn lỗi cũ) | `ruff check <đường dẫn>` |
+| `lint` | `ruff check .` toàn repo (**bắt buộc**) | `ruff check .` |
+| `frontend` | `npm ci`, `npm test` (vitest), `npm run build` | `cd frontend && npm test && npm run build` |
 
 **Test gọi LLM thật (tùy chọn, thủ công).** `tests/llm/test_llm_live.py` (marker `llm`) gọi Gemini bằng văn bản tổng hợp; `pytest` thường tự bỏ qua (`-m "not llm"`). Chạy ở máy: đặt `GEMINI_API_KEY` trong `.env` rồi `pytest -m llm tests/llm -s`. Chạy trên GitHub:
 
@@ -165,7 +181,7 @@ Mỗi push vào `main` và mỗi PR chạy tự động; **PR đỏ thì không 
 
 Job này không bao giờ chạy trên push/PR (fork không có secret, tránh tốn quota). Không đưa hợp đồng thật vào test này (AI_CONTEXT §3).
 
-Khi dọn xong lint một file/thư mục, thêm nó vào danh sách bắt buộc trong `ci.yml`. File/test mới phải sạch lint ngay từ đầu (dòng ≤100 ký tự, import đã sắp). Test cần dữ liệu thật phải tự `skip` khi thiếu submodule (xem `tests/integration/`), không làm job `test` đỏ.
+File/test mới phải sạch lint ngay từ đầu (dòng ≤150 ký tự theo pyproject, import đã sắp). Test cần dữ liệu thật phải tự `skip` khi thiếu submodule (xem `tests/integration/`), không làm job `test` đỏ.
 
 ---
 
@@ -285,6 +301,6 @@ Clause taxonomy là artifact đóng băng ở **MS-1 (25/10/2026)** (SRS DEC-10)
 Taxonomy ảnh hưởng đến Người 1 (prompt/pipeline), Người 2 (annotation) và Người 3 (risk), nên:
 
 1. Mở PR riêng (`docs/...` hoặc `ai/...`), **review bắt buộc của Người 1, 2, 3**.
-2. Semantics nguồn nằm ở data repo (`clause_taxonomy_v03.md`). Bản đóng băng và chính sách đa nhãn ghi ở `docs/CLAUSE_TAXONOMY_FREEZE.md`. Sửa `LABEL_DEFINITIONS` trong `backend/app/clause/taxonomy.py` và tăng `TAXONOMY_VERSION` (hiện `v04` = revision định nghĩa prompt; bộ 12 nhãn đổi thì phải thống nhất với data). Prompt của LLM tự sinh từ `taxonomy.py`. Schema `clause_output_v3.json` có enum chép tay nhưng `tests/contract/test_schema_enums.py` sẽ **fail** nếu lệch `CLAUSE_LABELS`.
+2. Semantics nguồn nằm ở data repo (`clause_taxonomy_v03.md`). Bản đóng băng và chính sách đa nhãn ghi ở `docs/CLAUSE_TAXONOMY_FREEZE.md`. Sửa `LABEL_DEFINITIONS` trong `backend/app/clause/taxonomy.py` và tăng `TAXONOMY_VERSION` (hiện `v05` = revision định nghĩa prompt; bộ 12 nhãn đổi thì phải thống nhất với data). Prompt của LLM tự sinh từ `taxonomy.py`. Schema `clause_output_v3.json` có enum chép tay nhưng `tests/contract/test_schema_enums.py` sẽ **fail** nếu lệch `CLAUSE_LABELS`.
 3. Sửa test khóa (`tests/test_data_lead_review.py`, `tests/unit/test_clause_taxonomy_freeze.py` — hằng `FROZEN_*` và fingerprint), enum trong schema (sinh từ code hoặc có test đối chiếu — DEC-20), `docs/CLAUSE_TAXONOMY.md`, và các file dùng nhãn cứng (`tests/unit/test_clause_taxonomy.py`, `mock_clause_service.py`, `eval/fixtures/build_synthetic.py`).
 4. Không xóa/đổi tên nhãn khi đã có dữ liệu annotate theo bản cũ mà chưa thống nhất với Người 2.

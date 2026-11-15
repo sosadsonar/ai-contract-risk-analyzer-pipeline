@@ -15,7 +15,10 @@ def valid_manifest(tmp_path):
         "clause.json": {"clauses": []},
         "risk.json": {"risks": []},
         "injected.json": {"injections": []},
-        "privacy.json": {"spans": []},
+        "privacy.json": {"schema_version": "privacy_gold_v1",
+                         "status": "GOLD_ADJUDICATED", "source": "synthetic fixture",
+                         "offset_unit": "unicode_code_point",
+                         "pii_spans": [], "preserve_spans": []},
     }
     for name, artifact in artifacts.items():
         (tmp_path / "gold" / name).write_text(json.dumps(artifact), encoding="utf-8")

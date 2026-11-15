@@ -1,8 +1,10 @@
 """
 report_model.py — C-21(a): Xây dựng ReportModel từ final_result_v1 (TDD §16.1).
 
-Hàm thuần (không gọi LLM, không import api/ hay session/).
-Chỉ làm phần model; export_docx sẽ làm ở tuần 5 (C-21 b).
+Hàm thuần (không gọi LLM, không import api/ hay session/). Render DOCX ở `export_docx.py` (C-21 b).
+
+Bổ sung W5 (C-21 b, X-23): tóm tắt (TDD §16.1), số Điều hiển thị thay `cl_xxxx`, "Liên quan: Điều X" (FR-32),
+bản ghi "cần xem xét" (needs_review: không nhãn, không severity), số Khoản của citation, cảnh báo BR-15.
 
 Quy tắc:
 - Quote clause dùng original_text (KHÔNG dùng masked text).
@@ -19,7 +21,8 @@ Quy tắc:
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -27,6 +30,11 @@ logger = logging.getLogger(__name__)
 # Câu hiển thị khi không có rủi ro (TDD §16.1, PROGRESS.md T5 N5).
 # TUYỆT ĐỐI không dùng chữ "an toàn".
 NO_RISK_MESSAGE = "Không phát hiện rủi ro trong phạm vi phân tích."
+# BR-15: rủi ro không đủ căn cứ trong kho luật (không gán mức độ).
+INSUFFICIENT_MESSAGE = "Có thể có rủi ro, chưa đủ căn cứ trong kho luật, cần đọc kỹ."
+# TDD §15.5 / X-22: tổ hợp nhãn – loại căn cứ – vai trò không hợp lệ sau retry.
+NEEDS_REVIEW_MESSAGE = "Nghi ngờ, cần xem xét: hệ thống chưa xác định được loại rủi ro phù hợp cho điều khoản này."
+_ARTICLE = re.compile(r"^\s*(Điều)\s+(\d+[a-zA-ZđĐ]?)", re.IGNORECASE)
 
 # Nhãn severity hiển thị
 _SEVERITY_LABELS: dict[str | None, str] = {
@@ -57,6 +65,19 @@ class CitationRef:
     article: str
     content: str
     missing: bool = False  # True nếu citation_id không có trong citations dict
+    clause: str | None = None  # số Khoản khi nút trích dẫn là Khoản (X-16)
+
+    @property
+    def heading(self) -> str:
+        """"Khoản 1 Điều 21 Bộ luật Lao động..." — hiển thị nguyên văn Khoản ở thân (X-23)."""
+        parts = []
+        if self.clause:
+            parts.append(f"Khoản {self.clause}")
+        if self.article:
+            parts.append(f"Điều {self.article}")
+        if self.document_name:
+            parts.append(self.document_name)
+        return " ".join(parts) or self.citation_id
 
 
 @dataclass
@@ -84,6 +105,21 @@ class RiskItem:
     explanation: str
     evidence_status: str
     citations: list[CitationRef]
+    clause_display: str = ""                         # "Điều 5" hoặc "Điều khoản số 3" (thay cl_xxxx)
+    related_displays: list[str] = field(default_factory=list)  # "Liên quan: Điều X" (FR-32)
+    needs_review: bool = False
+    status_message: str | None = None                # BR-15 / cần xem xét
+
+
+@dataclass
+class ReportSummary:
+    clause_count: int
+    risky_clause_count: int
+    high: int
+    medium: int
+    low: int
+    insufficient: int
+    needs_review: int
 
 
 @dataclass
@@ -105,6 +141,7 @@ class ReportModel:
     no_risk_message: str | None    # None nếu có rủi ro; chuỗi nếu risks rỗng
     disclaimer: str                # bắt buộc (FR-25)
     data_notice: str               # bắt buộc (FR-25)
+    summary: ReportSummary | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -117,6 +154,12 @@ _ROLE_LABELS = {
 }
 
 
+def clause_display(clause: dict[str, Any], ordinal: int) -> str:
+    """"Điều N" nếu clause mở đầu bằng heading Điều; ngược lại "Điều khoản số <thứ tự>" (X-23)."""
+    m = _ARTICLE.match(clause.get("original_text", ""))
+    return f"Điều {m.group(2)}" if m else f"Điều khoản số {ordinal}"
+
+
 def _resolve_citation(cid: str, citation_map: dict[str, dict[str, Any]]) -> CitationRef:
     """Tra cứu citation từ map; nếu thiếu thì ghi missing=True và log warning."""
     if cid in citation_map:
@@ -127,6 +170,7 @@ def _resolve_citation(cid: str, citation_map: dict[str, dict[str, Any]]) -> Cita
             article=c.get("article", ""),
             content=c.get("content", ""),
             missing=False,
+            clause=c.get("clause"),
         )
     logger.warning("citation_id '%s' không tìm thấy trong citations; ghi missing=True", cid)
     return CitationRef(
@@ -142,6 +186,7 @@ def _build_risk_item(
     risk: dict[str, Any],
     clause_map: dict[str, dict[str, Any]],
     citation_map: dict[str, dict[str, Any]],
+    displays: dict[str, str] | None = None,
 ) -> RiskItem | None:
     """
     Xây dựng RiskItem từ một entry trong final_result_v1.risks.
@@ -175,7 +220,14 @@ def _build_risk_item(
         for citation_id in risk.get("citation_ids", [])
     ]
 
+    displays = displays or {}
+    needs_review = bool(risk.get("needs_review"))
+    status_message = NEEDS_REVIEW_MESSAGE if needs_review else (INSUFFICIENT_MESSAGE if is_insufficient else None)
     return RiskItem(
+        clause_display=displays.get(cid, cid),
+        related_displays=[displays.get(x, x) for x in risk.get("related_clause_ids", [])],
+        needs_review=needs_review,
+        status_message=status_message,
         clause_id=cid,
         clause_quote=clause.get("original_text", ""),
         clause_start_char=clause.get("start_char", 0),
@@ -234,11 +286,14 @@ def build_report_model(final_result: dict[str, Any]) -> ReportModel:
         if "citation_id" in c
     }
 
+    ordered = sorted(clause_map.values(), key=lambda c: c.get("start_char", 0))
+    displays = {c["clause_id"]: clause_display(c, i) for i, c in enumerate(ordered, 1)}
+
     # Xây risk items, lọc bỏ None (clause không tìm thấy)
     raw_risks: list[dict[str, Any]] = final_result.get("risks", [])
     risk_items: list[RiskItem] = []
     for raw_risk in raw_risks:
-        item = _build_risk_item(raw_risk, clause_map, citation_map)
+        item = _build_risk_item(raw_risk, clause_map, citation_map, displays)
         if item is not None:
             risk_items.append(item)
 
@@ -249,7 +304,19 @@ def build_report_model(final_result: dict[str, Any]) -> ReportModel:
     if not risk_items:
         no_risk_message = NO_RISK_MESSAGE
 
+    reviewable = [r for r in risk_items if not r.needs_review]
+    summary = ReportSummary(
+        clause_count=len(clause_map),
+        risky_clause_count=len({r.clause_id for r in risk_items}),
+        high=sum(r.severity_raw == "HIGH" and r.show_severity_badge for r in reviewable),
+        medium=sum(r.severity_raw == "MEDIUM" and r.show_severity_badge for r in reviewable),
+        low=sum(r.severity_raw == "LOW" and r.show_severity_badge for r in reviewable),
+        insufficient=sum(not r.show_severity_badge for r in reviewable),
+        needs_review=sum(r.needs_review for r in risk_items),
+    )
+
     return ReportModel(
+        summary=summary,
         title="Phân tích rủi ro hợp đồng lao động",
         general_info=general_info,
         risks=risk_items,

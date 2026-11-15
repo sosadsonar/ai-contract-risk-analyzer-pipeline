@@ -50,7 +50,7 @@ Chatbot, tài khoản/đăng nhập, missing-clause detection, OCR/scan, mobile,
 | Canonical text | Văn bản trích chuẩn hóa (NFC, LF) từ file gốc; hiển thị + highlight trên đây. |
 | Masked text | Canonical đã thay PII bằng placeholder cùng độ dài (`<EMAIL>____`, tên 2 ký tự → `NN`). |
 | Clause | Đơn vị điều khoản: `clause_id` (`cl_0001`…), `start_char`, `end_char`, `clause_labels` (1–3). |
-| Clause taxonomy | 12 nhãn loại điều khoản (đóng băng MS-1). Semantics nguồn: data repo `clause_taxonomy_v03`; code: `taxonomy.py` (`TAXONOMY_VERSION=v04`, chỉ sửa định nghĩa prompt). Nguồn duy nhất trong code: `taxonomy.py`. |
+| Clause taxonomy | 12 nhãn loại điều khoản (đóng băng MS-1). Semantics nguồn: data repo `clause_taxonomy_v03`; code: `taxonomy.py` (`TAXONOMY_VERSION=v05, chỉ sửa định nghĩa prompt). Nguồn duy nhất trong code: `taxonomy.py`. |
 | Risk taxonomy | Nhãn rủi ro kèm bảng severity theo (nhãn, `basis_type`, role). Tách biệt clause taxonomy. |
 | `basis_type` | `LEGAL_VIOLATION` / `UNFAVORABLE` / `AMBIGUOUS`. Một giá trị cho mỗi clause, do LLM chọn. |
 | Severity | `HIGH/MEDIUM/LOW`, `null` nếu thiếu căn cứ. Có thể khác nhau giữa 2 role. Backend tra bảng taxonomy, LLM không trả. |

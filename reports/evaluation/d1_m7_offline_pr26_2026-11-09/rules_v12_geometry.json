@@ -1,0 +1,303 @@
+{
+  "status": "GEOMETRY_ONLY_NO_M7_SCORE",
+  "segmentation_version": "rules_v1.2",
+  "documents": [
+    {
+      "document_id": "HDLD001",
+      "locked_nfc": {
+        "source_sha256": "b22f92b5e92ee3663922e6a1465b02fee89b243431bce8fdc6f682747777f925",
+        "gold_exact": 38,
+        "predicted": 58,
+        "matched_iou_0_5": 34,
+        "gold_unmatched": 4,
+        "predicted_unmatched": 24,
+        "masker_span_count": 0,
+        "optimistic_macro_ceiling_ignoring_false_positives": 0.9722222222222222,
+        "gold_support_by_label": {
+          "COMPENSATION_BENEFITS": 7,
+          "CONTRACT_TERM": 1,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 7,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 5,
+          "LEAVE": 3,
+          "OTHER": 3,
+          "TRAINING": 3,
+          "WORKING_CONDITIONS": 1,
+          "WORKING_TIME": 1
+        },
+        "matched_support_by_label": {
+          "COMPENSATION_BENEFITS": 7,
+          "CONTRACT_TERM": 1,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 7,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 4,
+          "LEAVE": 2,
+          "OTHER": 2,
+          "TRAINING": 2,
+          "WORKING_CONDITIONS": 1,
+          "WORKING_TIME": 1
+        }
+      },
+      "pipeline_canonical_candidate": {
+        "source_sha256": "86ba4d7f89ac128927d59644259fb6976edcd9be0cbd57a291acf22e2f735742",
+        "gold_exact": 38,
+        "predicted": 60,
+        "matched_iou_0_5": 34,
+        "gold_unmatched": 4,
+        "predicted_unmatched": 26,
+        "masker_span_count": 0,
+        "optimistic_macro_ceiling_ignoring_false_positives": 0.9722222222222222,
+        "gold_support_by_label": {
+          "COMPENSATION_BENEFITS": 7,
+          "CONTRACT_TERM": 1,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 7,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 5,
+          "LEAVE": 3,
+          "OTHER": 3,
+          "TRAINING": 3,
+          "WORKING_CONDITIONS": 1,
+          "WORKING_TIME": 1
+        },
+        "matched_support_by_label": {
+          "COMPENSATION_BENEFITS": 7,
+          "CONTRACT_TERM": 1,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 7,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 4,
+          "LEAVE": 2,
+          "OTHER": 2,
+          "TRAINING": 2,
+          "WORKING_CONDITIONS": 1,
+          "WORKING_TIME": 1
+        }
+      }
+    },
+    {
+      "document_id": "HDLD002",
+      "locked_nfc": {
+        "source_sha256": "b43a8e46839ee35125e709301c2558044f863304c6f9714d43386e33bac2758d",
+        "gold_exact": 40,
+        "predicted": 62,
+        "matched_iou_0_5": 36,
+        "gold_unmatched": 4,
+        "predicted_unmatched": 26,
+        "masker_span_count": 0,
+        "optimistic_macro_ceiling_ignoring_false_positives": 1.0,
+        "gold_support_by_label": {
+          "COMPENSATION_BENEFITS": 8,
+          "CONTRACT_TERM": 1,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 7,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 5,
+          "LEAVE": 3,
+          "OTHER": 3,
+          "TRAINING": 3,
+          "WORKING_CONDITIONS": 1,
+          "WORKING_TIME": 2
+        },
+        "matched_support_by_label": {
+          "COMPENSATION_BENEFITS": 8,
+          "CONTRACT_TERM": 1,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 7,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 5,
+          "LEAVE": 2,
+          "OTHER": 2,
+          "TRAINING": 2,
+          "WORKING_CONDITIONS": 1,
+          "WORKING_TIME": 1
+        }
+      },
+      "pipeline_canonical_candidate": {
+        "source_sha256": "1e2d3d4ff57d67893a6596222a3017068fa8d33b742ddda2a0b76e05ae870887",
+        "gold_exact": 40,
+        "predicted": 64,
+        "matched_iou_0_5": 36,
+        "gold_unmatched": 4,
+        "predicted_unmatched": 28,
+        "masker_span_count": 0,
+        "optimistic_macro_ceiling_ignoring_false_positives": 1.0,
+        "gold_support_by_label": {
+          "COMPENSATION_BENEFITS": 8,
+          "CONTRACT_TERM": 1,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 7,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 5,
+          "LEAVE": 3,
+          "OTHER": 3,
+          "TRAINING": 3,
+          "WORKING_CONDITIONS": 1,
+          "WORKING_TIME": 2
+        },
+        "matched_support_by_label": {
+          "COMPENSATION_BENEFITS": 8,
+          "CONTRACT_TERM": 1,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 7,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 5,
+          "LEAVE": 2,
+          "OTHER": 2,
+          "TRAINING": 2,
+          "WORKING_CONDITIONS": 1,
+          "WORKING_TIME": 1
+        }
+      }
+    },
+    {
+      "document_id": "HDLD003",
+      "locked_nfc": {
+        "source_sha256": "f76195cc5da1c65aad45debe3ca44c7dd4df5c077f29b1660555b604197e60f7",
+        "gold_exact": 59,
+        "predicted": 43,
+        "matched_iou_0_5": 32,
+        "gold_unmatched": 27,
+        "predicted_unmatched": 11,
+        "masker_span_count": 0,
+        "optimistic_macro_ceiling_ignoring_false_positives": 0.6241341991341991,
+        "gold_support_by_label": {
+          "COMPENSATION_BENEFITS": 9,
+          "CONTRACT_TERM": 1,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 5,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 6,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 5,
+          "LEAVE": 3,
+          "OTHER": 6,
+          "TERMINATION": 15,
+          "TRAINING": 3,
+          "WORKING_CONDITIONS": 1,
+          "WORKING_TIME": 3
+        },
+        "matched_support_by_label": {
+          "COMPENSATION_BENEFITS": 9,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 1,
+          "JOB_INFO": 3,
+          "LEAVE": 3,
+          "OTHER": 1,
+          "TERMINATION": 10
+        }
+      },
+      "pipeline_canonical_candidate": {
+        "source_sha256": "c2dd0dd909659c71b843c96ec1f16a5eff37db17f7bdd78e89875f2e55f09353",
+        "gold_exact": 59,
+        "predicted": 43,
+        "matched_iou_0_5": 32,
+        "gold_unmatched": 27,
+        "predicted_unmatched": 11,
+        "masker_span_count": 0,
+        "optimistic_macro_ceiling_ignoring_false_positives": 0.6241341991341991,
+        "gold_support_by_label": {
+          "COMPENSATION_BENEFITS": 9,
+          "CONTRACT_TERM": 1,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 5,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 6,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 5,
+          "LEAVE": 3,
+          "OTHER": 6,
+          "TERMINATION": 15,
+          "TRAINING": 3,
+          "WORKING_CONDITIONS": 1,
+          "WORKING_TIME": 3
+        },
+        "matched_support_by_label": {
+          "COMPENSATION_BENEFITS": 9,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 1,
+          "JOB_INFO": 3,
+          "LEAVE": 3,
+          "OTHER": 1,
+          "TERMINATION": 10
+        }
+      }
+    },
+    {
+      "document_id": "HDLD004",
+      "locked_nfc": {
+        "source_sha256": "32f363a4e50ff056c6bc062a123fe8d16699055ca7be596175173381cb07afea",
+        "gold_exact": 37,
+        "predicted": 68,
+        "matched_iou_0_5": 33,
+        "gold_unmatched": 4,
+        "predicted_unmatched": 35,
+        "masker_span_count": 0,
+        "optimistic_macro_ceiling_ignoring_false_positives": 0.9696969696969697,
+        "gold_support_by_label": {
+          "COMPENSATION_BENEFITS": 8,
+          "CONTRACT_TERM": 3,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 6,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 2,
+          "LEAVE": 3,
+          "OTHER": 1,
+          "TERMINATION": 1,
+          "TRAINING": 2,
+          "WORKING_CONDITIONS": 2,
+          "WORKING_TIME": 2
+        },
+        "matched_support_by_label": {
+          "COMPENSATION_BENEFITS": 8,
+          "CONTRACT_TERM": 2,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 5,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 2,
+          "LEAVE": 3,
+          "TRAINING": 2,
+          "WORKING_CONDITIONS": 2,
+          "WORKING_TIME": 2
+        }
+      },
+      "pipeline_canonical_candidate": {
+        "source_sha256": "32f363a4e50ff056c6bc062a123fe8d16699055ca7be596175173381cb07afea",
+        "gold_exact": 37,
+        "predicted": 68,
+        "matched_iou_0_5": 33,
+        "gold_unmatched": 4,
+        "predicted_unmatched": 35,
+        "masker_span_count": 0,
+        "optimistic_macro_ceiling_ignoring_false_positives": 0.9696969696969697,
+        "gold_support_by_label": {
+          "COMPENSATION_BENEFITS": 8,
+          "CONTRACT_TERM": 3,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 6,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 2,
+          "LEAVE": 3,
+          "OTHER": 1,
+          "TERMINATION": 1,
+          "TRAINING": 2,
+          "WORKING_CONDITIONS": 2,
+          "WORKING_TIME": 2
+        },
+        "matched_support_by_label": {
+          "COMPENSATION_BENEFITS": 8,
+          "CONTRACT_TERM": 2,
+          "EMPLOYEE_OBLIGATIONS_DISCIPLINE": 5,
+          "EMPLOYER_RIGHTS_OBLIGATIONS": 5,
+          "INSURANCE_SAFETY": 2,
+          "JOB_INFO": 2,
+          "LEAVE": 3,
+          "TRAINING": 2,
+          "WORKING_CONDITIONS": 2,
+          "WORKING_TIME": 2
+        }
+      }
+    }
+  ],
+  "locked_nfc_total_matches": 135,
+  "candidate_total_matches": 135,
+  "optimistic_macro_ceiling_ignoring_false_positives": 0.8309267001577364
+}

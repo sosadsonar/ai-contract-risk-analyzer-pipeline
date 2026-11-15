@@ -56,10 +56,11 @@ def test_approved_real_corpus_loads_with_pinned_content():
     corpus = load_corpus(DATA)
     assert corpus.release_status == "APPROVED"
     assert len(corpus.provisions) == 16
-    assert len(corpus.edges) == 1
+    assert len(corpus.edges) == 5
+    assert corpus.graph_version == "data_graph_2026-11-13_v02"
 
 
-def test_real_draft_corpus_has_verified_article14_self_reference_edge():
+def test_real_corpus_preserves_article14_and_adds_approved_manual_edges():
     corpus = load_corpus(DATA, allow_draft=True)
     provisions = {item.citation_id: item for item in corpus.provisions}
     expected = (
@@ -71,10 +72,24 @@ def test_real_draft_corpus_has_verified_article14_self_reference_edge():
 
     assert "khoản 2 Điều này" in provisions[expected[0]].content
     assert expected[1] in provisions
-    assert [
+    edges = [
         (item.from_citation_id, item.to_citation_id, item.edge_type, item.origin)
         for item in corpus.edges
-    ] == [expected]
+    ]
+    assert expected in edges
+    assert len(edges) == 5
+    assert (
+        "BLLD2019:art17:cl3", "BLLD2019:art21:cl1:ptc", "GUIDES", "MANUAL",
+    ) in edges
+    assert (
+        "BLLD2019:art17:cl1", "BLLD2019:art17:cl2", "REFERS_TO", "MANUAL",
+    ) in edges
+    assert (
+        "BLLD2019:art21:cl1:ptg", "BLLD2019:art17:cl2", "GUIDES", "MANUAL",
+    ) in edges
+    assert (
+        "BLLD2019:art21:cl1:ptđ", "BLLD2019:art17:cl2", "GUIDES", "MANUAL",
+    ) in edges
 
 
 def test_invalid_overlap_is_rejected(valid_dir):

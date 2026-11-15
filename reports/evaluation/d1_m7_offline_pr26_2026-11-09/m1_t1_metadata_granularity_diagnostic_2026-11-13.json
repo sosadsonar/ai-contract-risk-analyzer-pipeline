@@ -1,0 +1,140 @@
+{
+  "status": "METADATA_ONLY_T1_GRANULARITY_DIAGNOSTIC_NOT_NEW_HELDOUT_RUN",
+  "iou_threshold": 0.8,
+  "frozen_m1_source": "reports\\evaluation\\d1_m7_offline_pr26_2026-11-09\\t1_rules_v13_m1_readonly_2026-11-10.json",
+  "groups": {
+    "A_in_clauses_v07": {
+      "documents": [
+        "HDLD005",
+        "HDLD010",
+        "HDLD012",
+        "HDLD013"
+      ],
+      "gold": 184,
+      "predicted": 167,
+      "tp_iou08": 98,
+      "f1_iou08": 0.5584045584045584,
+      "gold_short_lt40": 35,
+      "gold_short_lt20": 18,
+      "per_document": [
+        {
+          "document_id": "HDLD005",
+          "segmentation_gold": 66,
+          "gold_start_min": 0,
+          "gold_short_lt40": 4,
+          "gold_short_lt20": 2,
+          "m2_role_rows": 102,
+          "m2_packet_start_min": 3741,
+          "predicted": 66,
+          "tp_iou08": 44
+        },
+        {
+          "document_id": "HDLD010",
+          "segmentation_gold": 47,
+          "gold_start_min": 0,
+          "gold_short_lt40": 20,
+          "gold_short_lt20": 11,
+          "m2_role_rows": 46,
+          "m2_packet_start_min": 1172,
+          "predicted": 36,
+          "tp_iou08": 17
+        },
+        {
+          "document_id": "HDLD012",
+          "segmentation_gold": 52,
+          "gold_start_min": 0,
+          "gold_short_lt40": 8,
+          "gold_short_lt20": 4,
+          "m2_role_rows": 72,
+          "m2_packet_start_min": 1248,
+          "predicted": 48,
+          "tp_iou08": 35
+        },
+        {
+          "document_id": "HDLD013",
+          "segmentation_gold": 19,
+          "gold_start_min": 0,
+          "gold_short_lt40": 3,
+          "gold_short_lt20": 1,
+          "m2_role_rows": 26,
+          "m2_packet_start_min": 2306,
+          "predicted": 17,
+          "tp_iou08": 2
+        }
+      ]
+    },
+    "B_outside_clauses_v07": {
+      "documents": [
+        "HDLD006",
+        "HDLD007",
+        "HDLD008",
+        "HDLD009",
+        "HDLD011"
+      ],
+      "gold": 658,
+      "predicted": 223,
+      "tp_iou08": 131,
+      "f1_iou08": 0.2973893303064699,
+      "gold_short_lt40": 235,
+      "gold_short_lt20": 133,
+      "per_document": [
+        {
+          "document_id": "HDLD006",
+          "segmentation_gold": 123,
+          "gold_start_min": 0,
+          "gold_short_lt40": 20,
+          "gold_short_lt20": 8,
+          "m2_role_rows": 234,
+          "m2_packet_start_min": 0,
+          "predicted": 46,
+          "tp_iou08": 33
+        },
+        {
+          "document_id": "HDLD007",
+          "segmentation_gold": 104,
+          "gold_start_min": 0,
+          "gold_short_lt40": 26,
+          "gold_short_lt20": 9,
+          "m2_role_rows": 190,
+          "m2_packet_start_min": 0,
+          "predicted": 63,
+          "tp_iou08": 51
+        },
+        {
+          "document_id": "HDLD008",
+          "segmentation_gold": 51,
+          "gold_start_min": 0,
+          "gold_short_lt40": 26,
+          "gold_short_lt20": 12,
+          "m2_role_rows": 86,
+          "m2_packet_start_min": 0,
+          "predicted": 13,
+          "tp_iou08": 5
+        },
+        {
+          "document_id": "HDLD009",
+          "segmentation_gold": 227,
+          "gold_start_min": 0,
+          "gold_short_lt40": 119,
+          "gold_short_lt20": 80,
+          "m2_role_rows": 432,
+          "m2_packet_start_min": 0,
+          "predicted": 57,
+          "tp_iou08": 40
+        },
+        {
+          "document_id": "HDLD011",
+          "segmentation_gold": 153,
+          "gold_start_min": 0,
+          "gold_short_lt40": 44,
+          "gold_short_lt20": 24,
+          "m2_role_rows": 306,
+          "m2_packet_start_min": 0,
+          "predicted": 44,
+          "tp_iou08": 2
+        }
+      ]
+    }
+  },
+  "interpretation": "Given 0.6725/0.2871 figures are not reproduced from the frozen full-segmentation IoU>=0.80 per-document counts. M2 packet starts and M1 full-Gold starts use different populations. No T1 contract text was opened."
+}

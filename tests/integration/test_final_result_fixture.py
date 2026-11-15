@@ -13,7 +13,7 @@ from app.risk.taxonomy import severity_for
 from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[2]
-FIXTURE = ROOT / "tests" / "fixtures" / "mock_final_result_v1.json"
+FIXTURE = ROOT / "backend/app/session/fixtures/mock_final_result_v1.json"
 SCHEMA = ROOT / "ai_pipeline" / "schemas" / "final_result_v1.json"
 
 
