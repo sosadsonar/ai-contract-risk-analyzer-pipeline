@@ -7,6 +7,12 @@ import sys
 import pytest
 from app.core.config import Settings, load_settings, validate_for_env
 
+# sẽ cho vào conftest nếu cần
+@pytest.fixture(autouse=True)
+def isolated_settings(monkeypatch):
+    monkeypatch.setitem(Settings.model_config, "env_file", None)  # không đọc .env
+    for name in Settings.model_fields:                            # xóa biến môi trường của máy
+        monkeypatch.delenv(name, raising=False)
 
 def test_dev_optional_quota_and_env_reload(monkeypatch):
     monkeypatch.setenv("APP_ENV", "dev")
