@@ -3,6 +3,7 @@
 import math
 import unicodedata
 from collections import defaultdict
+from datetime import date
 
 from app.clause.taxonomy import CLAUSE_LABEL_SET
 from app.domain.errors import LegalCorpusConflict
@@ -46,6 +47,9 @@ def _validate_versions(provisions: tuple[LegalProvision, ...]) -> None:
 
 def _validate_edges(corpus: LegalCorpus) -> None:
     nodes = {p.citation_id for p in corpus.provisions}
+    versions: dict[str, list[LegalProvision]] = defaultdict(list)
+    for provision in corpus.provisions:
+        versions[provision.citation_id].append(provision)
     parents: dict[str, set[str]] = defaultdict(set)
     for p in corpus.provisions:
         parent = ":".join(p.parent_path[:-1])
@@ -59,6 +63,13 @@ def _validate_edges(corpus: LegalCorpus) -> None:
             _fail("edges.jsonl: unknown citation endpoint")
         if edge.from_citation_id == edge.to_citation_id:
             _fail("edges.jsonl: self-loop")
+        if not any(
+            max(source.effective_from, target.effective_from)
+            <= min(source.effective_to or date.max, target.effective_to or date.max)
+            for source in versions[edge.from_citation_id]
+            for target in versions[edge.to_citation_id]
+        ):
+            _fail("edges.jsonl: no common effective interval between endpoints")
         key = (edge.from_citation_id, edge.to_citation_id, edge.edge_type)
         if key in seen_edges:
             _fail("edges.jsonl: duplicate edge")
