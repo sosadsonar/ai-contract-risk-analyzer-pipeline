@@ -186,3 +186,14 @@ def test_failure_metadata(payload, expected):
         exc.out_tokens,
         exc.usage_known,
     ) == expected
+
+
+@pytest.mark.parametrize(
+    "reported,expected",
+    [((True, -3), (0, 0, False)), ((120, None), (120, 0, False)), ((0, 40), (0, 40, True)),
+     (("120", {}), (0, 0, False))],
+)
+def test_success_reports_only_nonnegative_integer_usage(reported, expected):
+    client = DevLocalClient(app_env="dev", transport=lambda *_: (200, response('{"ok": true}', *reported)))
+    result = asyncio.run(client.generate_structured(model_id="fixture", messages=[], response_schema={}, timeout_s=1))
+    assert (result.in_tokens, result.out_tokens, result.usage_known) == expected

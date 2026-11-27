@@ -42,3 +42,19 @@ def test_source_security_signal_keeps_at_most_two_unique_labels():
     ) == (("WORKING_CONDITIONS", "TERMINATION"),)
     with pytest.raises(ValueError):
         add_source_working_conditions(["A"], [])
+
+
+@pytest.mark.parametrize("labels", [("OTHER", "JOB_INFO"), ("JOB_INFO", "LEAVE", "TRAINING", "WORKING_TIME")])
+def test_fit_rejects_invalid_taxonomy_rows(labels):
+    with pytest.raises(ValueError):
+        DevTfidfBaseline.fit(["Ví dụ tổng hợp."], [labels])
+
+
+def test_source_signal_preserves_existing_three_labels():
+    labels = ("JOB_INFO", "LEAVE", "TERMINATION")
+    assert add_source_working_conditions(["Người lao động đặt cọc."], [labels]) == (labels,)
+
+
+def test_source_signal_rejects_mixed_other():
+    with pytest.raises(ValueError, match="OTHER"):
+        add_source_working_conditions(["Người lao động đặt cọc."], [("OTHER", "JOB_INFO")])

@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from app.legal.corpus_loader import load_corpus
 
@@ -29,16 +30,30 @@ def install(source: Path, target: Path, metadata_path: Path, private_root: Path)
     for name, data in payload.items():
         if hashlib.sha256(data).hexdigest() != checksums[name]:
             raise ValueError(f"release checksum mismatch: {name}")
-    corpus = load_corpus(source, allow_draft=False)
-    if (corpus.corpus_version != metadata["corpus_version"]
-            or corpus.graph_version != metadata["graph_version"]):
-        raise ValueError("release version differs from pinned metadata")
-    # Validate everything before creating a new output; never replace/delete existing files.
+    # Validate exactly the file set to install, including any required source receipts.
     payload["manifest.yaml"] = (source / "manifest.yaml").read_bytes()
+    private_root.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(prefix=".corpus-install-", dir=private_root) as staged:
+        snapshot = Path(staged)
+        for name, data in payload.items():
+            (snapshot / name).write_bytes(data)
+        corpus = load_corpus(snapshot, allow_draft=False)
+        if (corpus.corpus_version != metadata["corpus_version"]
+                or corpus.graph_version != metadata["graph_version"]):
+            raise ValueError("release version differs from pinned metadata")
     target.mkdir(parents=True, exist_ok=False)
-    for name, data in payload.items():
-        with (target / name).open("xb") as stream:
-            stream.write(data)
+    created = []
+    try:
+        for name, data in payload.items():
+            file = target / name
+            with file.open("xb") as stream:
+                created.append(file)
+                stream.write(data)
+    except OSError:
+        for file in reversed(created):
+            file.unlink(missing_ok=True)
+        target.rmdir()
+        raise
     return {"corpus_version": corpus.corpus_version, "graph_version": corpus.graph_version,
             "release_status": corpus.release_status, "provisions": len(corpus.provisions),
             "installed_at": str(target), "usage_scope": "INTERNAL_REPO_ONLY"}

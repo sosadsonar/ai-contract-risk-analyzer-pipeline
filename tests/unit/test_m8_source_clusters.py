@@ -85,3 +85,18 @@ def test_wrong_original_document_binding_is_rejected(synthetic_dev, fake_corpus,
     _write(derived, value)
     with pytest.raises(ValueError, match="source lineage"):
         protocol.evaluate(synthetic_dev, Path("unused"))
+
+
+@pytest.mark.parametrize("enabled", [True, False])
+def test_source_signal_setting_is_applied_and_reported(synthetic_dev, fake_corpus, monkeypatch, enabled):  # noqa: F811
+    monkeypatch.setattr(protocol, "load_corpus", lambda _: fake_corpus)
+    calls = []
+
+    def signal(texts, predictions):
+        calls.append(True)
+        return predictions
+
+    monkeypatch.setattr(protocol, "add_source_working_conditions", signal)
+    result = protocol.evaluate(synthetic_dev, Path("unused"), source_working_conditions=enabled)
+    assert bool(calls) is enabled
+    assert result["predictor_config"]["source_working_conditions"] is enabled

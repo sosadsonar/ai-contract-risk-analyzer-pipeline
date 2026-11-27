@@ -63,7 +63,8 @@ def _source_clusters(restricted: Path) -> dict[str, str]:
 
 
 def evaluate(data_root: Path, corpus_root: Path, *, d2_gold_dir: Path | None = None,
-             d2_review_packet: Path | None = None, allow_draft_corpus: bool = False) -> dict:
+             d2_review_packet: Path | None = None, allow_draft_corpus: bool = False,
+             source_working_conditions: bool = True) -> dict:
     restricted = data_root / "data/intake/restricted"
     if (d2_gold_dir is None) != (d2_review_packet is None):
         raise ValueError("D2 oracle requires both a Gold export and its signed review packet")
@@ -133,7 +134,10 @@ def evaluate(data_root: Path, corpus_root: Path, *, d2_gold_dir: Path | None = N
             for index, (clause_id, citation_id) in enumerate(citations):
                 span = spans[clause_id]
                 query = masked[span["start_char"]:span["end_char"]]
-                labels = add_source_working_conditions([query], model.predict([query]))[0]
+                predicted = model.predict([query])
+                if source_working_conditions:
+                    predicted = add_source_working_conditions([query], predicted)
+                labels = predicted[0]
                 retrieved = retriever.retrieve(query, labels, as_of=as_of)
                 off = retrieved.baseline_pool
                 on, did_fallback = get_candidates(retriever, graph, query, labels,
@@ -224,6 +228,7 @@ def evaluate(data_root: Path, corpus_root: Path, *, d2_gold_dir: Path | None = N
             "d2_gold_version": d2_meta.get("dataset_version"),
             "predictor_sha256": hashlib.sha256(
                 (Path(__file__).resolve().parents[1] / "backend/app/clause/dev_tfidf_baseline.py").read_bytes()).hexdigest(),
+            "predictor_config": {"source_working_conditions": source_working_conditions},
             "held_out_used": False,
             "corpus_version": corpus.corpus_version,
             "graph_version": corpus.graph_version,
@@ -275,9 +280,12 @@ def main() -> None:
     parser.add_argument("--d2-gold-dir", type=Path)
     parser.add_argument("--d2-review-packet", type=Path)
     parser.add_argument("--allow-draft-corpus", action="store_true", help="explicit Dev-only opt-in, never runtime approval")
+    parser.add_argument("--no-source-working-conditions", action="store_false", dest="source_working_conditions",
+                        help="disable the Dev-only working-conditions keyword signal")
     args = parser.parse_args()
     result = evaluate(args.data_root, args.corpus_root, d2_gold_dir=args.d2_gold_dir,
-                      d2_review_packet=args.d2_review_packet, allow_draft_corpus=args.allow_draft_corpus)
+                      d2_review_packet=args.d2_review_packet, allow_draft_corpus=args.allow_draft_corpus,
+                      source_working_conditions=args.source_working_conditions)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n",
                            encoding="utf-8")

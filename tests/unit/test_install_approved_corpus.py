@@ -7,8 +7,11 @@ from pathlib import Path
 
 import pytest
 import yaml
+from app.domain.errors import LegalCorpusConflict
+from app.legal.corpus_loader import load_corpus
 
 from scripts.install_approved_corpus import install
+from tests.unit.test_legal_corpus_v2_release import v2_dir  # noqa: F401
 
 FIXTURE = Path(__file__).parents[1] / "fixtures/legal_corpus/valid"
 
@@ -80,3 +83,42 @@ def test_graph_version_mismatch_rejected(tmp_path):
     meta.write_text(json.dumps(metadata), encoding="utf-8")
     with pytest.raises(ValueError, match="version"):
         install(source, tmp_path / ".local/corpus", meta, tmp_path / ".local")
+
+
+@pytest.mark.parametrize("omit_receipt", [False, True])
+def test_installer_validates_the_same_bytes_it_installs(v2_dir, omit_receipt):  # noqa: F811
+    manifest = yaml.safe_load((v2_dir / "manifest.yaml").read_text(encoding="utf-8"))
+    checksums = dict(manifest["checksums"])
+    if omit_receipt:
+        del checksums["review_receipts.json"]
+    metadata = v2_dir / "metadata.json"
+    metadata.write_text(json.dumps({
+        "corpus_version": manifest["corpus_version"], "graph_version": manifest["graph_version"],
+        "usage_scope": "INTERNAL_REPO_ONLY", "release_checksums": checksums,
+    }), encoding="utf-8")
+    private = v2_dir / ".local"
+    target = private / "corpus"
+    if omit_receipt:
+        with pytest.raises(LegalCorpusConflict, match="review_receipts"):
+            install(v2_dir, target, metadata, private)
+        assert not target.exists()
+    else:
+        install(v2_dir, target, metadata, private)
+        assert load_corpus(target).release_status == "APPROVED"
+
+
+def test_failed_write_removes_its_new_target(tmp_path, monkeypatch):
+    source, metadata = _input(tmp_path)
+    private = tmp_path / ".local"
+    target = private / "corpus"
+    original_open = Path.open
+
+    def failing_open(path, mode="r", *args, **kwargs):
+        if path == target / "manifest.yaml" and mode == "xb":
+            raise OSError("injected output failure")
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", failing_open)
+    with pytest.raises(OSError, match="injected output failure"):
+        install(source, target, metadata, private)
+    assert not target.exists()
