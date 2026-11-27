@@ -37,7 +37,8 @@ def add_source_working_conditions(
     for text, labels in zip(texts, predictions):
         if not labels:
             raise ValueError("Dev clause prediction must contain a label")
-        if _SECURITY_WORKING_CONDITIONS.search(_normalize(text)):
+        # OTHER is exclusive in the frozen taxonomy; preserve it before secondary signals.
+        if "OTHER" not in labels and _SECURITY_WORKING_CONDITIONS.search(_normalize(text)):
             retained = tuple(dict.fromkeys(labels[:2]))
             result.append(retained if "WORKING_CONDITIONS" in retained
                           else (labels[0], "WORKING_CONDITIONS"))

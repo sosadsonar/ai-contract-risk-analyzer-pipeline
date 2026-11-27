@@ -30,6 +30,19 @@ def _requests_transport(url: str, body: dict, timeout_s: float):
         return r.status_code, None
 
 
+
+def _reported_token_count(payload, key):
+    if not isinstance(payload, dict):
+        return None
+
+    value = payload.get(key)
+
+    if type(value) is int and value >= 0:
+        return value
+
+    return None
+
+
 class DevLocalClient:
     def __init__(
         self,
@@ -67,9 +80,25 @@ class DevLocalClient:
         try:
             data = json.loads(payload["message"]["content"])
         except (KeyError, TypeError, json.JSONDecodeError):
-            raise ProviderFailure("invalid_json") from None
+            raise ProviderFailure(
+                "invalid_json",
+                in_tokens=_reported_token_count(
+                    payload, "prompt_eval_count"
+                ),
+                out_tokens=_reported_token_count(
+                    payload, "eval_count"
+                ),
+            ) from None
         if not isinstance(data, dict):
-            raise ProviderFailure("invalid_json")
+            raise ProviderFailure(
+                "invalid_json",
+                in_tokens=_reported_token_count(
+                    payload, "prompt_eval_count"
+                ),
+                out_tokens=_reported_token_count(
+                    payload, "eval_count"
+                ),
+            )
         return LLMResponse(
             data=data,
             model_id=model_id,

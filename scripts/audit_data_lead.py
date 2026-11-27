@@ -103,7 +103,7 @@ def audit(data_root):
     try:
         top = subprocess.check_output(
             ['git', '-C', str(data_root), 'rev-parse', '--show-toplevel'],
-            text=True, stderr=subprocess.DEVNULL,
+            text=True, encoding="utf-8", stderr=subprocess.DEVNULL,
         ).strip()
         if Path(top).resolve() == data_root.resolve():
             revision = subprocess.check_output(['git','-C',str(data_root),'rev-parse','HEAD'],text=True).strip()

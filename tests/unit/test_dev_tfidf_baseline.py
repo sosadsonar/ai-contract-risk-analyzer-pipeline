@@ -15,6 +15,10 @@ def test_fit_requires_aligned_dev_examples():
         DevTfidfBaseline.fit(["A"], [])
 
 
+def test_source_signal_preserves_other_exclusivity():
+    assert add_source_working_conditions(["Người lao động đặt cọc."], [("OTHER",)]) == (("OTHER",),)
+
+
 def test_source_security_signal_adds_second_clause_label_without_gold_lookup():
     texts = [
         "Khoản ký quỹ được hoàn trả khi hợp đồng kết thúc.",

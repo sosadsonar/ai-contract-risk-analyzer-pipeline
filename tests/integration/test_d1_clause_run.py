@@ -14,7 +14,7 @@ from ai_pipeline.evaluation.d1_clause_run import (
     run_all,
 )
 
-pytestmark = pytest.mark.skipif(
+requires_d1_data = pytest.mark.skipif(
     not (DATA_ROOT / "processed" / "clauses_v06.csv").exists(), reason="thiếu submodule ai_pipeline/data"
 )
 CFG = Settings(GEMINI_MODEL_ID="smoke", _env_file=None)
@@ -30,6 +30,7 @@ def test_offset_mapper_handles_deletions_and_nfc():
     assert all(0 <= mp(i) <= len(canon) for i in range(len(raw) + 1))
 
 
+@requires_d1_data
 def test_d1_gold_spans_map_inside_canonical_and_are_ordered():
     d1 = load_d1()
     assert sorted(d1) == ["HDLD001", "HDLD002", "HDLD003", "HDLD004"]  # BRD 0.6 §8.2
@@ -37,11 +38,12 @@ def test_d1_gold_spans_map_inside_canonical_and_are_ordered():
         assert gold and all(0 <= g.start < g.end <= len(canon) for g in gold)
 
 
-def test_t1_contract_is_refused():
+def test_t1_contract_is_refused(tmp_path):
     with pytest.raises(ValueError, match="T1"):
-        load_d1(contracts=("HDLD001", "HDLD005"))
+        load_d1(data_root=tmp_path, contracts=("HDLD001", "HDLD005"))
 
 
+@requires_d1_data
 def test_smoke_run_covers_all_d1_contracts_and_graph_inv():
     rep = asyncio.run(run_all(OtherProvider(), CFG, Path(DATA_ROOT), measured=False))
     assert rep["mode"] == "SMOKE_NOT_A_MEASUREMENT" and rep["m7_preliminary"] is None
@@ -54,6 +56,7 @@ def test_smoke_run_covers_all_d1_contracts_and_graph_inv():
     assert rep["version_pins"]["taxonomy_version"] == "clause_taxonomy_v03"
 
 
+@requires_d1_data
 def test_measured_flag_produces_m7_block_with_pins():
     rep = asyncio.run(run_all(OtherProvider(), CFG, Path(DATA_ROOT), measured=True))
     assert rep["mode"] == "MEASUREMENT_PRELIMINARY_D1" and rep["m7_preliminary"]["gold_total"] == 174
