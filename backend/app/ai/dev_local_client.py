@@ -30,6 +30,19 @@ def _requests_transport(url: str, body: dict, timeout_s: float):
         return r.status_code, None
 
 
+def _reported_token_count(payload, key):
+    """Keep zero as known usage and represent missing or invalid usage as None."""
+    if not isinstance(payload, dict):
+        return None
+
+    value = payload.get(key)
+
+    if type(value) is int and value >= 0:
+        return value
+
+    return None
+
+
 class DevLocalClient:
     def __init__(
         self,
@@ -64,15 +77,18 @@ class DevLocalClient:
             raise ProviderFailure("timeout") from None
         if status != 200:
             raise ProviderFailure("http", status=status)
+        in_tokens = _reported_token_count(payload, "prompt_eval_count")
+        out_tokens = _reported_token_count(payload, "eval_count")
         try:
             data = json.loads(payload["message"]["content"])
+            if not isinstance(data, dict):
+                raise TypeError("local response must be a JSON object")
         except (KeyError, TypeError, json.JSONDecodeError):
-            raise ProviderFailure("invalid_json") from None
-        if not isinstance(data, dict):
-            raise ProviderFailure("invalid_json")
+            raise ProviderFailure("invalid_json", in_tokens=in_tokens, out_tokens=out_tokens) from None
         return LLMResponse(
             data=data,
             model_id=model_id,
-            in_tokens=int(payload.get("prompt_eval_count", 0) or 0),
-            out_tokens=int(payload.get("eval_count", 0) or 0),
+            in_tokens=in_tokens or 0,
+            out_tokens=out_tokens or 0,
+            usage_known=in_tokens is not None and out_tokens is not None,
         )

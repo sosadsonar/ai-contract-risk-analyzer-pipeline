@@ -12,6 +12,8 @@ from typing import Sequence
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
+from app.clause.taxonomy import MAX_LABELS_PER_CLAUSE, OTHER_LABEL, validate_labels
+
 
 def _normalize(text: str) -> str:
     return unicodedata.normalize("NFC", text).casefold()
@@ -30,19 +32,18 @@ def add_source_working_conditions(
     Risk taxonomy v0.1 associates deposit and original-document retention
     with the WORKING_CONDITIONS clause label. Keep the model's leading label
     and add at most one source-derived second label on matching clauses.
+    OTHER and predictions at the taxonomy limit stay as returned by the model.
+    This can miss the secondary signal when the model predicts OTHER.
     """
     if len(texts) != len(predictions):
         raise ValueError("Dev clause texts and predictions must align")
     result = []
     for text, labels in zip(texts, predictions):
-        if not labels:
-            raise ValueError("Dev clause prediction must contain a label")
-        if _SECURITY_WORKING_CONDITIONS.search(_normalize(text)):
-            retained = tuple(dict.fromkeys(labels[:2]))
-            result.append(retained if "WORKING_CONDITIONS" in retained
-                          else (labels[0], "WORKING_CONDITIONS"))
-        else:
-            result.append(tuple(labels))
+        validated = tuple(validate_labels(list(labels)))
+        if (OTHER_LABEL not in validated and len(validated) < MAX_LABELS_PER_CLAUSE
+                and "WORKING_CONDITIONS" not in validated and _SECURITY_WORKING_CONDITIONS.search(_normalize(text))):
+            validated = (validated[0], "WORKING_CONDITIONS")
+        result.append(validated)
     return tuple(result)
 
 
@@ -54,11 +55,12 @@ class DevTfidfBaseline:
 
     @classmethod
     def fit(cls, texts: Sequence[str], labels: Sequence[Sequence[str]]) -> "DevTfidfBaseline":
-        if not texts or len(texts) != len(labels) or any(not row for row in labels):
+        if not texts or len(texts) != len(labels):
             raise ValueError("nonempty D1 training text and labels must align")
+        validated_labels = tuple(tuple(validate_labels(list(row))) for row in labels)
         vectorizer = TfidfVectorizer(analyzer="char", ngram_range=(3, 5), min_df=1, norm="l2")
         vectors = vectorizer.fit_transform(_normalize(text) for text in texts)
-        return cls(vectorizer, vectors, tuple(tuple(row) for row in labels))
+        return cls(vectorizer, vectors, validated_labels)
 
     def predict(self, texts: Sequence[str]) -> tuple[tuple[str, ...], ...]:
         if not texts:

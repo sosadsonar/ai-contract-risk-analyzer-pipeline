@@ -7,6 +7,7 @@ import sys
 import pytest
 from app.core.config import Settings, load_settings, validate_for_env
 
+
 # sẽ cho vào conftest nếu cần
 @pytest.fixture(autouse=True)
 def isolated_settings(monkeypatch):

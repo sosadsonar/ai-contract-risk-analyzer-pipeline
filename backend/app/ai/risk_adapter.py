@@ -351,6 +351,68 @@ def _batch_request(role: str, batch: list[RiskItemIn], candidates: dict[str, Leg
     return build_request(role, [i.to_payload() for i in batch], used)
 
 
+
+# Local Dev inference policy verified by DEV-09.
+# Keep the canonical Gemini-facing schema unchanged.
+_LOCAL_MAX_EXPLANATION = 600
+
+
+def _use_bounded_local_schema(cfg, provider):
+    from app.ai.dev_local_client import DevLocalClient
+
+    return (
+        getattr(cfg, "APP_ENV", None) == "dev"
+        and getattr(cfg, "DEV_LLM_PROVIDER", None) == "local"
+        and getattr(cfg, "RISK_BATCH_SIZE", None) == 1
+        and isinstance(provider, DevLocalClient)
+    )
+
+
+def _local_response_schema(batch):
+    from copy import deepcopy
+
+    schema = deepcopy(RESPONSE_SCHEMA)
+    array = schema["properties"]["items"]
+    fields = array["items"]["properties"]
+
+    array["maxItems"] = len(batch)
+
+    fields["clause_id"] = {
+        "type": "string",
+        "enum": [item.clause_id for item in batch],
+    }
+
+    fields["explanation"]["maxLength"] = (
+        _LOCAL_MAX_EXPLANATION
+    )
+
+    return schema
+
+
+def _validate_local_explanation(data):
+    if not isinstance(data, dict):
+        return
+
+    items = data.get("items")
+
+    if not isinstance(items, list):
+        return
+
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+
+        explanation = item.get("explanation")
+
+        if (
+            isinstance(explanation, str)
+            and len(explanation) > _LOCAL_MAX_EXPLANATION
+        ):
+            raise ValueError(
+                "Local explanation exceeds 600 characters"
+            )
+
+
 async def analyze_risks(
     role: str,
     items: list[RiskItemIn],
@@ -371,6 +433,9 @@ async def analyze_risks(
     if not model_id:
         raise ValueError("thiếu model id (GEMINI_MODEL_ID) — không dùng model mặc định ngầm")
 
+    bounded_local = _use_bounded_local_schema(
+        cfg, provider
+    )
     batches = make_batches(items, cfg.RISK_BATCH_SIZE)
     sem = asyncio.Semaphore(max(1, cfg.LLM_PARALLELISM))
     results: dict[int, list[RiskItemOut]] = {}
@@ -384,6 +449,8 @@ async def analyze_risks(
         attempts = {"n": 0}
 
         def validate(data: dict, b: list[RiskItemIn] = batch) -> list[RiskItemOut]:
+            if bounded_local:
+                _validate_local_explanation(data)
             strict = attempts["n"] < retries  # còn lượt retry ⇒ vi phạm ngữ nghĩa thì xin model sửa
             attempts["n"] += 1
             parsed_items = validate_batch_response(data, b)
@@ -400,7 +467,11 @@ async def analyze_risks(
                 ledger,
                 model_id=model_id,
                 messages=build_messages(_batch_request(role, batch, candidates)),
-                response_schema=RESPONSE_SCHEMA,
+                response_schema=(
+                    _local_response_schema(batch)
+                    if bounded_local
+                    else RESPONSE_SCHEMA
+                ),
                 timeout_s=cfg.LLM_TIMEOUT_SECONDS,
                 validate=validate,
                 max_retries=cfg.LLM_AUTO_RETRY,
